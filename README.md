@@ -8,8 +8,22 @@
 - CI builds: <https://jenkins.joyent.us/job/imgapi>,
   <https://stuff.joyent.us/stuff/builds/imgapi/>
 
+# Overview
+
 The Image API (IMGAPI) is the API in each SDC data center for managing
 vm (i.e. kvm and zones) images. IOW, this is the new Dataset API (DSAPI).
 `IMGAPI : SDC 7 :: DSAPI : SDC 6.5`.
+
+
+# Development
+
+    git clone git@git.joyent.com:imgapi.git
+    cd imgapi
+    git submodule update --init
+    make all
+    node main.js [OPTIONS]
+
+
+# Testing
 
 TODO
