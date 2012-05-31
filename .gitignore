@@ -3,3 +3,4 @@
 /build
 /docs/*.json
 /docs/*.html
+/smf/manifests/imgapi.xml
