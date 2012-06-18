@@ -14,3 +14,12 @@ sections to the top.*
 
 
 # XXX (DD-Mmm-YYYY)
+
+
+# Manta or not to manta (DD-Mmm-YYYY)
+
+Manta is optional. So IMGAPI needs to support DCL and a backup or alternative
+or both. DCL === Bill's datacenter local storage.
+
+MarkC: "besides, manta is deployed via images, so it sort of needs imgapi in
+the first place to get going :\ this is complicated, i fear."
