@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+#
+# Run the IMGAPI.
+# 
+TOP=$(cd $(dirname $0)/../ >/dev/null; pwd)
+NODE=$TOP/build/node/bin/node
+$NODE $TOP/main.js "$@"

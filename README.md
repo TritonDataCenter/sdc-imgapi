@@ -1,7 +1,7 @@
 # Image API
 
 - Repository: <git@git.joyent.com:imgapi.git>, <https://mo.joyent.com/imgapi>
-- Who: Trent Mick, Trevor O
+- Who: Trent Mick
 - API Docs: <https://mo.joyent.com/docs/imgapi>
 - XMPP/Jabber: <mib@groupchat.joyent.com>
 - Tickets/bugs: <https://devhub.joyent.com/jira/browse/IMGAPI>

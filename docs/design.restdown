@@ -6,19 +6,18 @@ apisections:
 
 # Image API Design Discussions
 
-**This is a Joyent internal document.** Here-in some design discussions for
-Image API, collected here because they might be helpful to understand why
-the Image API is the way it is. Each section is dated to give context if
-reading this in the future when IMGAPI design might have moved on. *Add new
-sections to the top.*
+Here-in some design discussions for Image API, collected here because they
+might be helpful to understand why the Image API is the way it is. Each section
+is dated to give context if reading this in the future when IMGAPI design might
+have moved on. *Add new sections to the top.*
 
 
 # XXX (DD-Mmm-YYYY)
 
 
-# Manta or not to manta (DD-Mmm-YYYY)
+# Manta or not to manta (01-Jun-2012)
 
-Manta is optional. So IMGAPI needs to support DCL and a backup or alternative
+Manta is optional. So IMGAPI needs to support DCL as a backup or alternative
 or both. DCL === Bill's datacenter local storage.
 
 MarkC: "besides, manta is deployed via images, so it sort of needs imgapi in

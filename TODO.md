@@ -1,3 +1,12 @@
+- IMGAPI-???: get imgapi zone in headnode:
+    - basic app structure
+    - jenkins and builds up
+    - test on kvm7
+    - add to headnode
+    - nodeunit tests basically working
+    - deps: vasync instead of async?
+    - shrinkwrap -> target to update shrinkwrap
+
 - assist in the SDC 6.5 SOP for image creation as per
   Trevor's email: https://mail.google.com/mail/u/1/?ui=2&shva=1#inbox/1379fad460845d56
 
