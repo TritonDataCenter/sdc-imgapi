@@ -35,6 +35,7 @@ endif
 include ./tools/mk/Makefile.smf.defs
 
 RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz
+TMPDIR          := /tmp/$(STAMP)
 
 
 
@@ -55,10 +56,10 @@ test: $(NODEUNIT)
 .PHONY: release
 release: all
 	@echo "Building $(RELEASE_TARBALL)"
-	@mkdir -p $(TMPDIR)/root/opt/smartdc/$(NAME)
-	@mkdir -p $(TMPDIR)/site
-	@touch $(TMPDIR)/site/.do-not-delete-me
-	@mkdir -p $(TMPDIR)/root
+	mkdir -p $(TMPDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(TMPDIR)/site
+	touch $(TMPDIR)/site/.do-not-delete-me
+	mkdir -p $(TMPDIR)/root
 	cp -r \
 		$(TOP)/build \
 		$(TOP)/main.js \
