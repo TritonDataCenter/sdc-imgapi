@@ -1,9 +1,122 @@
 ---
 title: Image API (IMGAPI)
 markdown2extras: wiki-tables, code-friendly, cuddled-lists
-apisections:
+apisections: Miscellaneous
 ---
 
 # Image API (IMGAPI)
 
 TODO
+
+
+# Miscellaneous
+
+## Ping (GET /ping)
+
+A simple ping to check to health of the IMGAPI server. Here "pid" is the PID
+of the IMGAPI server process. This is helpful for the test suite.
+
+### Inputs
+
+||**Field**||**Type**||**Description**||
+||error||String||Optional. An error code name, e.g. "ResourceNotFound" to simulate an error response.||
+||message||String||Optional. The error message to include in the simulated error response. Defaults to "pong".||
+
+### Returns
+
+When not simulating an error response, a "pong" object is returned:
+
+||**Field**||**Type**||**Description**||
+||ping||String||"pong"||
+||pid||String||The PID of IMGAPI server process.||
+||version||String||The version of the IMGAPI app..||
+
+When simulating an error, the HTTP response code depends on the error type
+and the response body is an JSON object with:
+
+||**Field**||**Type**||**Description**||
+||code||String||A restify error code, e.g. "ResourceNotFound", "InternalError". ||
+||message||String||Error message.||
+
+### Examples
+
+    $ sdc-imgapi /ping
+    HTTP/1.1 200 OK
+    Connection: close
+    Date: Wed, 02 Nov 2011 04:40:42 GMT
+    Server: IMGAPI/1.0.0
+    X-Api-Version: 1.0.0
+    X-Request-Id: 265a6379-bbf5-4d86-bd11-5e96614035d8
+    X-Response-Time: 2
+    Content-Length: 15
+    Content-MD5: tBwJDpsyo/hcYx2xrziwrw==
+    Content-Type: application/json
+    Access-Control-Allow-Origin: *
+    Access-Control-Allow-Methods: OPTIONS, GET
+    Access-Control-Allow-Headers: Accept, Content-Type, Content-Length, Date, X-Api-Version
+    Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+
+    {
+      "ping": "pong"
+      "pid": 1234,
+      "version": "1.0.0"
+    }
+
+Ping can also be used to simulate error responses from the IMGAPI:
+
+    $ sdc-imgapi /ping?error=ResourceNotFound\&message=nada
+    HTTP/1.1 404 Not Found
+    Connection: close
+    Date: Tue, 06 Dec 2011 23:43:03 GMT
+    Server: IMGAPI/1.0.0
+    X-Api-Version: 1.0.0
+    X-Request-Id: 849950cf-e9de-452b-9640-6f4c7da053e2
+    X-Response-Time: 2
+    Content-Length: 44
+    Content-MD5: /vxoedHxPf+L11uaQ8bkJQ==
+    Content-Type: application/json
+    Access-Control-Allow-Origin: *
+    Access-Control-Allow-Methods: OPTIONS, GET
+    Access-Control-Allow-Headers: Accept, Content-Type, Content-Length, Date, X-Api-Version
+    Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+
+    {
+      "code": "ResourceNotFound",
+      "message": "nada"
+    }
+
+
+
+
+# Operator Guide
+
+This section is intended to give necessary information for diagnosing and
+dealing with issues with Image API in a SmartDataCenter installation.
+
+There is one IMGAPI per datacenter. There might actually be more than
+one "imgapi" zone for HA. Use this to list the imgapi zones in a DC:
+
+    sdc-vmapi /vms?owner_uuid=$(bash /lib/sdc/config.sh -json | json ufds_admin_uuid) \
+        | json -H -c "tags.smartdc_role=='imgapi'"
+
+
+## Health
+
+An IMGAPI server has a "/ping" endpoint to indicate if it is up
+
+    $ sdc-imgapi /ping
+
+or if there are multiple IMGAPI servers:
+
+    $ for ip in $(bash /lib/sdc/config.sh -json | json imgapi_admin_ips | tr ',' ' '); do \
+        echo "# $ip" ; \
+        curl -sS http://$ip/ping | json ; \
+    done
+
+TODO: sdc-healthcheck, sdc-webinfo
+
+
+## Logs
+
+||**service/path**||**where**||**format**||**tail -f**||
+||imgapi||in each "imgapi" zone||[Bunyan](https://github.com/trentm/node-bunyan)||`` sdc-login imgapi; tail -f `svcs -L imgapi` | bunyan ``||
