@@ -43,7 +43,7 @@ RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz
 #
 .PHONY: all
 all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS)
-	$(NPM) rebuild
+	$(NPM) install && $(NPM) update
 
 $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
@@ -59,11 +59,11 @@ release: all
 	@mkdir -p $(TMPDIR)/site
 	@touch $(TMPDIR)/site/.do-not-delete-me
 	@mkdir -p $(TMPDIR)/root
-	@mkdir -p $(TMPDIR)/root/opt/smartdc/$(NAME)/etc
 	cp -r \
 		$(ROOT)/build \
 		$(ROOT)/main.js \
 		$(ROOT)/lib \
+		$(ROOT)/etc \
 		$(ROOT)/node_modules \
 		$(ROOT)/package.json \
 		$(ROOT)/smf \

@@ -4,3 +4,4 @@
 /docs/*.json
 /docs/*.html
 /smf/manifests/imgapi.xml
+/etc/imgapi.config.json
