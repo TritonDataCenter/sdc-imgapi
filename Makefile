@@ -60,15 +60,15 @@ release: all
 	@touch $(TMPDIR)/site/.do-not-delete-me
 	@mkdir -p $(TMPDIR)/root
 	cp -r \
-		$(ROOT)/build \
-		$(ROOT)/main.js \
-		$(ROOT)/lib \
-		$(ROOT)/etc \
-		$(ROOT)/node_modules \
-		$(ROOT)/package.json \
-		$(ROOT)/smf \
+		$(TOP)/build \
+		$(TOP)/main.js \
+		$(TOP)/lib \
+		$(TOP)/etc \
+		$(TOP)/node_modules \
+		$(TOP)/package.json \
+		$(TOP)/smf \
 		$(TMPDIR)/root/opt/smartdc/$(NAME)
-	(cd $(TMPDIR) && $(TAR) -jcf $(ROOT)/$(RELEASE_TARBALL) root site)
+	(cd $(TMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(TMPDIR)
 
 .PHONY: publish
@@ -78,7 +78,7 @@ publish: release
 		exit 1; \
 	fi
 	mkdir -p $(BITS_DIR)/$(NAME)
-	cp $(ROOT)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
+	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
 
 
 
