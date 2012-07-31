@@ -34,7 +34,7 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 
-RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz
+RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
 TMPDIR          := /tmp/$(STAMP)
 
 
