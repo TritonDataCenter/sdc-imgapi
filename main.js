@@ -151,6 +151,9 @@ function main() {
     var opts = handleArgv();
 
     theConfig = loadConfigSync(opts.file);
+    if (!opts.debug && theConfig.logLevel) {
+        log.level(thsConfig.logLevel)
+    }
     // Log config (but don't put passwords in the log file).
     var censorKeys = {'password': '***', 'authToken': '***', 'pass': '***'};
     function censor(key, value) {

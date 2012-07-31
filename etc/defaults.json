@@ -1,5 +1,6 @@
 {
-    "port": "8080",
+    "port": 8080,
+    "logLevel": "info",
     "userCache": {
         "size": 1000,
         "expiry": 300000

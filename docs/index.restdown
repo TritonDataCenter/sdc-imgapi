@@ -86,6 +86,20 @@ Ping can also be used to simulate error responses from the IMGAPI:
     }
 
 
+# Configuration
+
+Reference docs on configuration vars to imgapi. Default values are in
+"etc/defaults.json". Custom values are provided in a JSON file passed in with
+the "-f CFG-FILE" command-line option. By default this is
+"./etc/imgapi.config.json". Note that given custom values override full
+top-level keys in the factory settings. For example: if providing
+'userCache', one must provide the whole userCache object.
+
+||**var**||**type**||**description**||
+||port||Number||Port number on which to listen.||
+||logLevel||String||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
+||userCache.size||Number||The number of entries to cache.||
+||userCache.expiry||Number||The number of milliseconds for which cache entries are valid.||
 
 
 # Operator Guide
