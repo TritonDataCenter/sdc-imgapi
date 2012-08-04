@@ -104,7 +104,8 @@ function handleArgv() {
         usage(0);
     }
     if (opts.version) {
-        usage(0);
+        util.puts("IMGAPI " + VERSION);
+        process.exit(0);
     }
     if (! opts.file) {
         opts.file = DEFAULT_CFG;
