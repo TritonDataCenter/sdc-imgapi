@@ -16,7 +16,6 @@ set -o errexit
 res_status=
 res_body=
 
-
 eval $(cat /opt/smartdc/etc/zoneconfig)
 AMON_URL=http://$(echo $AMON_ADMIN_IPS | cut -d, -f1)
 
@@ -33,7 +32,7 @@ function fatal {
 function amon() {
     local path=$1
     shift
-    local curl_args="-sS -i -H accept:application/json -H content-type:application/json" 
+    local curl_args="-sS -i -H accept:application/json -H content-type:application/json"
     local res=$(curl $curl_args --url "$AMON_URL$path" "$@")
     res_status=$(echo "$res" | head -1 | awk '{print $2}')
     res_body=$(echo "$res" | json -Hq)
@@ -55,6 +54,18 @@ function putprobe() {
     fi
 }
 
+function deleteprobe() {
+    local account=$1
+    local monname=$2
+    local pname=$3
+    amon /pub/$account/monitors/$monname/probes/$pname -X DELETE
+    if [[ "$res_status" == "204" ]]; then
+        echo "Probe '$pname' deleted."
+    else
+        fatal "Error deleting probe '$pname': $res_status $res_body"
+    fi
+}
+
 
 
 #---- mainline
@@ -62,7 +73,8 @@ function putprobe() {
 zonename=$(zonename)
 account=$UFDS_ADMIN_UUID
 
-amon /ping
+# Sanity check that amon-master is up.
+amon /ping -f || fatal "amon-master ping failed: $res_status $res_body"
 
 # We'll create a single monitor for this imgapi zone.
 # It would be nice to name it after the zone *alias*, but
@@ -83,6 +95,7 @@ fi
 
 # Probe: Monitor the zone going down/up.
 putprobe $account $monname up "{
+    \"skipauthz\": true,
     \"type\": \"machine-up\",
     \"agent\": \"$zonename\"
 }"
@@ -90,6 +103,7 @@ putprobe $account $monname up "{
 # Probe: Monitor FATALs in the imgapi service log.
 # TODO: use an smf-log-scan probe type when available.
 putprobe $account $monname log-fatal "{
+    \"skipauthz\": true,
     \"type\": \"log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
@@ -101,6 +115,7 @@ putprobe $account $monname log-fatal "{
 # Probe: Monitor ERRORs in the imgapi service log.
 # TODO: use an smf-log-scan probe type when available.
 putprobe $account $monname log-error "{
+    \"skipauthz\": true,
     \"type\": \"log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
@@ -112,6 +127,7 @@ putprobe $account $monname log-error "{
 # Probe: Monitor the imgapi service stopping.
 # TODO: use an smf probe type when available.
 putprobe $account $monname imgapi-service "{
+    \"skipauthz\": true,
     \"type\": \"log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
@@ -119,7 +135,3 @@ putprobe $account $monname imgapi-service "{
         \"regex\": \"Stopping because\"
     }
 }"
-
-
-
-
