@@ -61,6 +61,7 @@ release: all
 	touch $(TMPDIR)/site/.do-not-delete-me
 	mkdir -p $(TMPDIR)/root
 	cp -r \
+		$(TOP)/bin \
 		$(TOP)/build \
 		$(TOP)/main.js \
 		$(TOP)/lib \
