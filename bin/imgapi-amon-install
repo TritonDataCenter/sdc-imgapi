@@ -40,29 +40,20 @@ function amon() {
 
 function putprobe() {
     local account=$1
-    local monname=$2
-    local pname=$3
-    local payload=$4
-    amon /pub/$account/monitors/$monname/probes/$pname
-    if [[ "$res_status" == "200" ]]; then
-        echo "Probe '$pname' already exists."
-    elif [[ "$res_status" == "404" ]]; then
-        echo "Create probe '$pname'."
-        amon /pub/$account/monitors/$monname/probes/$pname -X PUT -f --data "$payload"
-    else
-        fatal "Error getting probe '$pname': $res_status $res_body"
+    local payload=$2
+    local pname=$(echo "$payload" | json name)
+    if [[ -z "$pname" ]]; then
+        fatal "No 'name' for probe: $payload"
     fi
-}
-
-function deleteprobe() {
-    local account=$1
-    local monname=$2
-    local pname=$3
-    amon /pub/$account/monitors/$monname/probes/$pname -X DELETE
-    if [[ "$res_status" == "204" ]]; then
-        echo "Probe '$pname' deleted."
+    amon /pub/$account/probes
+    local probe_uuid=$(echo "$res_body" | json -H -c "name == '$pname'" -a uuid)
+    if [[ "$res_status" != "200" ]]; then
+        fatal "Error looking for probe '$pname': $res_status $res_body"
+    elif [[ -n "$probe_uuid" ]]; then
+        echo "Probe '$pname' already exists: $probe_uuid"
     else
-        fatal "Error deleting probe '$pname': $res_status $res_body"
+        echo "Create probe '$pname'."
+        amon /pub/$account/probes -X POST -f --data "$payload"
     fi
 }
 
@@ -76,62 +67,79 @@ account=$UFDS_ADMIN_UUID
 # Sanity check that amon-master is up.
 amon /ping -f || fatal "amon-master ping failed: $res_status $res_body"
 
-# We'll create a single monitor for this imgapi zone.
+# We'll create a single probe group for this imgapi zone.
 # It would be nice to name it after the zone *alias*, but
 # we'd need to depend on VMAPI to get that: overkill.
-monname=imgapi-$zonename
-amon /pub/$account/monitors/$monname
-if [[ "$res_status" == "200" ]]; then
-    echo "Monitor '$monname' already exists."
-elif [[ "$res_status" == "404" ]]; then
-    echo "Create monitor '$monname'."
-    amon /pub/$account/monitors/$monname -X PUT -f -d '{
-      "contacts": ["email"]
-    }'
+group_name=imgapi-$zonename
+amon /pub/$account/probegroups
+group_uuid=$(echo "$res_body" | json -H -c "name == '$group_name'" -a uuid)
+if [[ "$res_status" != "200" ]]; then
+    fatal "Error looking for '$group_name' probe group: $res_status $res_body"
+elif [[ -n "$group_uuid" ]]; then
+    echo "Probe group '$group_name' already exists: $group_uuid"
 else
-    fatal "Error getting monitor '$monname': $res_status $res_body"
+    echo "Create probe group '$group_name'."
+    amon /pub/$account/probegroups -X POST -f -d "{
+      \"name\": \"$group_name\",
+      \"contacts\": [\"email\"]
+    }"
+    group_uuid=$(echo "$res_body" | json -H uuid)
 fi
 
 
 # Probe: Monitor the zone going down/up.
-putprobe $account $monname up "{
+putprobe $account "{
     \"skipauthz\": true,
+    \"group\": \"$group_uuid\",
+    \"name\": \"imgapi zone up\",
     \"type\": \"machine-up\",
     \"agent\": \"$zonename\"
 }"
 
 # Probe: Monitor FATALs in the imgapi service log.
 # TODO: use an smf-log-scan probe type when available.
-putprobe $account $monname log-fatal "{
+putprobe $account "{
     \"skipauthz\": true,
+    \"group\": \"$group_uuid\",
+    \"name\": \"imgapi log fatal\",
     \"type\": \"log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
         \"path\": \"/var/svc/log/smartdc-site-imgapi:default.log\",
-        \"regex\": \"\\\"level\\\":60,\"
+        \"match\": {
+            \"pattern\": \"\\\"level\\\":60,\"
+        }
     }
 }"
 
 # Probe: Monitor ERRORs in the imgapi service log.
 # TODO: use an smf-log-scan probe type when available.
-putprobe $account $monname log-error "{
+putprobe $account "{
     \"skipauthz\": true,
+    \"group\": \"$group_uuid\",
+    \"name\": \"imgapi log error\",
     \"type\": \"log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
         \"path\": \"/var/svc/log/smartdc-site-imgapi:default.log\",
-        \"regex\": \"\\\"level\\\":50,\"
+        \"match\": {
+            \"pattern\": \"\\\"level\\\":50,\"
+        }
     }
 }"
 
 # Probe: Monitor the imgapi service stopping.
 # TODO: use an smf probe type when available.
-putprobe $account $monname imgapi-service "{
+putprobe $account "{
     \"skipauthz\": true,
+    \"group\": \"$group_uuid\",
+    \"name\": \"imgapi service stopped\",
     \"type\": \"log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
         \"path\": \"/var/svc/log/smartdc-site-imgapi:default.log\",
-        \"regex\": \"Stopping because\"
+        \"match\": {
+            \"pattern\": \"Stopping because\"
+        }
     }
 }"

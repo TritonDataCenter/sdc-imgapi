@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# Rsync the master in this working copy to the install on the bh1-kvm7 headnode
+# GZ.
+#
+
+#set -x
+set -e
+TOP=$(cd $(dirname $0)/../; pwd)
+NODE=root@10.2.207.2
+
+if [[ -z "$IMGAPI_ZONE" ]]; then
+    IMGAPI_ZONE=$(ssh $NODE "/opt/smartdc/bin/sdc-vmapi /vms" 2>/dev/null \
+        | json -H -c 'this.tags && this.tags.smartdc_role === "imgapi"' \
+            -c 'this.state === "running"' 0.uuid)
+fi
+echo "IMGAPI_ZONE: $IMGAPI_ZONE"
+
+rsync -av ${TOP}/ \
+    $NODE:/zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/ \
+    --exclude "*.node" \
+    --exclude .git/ \
+    --exclude deps/ \
+    --exclude doc/ \
+    --exclude tools/ \
+    --exclude tmp/ \
+    --exclude build/
+
+state=$(ssh ${NODE} svcs -z ${IMGAPI_ZONE} -H -o state imgapi)
+if [[ "$state" == "maintenance" ]]; then
+    ssh ${NODE} svcadm -z ${IMGAPI_ZONE} clear imgapi
+else
+    ssh ${NODE} svcadm -z ${IMGAPI_ZONE} restart imgapi
+fi
