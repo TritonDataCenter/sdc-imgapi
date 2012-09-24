@@ -5,6 +5,7 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
+    "ldapjs": "0.5.4",
     "bunyan": "0.13.2",
     "restify": "1.4.4",
     "async": "0.1.22",

@@ -21,7 +21,7 @@ NODEUNIT	:= ./node_modules/.bin/nodeunit
 # The prebuilt sdcnode version we want. See
 # "tools/mk/Makefile.node_prebuilt.targ" for details.
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_VERSION=v0.8.6
+	NODE_PREBUILT_VERSION=v0.8.9
 	NODE_PREBUILT_TAG=zone
 endif
 
