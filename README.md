@@ -25,6 +25,3 @@ vm (i.e. kvm and zones) images. IOW, this is the new Dataset API (DSAPI).
     node main.js [OPTIONS]
 
 
-# Testing
-
-TODO

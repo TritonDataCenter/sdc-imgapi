@@ -9,6 +9,95 @@ apisections: Miscellaneous
 TODO
 
 
+
+# Use Cases
+
+Here we look at some SDC use cases that touch on IMGAPI, and hence drive
+its design.
+
+
+## Use Case: Headnode setup installs core zones' images
+
+"headnode.sh" (see "/var/svc/log/system-smartdc-init:default.log") calls
+this:
+
+    imgadm install -m ${ds_manifest} -f ${ds_filename}
+
+This will never directly touch IMGAPI, because IMGAPI itself is created
+by this headnode setup. However this bootstraping is relevant for context.
+In this case, the image file and manifest are locally provided on the USB
+key.
+
+TODO: As part of the 'imgapi' zone setup, these core images should be
+added. They use local disk storage (actually assets mounted from
+"/usbkey/datasets").
+
+
+## Use Case: Operator adds new public image via operator portal
+
+Operator uses operator portal (adminui) to import a new image from
+https://images.joyent.com.
+
+TODO: fill this in
+
+
+## Use Case: Operator adds a new image just for this cloud
+
+Operator uses operator portal (adminui) to add a new image to this DC.
+
+
+## Use Case: User provisions with a public image
+
+TODO: fill this in
+
+
+## Use Case: User adds an custom image and provisions with it
+
+TODO: fill this in
+
+## Use Case: User easily gets custom image from an Ubuntu ISO
+
+Mark:
+
+    i would like it to be that i _start_ in JPC with imgadm as ISO images
+    i.e., i say "here's the ubuntu ISO image" i want to boot off of.
+    i then do whatever the fuck i want to my VM
+    i take a snapshot. and right there, that's now a new image available to me and anyone i share with (later)
+
+Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO?
+
+
+
+## Image file storage
+
+There are three possible storage mechanisms for the (large) image files.
+Which are in use depend on the IMGAPI configuration (and availability
+in the DC).
+
+1. manta: Requires an available Manta for this DC's region. All files are
+   store in the "imgapi" user's Manta area.
+2. dcls: Data Center Local Storage. TODO: details from wdp how this would
+   be used.
+3. local: A locally mounted storage dir. Currently this is '/usbkey/datasets'
+   mounted into the 'imgapi' zone(s).
+
+This is the preferred order. Only operators can add use 'local' storage.
+
+Open questions (TODO):
+
+- Revisit with product whether allowing a blessed set of users to add custom
+  images should require dcls. Or, IOW, should there be a fourth option
+  between "usbkey" and "dcls": just a mount of a lot of space to the 'imgapi'
+  zone?
+- Should 'dcls' usage be limited to a set of users? Or have a config item
+  to limit the set of users that can use it. If so, then need an endpoint
+  to update that config.
+- 'local' storage being a mount from the GZ limits HA for imgapi: can't put
+  an imgapi zone on a CN. How to avoid this limit?
+
+
+
+
 # Miscellaneous
 
 ## Ping (GET /ping)
@@ -100,6 +189,7 @@ top-level keys in the factory settings. For example: if providing
 ||logLevel||String||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
 ||userCache.size||Number||The number of entries to cache.||
 ||userCache.expiry||Number||The number of milliseconds for which cache entries are valid.||
+
 
 
 # Operator Guide
