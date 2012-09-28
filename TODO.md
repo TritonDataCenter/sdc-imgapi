@@ -5,6 +5,7 @@
 - Fill out each of the use cases in index.restdown.
 - implement basic endpoints
 - move datasets.joyent.com to JPC2
+- get headnode.sh starter images into IMGAPI
 - get storage (local and manta) working
 - re-write imgadm to be reliable
 - Spec the cloudapi endpoints.
@@ -16,6 +17,8 @@
 
 # general todos
 
+- cacheKey in ufdsmodel.js for modelList is wrong, needs to be
+  request-specific. Perhaps Model.cacheKeyFromReq()?
 - smartos-live/issues for imgadm and dsadm
 - npm shrinkwrap
 - convert dsapi test suite to a "bwcompat" test suite for

@@ -184,11 +184,15 @@ the "-f CFG-FILE" command-line option. By default this is
 top-level keys in the factory settings. For example: if providing
 'userCache', one must provide the whole userCache object.
 
-||**var**||**type**||**description**||
-||port||Number||Port number on which to listen.||
-||logLevel||String||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
-||userCache.size||Number||The number of entries to cache.||
-||userCache.expiry||Number||The number of milliseconds for which cache entries are valid.||
+||**var**||**type**||**default**||**description**||
+||port||Number||8080||Port number on which to listen.||
+||logLevel||String or Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
+||ufds.url||String||-||LDAP URL to connect to UFDS.||
+||ufds.rootDn||String||-||UFDS root dn.||
+||ufds.password||String||-||UFDS root dn password.||
+||ufds.caching||Boolean||true||Should UFDS caching should be enabled?||
+||userCache.size||Number||1000||The number of entries to cache.||
+||userCache.expiry||Number||300000 (5min)||The number of milliseconds for which cache entries are valid.||
 
 
 

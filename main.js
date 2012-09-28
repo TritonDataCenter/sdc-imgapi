@@ -14,7 +14,7 @@ var restify = require('restify');
 var bunyan = require('bunyan');
 var async = require('async');
 
-var App = require('./lib/app');
+var createApp = require('./lib/app').createApp;
 
 
 
@@ -176,22 +176,17 @@ function main() {
 }
 
 function createAndStartTheApp(next) {
-    // `theApp` is intentionally global.
-    try {
-        theApp = new App({
-            log: log,
-            port: Number(theConfig.port),
-            userCache: theConfig.userCache
-        });
+    createApp(theConfig, log, function (err, app) {
+        if (err)
+            return next(err);
+        theApp = app;  // `theApp` is intentionally global
         theApp.listen(function () {
             var addr = theApp.server.address();
             log.info('Image API listening on <http://%s:%s>.',
                 addr.address, addr.port);
             next();
         });
-    } catch (err) {
-        return next(err);
-    }
+    });
 }
 
 function setupSignalHandlers(next) {
