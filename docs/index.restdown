@@ -1,7 +1,7 @@
 ---
 title: Image API (IMGAPI)
 markdown2extras: wiki-tables, code-friendly, cuddled-lists
-apisections: Miscellaneous
+apisections: Miscellaneous API, Images API
 ---
 
 # Image API (IMGAPI)
@@ -96,9 +96,63 @@ Open questions (TODO):
   an imgapi zone on a CN. How to avoid this limit?
 
 
+# Images API
+
+An "image" object is the metadata for an image file.
+In the API, an image contains the following fields:
+
+||**Field**||**Type**||**Description**||
+||uuid||String||The UUID of the image.||
+||name||String||XXX||
+||XXX||String||XXX...||
 
 
-# Miscellaneous
+## ListImages (GET /images)
+
+List all images.
+
+### Inputs
+
+None.
+
+### Returns
+
+An array of image objects.
+
+### Errors
+
+TODO: errors
+
+### Example
+
+    $ sdc-images /images
+    TODO: example
+
+
+## GetImage (GET /images/:uuid)
+
+Get a image by uuid.
+
+### Inputs
+
+None.
+
+### Returns
+
+An image object.
+
+### Errors
+
+TODO: errors
+
+### Example
+
+    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874
+    TODO: example
+
+
+
+# Miscellaneous API
 
 ## Ping (GET /ping)
 

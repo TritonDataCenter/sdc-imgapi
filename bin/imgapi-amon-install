@@ -97,33 +97,31 @@ putprobe $account "{
 }"
 
 # Probe: Monitor FATALs in the imgapi service log.
-# TODO: use an smf-log-scan probe type when available.
 putprobe $account "{
     \"skipauthz\": true,
     \"group\": \"$group_uuid\",
     \"name\": \"imgapi log fatal\",
-    \"type\": \"log-scan\",
+    \"type\": \"bunyan-log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
         \"smfServiceName\": \"imgapi\",
-        \"match\": {
-            \"pattern\": \"\\\"level\\\":60,\"
+        \"fields\": {
+            \"level\": \"fatal\"
         }
     }
 }"
 
 # Probe: Monitor ERRORs in the imgapi service log.
-# TODO: use an smf-log-scan probe type when available.
 putprobe $account "{
     \"skipauthz\": true,
     \"group\": \"$group_uuid\",
     \"name\": \"imgapi log error\",
-    \"type\": \"log-scan\",
+    \"type\": \"bunyan-log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
-        \"path\": \"/var/svc/log/smartdc-site-imgapi:default.log\",
-        \"match\": {
-            \"pattern\": \"\\\"level\\\":50,\"
+        \"smfServiceName\": \"imgapi\",
+        \"fields\": {
+            \"level\": \"error\"
         }
     }
 }"
@@ -137,7 +135,7 @@ putprobe $account "{
     \"type\": \"log-scan\",
     \"agent\": \"$zonename\",
     \"config\": {
-        \"path\": \"/var/svc/log/smartdc-site-imgapi:default.log\",
+        \"smfServiceName\": \"imgapi\",
         \"match\": {
             \"pattern\": \"Stopping because\"
         }

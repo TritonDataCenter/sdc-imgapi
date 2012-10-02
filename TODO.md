@@ -1,7 +1,6 @@
 
 # overview
 
-- organize all notes into a plan
 - Fill out each of the use cases in index.restdown.
 - implement basic endpoints
 - move datasets.joyent.com to JPC2
