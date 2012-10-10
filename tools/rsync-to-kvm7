@@ -20,6 +20,7 @@ rsync -av ${TOP}/ \
     $NODE:/zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/ \
     --exclude "*.node" \
     --exclude .git/ \
+    --exclude etc/imgapi.config.json \
     --exclude deps/ \
     --exclude doc/ \
     --exclude tools/ \
