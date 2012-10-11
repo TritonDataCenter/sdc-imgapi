@@ -1,8 +1,16 @@
 
 # overview
 
+- get a clear error handling story (vError? long stack traces. documented errors)
+    - get current in
+        - ensure verror and restify patches get in
+    - errors.js -> ruhroh.js
+    - errors restdown generation
+    - full traceback in audit log (also need me to do restify patch for
+      formatter usage of error output?)
+- implement basic endpoints:
+    - validation lib -> perhaps generic version of assert-plus
 - Fill out each of the use cases in index.restdown.
-- implement basic endpoints
 - move datasets.joyent.com to JPC2
 - get headnode.sh starter images into IMGAPI
 - get storage (local and manta) working
@@ -11,6 +19,7 @@
 - Compat with SDC6 cloudapi dataset endpoints.
 - Review usage with customer image creation plan DATASET-323.
   Trent ref: https://mail.google.com/mail/u/1/?ui=2&shva=1#inbox/1379fad460845d56
+- usageapi/billing issues
 - what else?
 
 
