@@ -9,6 +9,19 @@ apisections: Miscellaneous API, Images API
 TODO
 
 
+# API Summary
+
+||**name**||**endpoint**||**notes**||
+||ListImages||GET /images||List available images.||
+||GetImage||GET /images/:uuid||Get a particular image manifest.||
+||GetImageFile||GET /images/:uuid/file||Stream the image file.||
+||DeleteImage||DELETE /images/:uuid||Delete an image (and its file).||
+||UpdateImage||PUT /images/:uuid||Update image manifest fields. This is limited. Some fields are immutable.||
+||CreateImage||POST /images||Create a new (inactive) image from a manifest.||
+||AddImageFile||POST /images/:uuid/file||Upload the image file and activate the image.||
+||MigrateImage||POST /images/$uuid?dc=us-west-1||Migrate one of "my" images from another DC.||
+||AdminImportImage||POST /images/$uuid||Only for operators to import an image with a specified UUID.||
+
 
 # Use Cases
 
@@ -30,7 +43,8 @@ key.
 
 TODO: As part of the 'imgapi' zone setup, these core images should be
 added. They use local disk storage (actually assets mounted from
-"/usbkey/datasets").
+"/usbkey/imgapi").
+
 
 
 ## Use Case: Operator adds new public image via operator portal
@@ -114,6 +128,8 @@ List all images.
 ### Inputs
 
 None.
+
+TODO: filter on owner_uuid or whatever field to see a *user's* available images.
 
 ### Returns
 

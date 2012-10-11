@@ -12,6 +12,150 @@ is dated to give context if reading this in the future when IMGAPI design might
 have moved on. *Add new sections to the top.*
 
 
+# CreateImage, ImportImage, etc. (2-Oct-2012)
+
+from 19-Sep-2012 discussion:
+
+    2:55:02 PM mark.cavage@eng.joyent.com: no i meant "create image looks like 'post to some url all the metadata' , imgapi validates then says 'ok, here's a place you can go write the bytes to'"
+    2:55:27 PM trent: I understood that. I was questioning the need for two steps there.
+    2:55:56 PM mark.cavage@eng.joyent.com: ok. well, up to you i suppose.
+    2:57:10 PM trent: no, seriously, did you have a reason? :)
+    2:57:34 PM mark.cavage@eng.joyent.com: i just don't understand how easy it is to combine the manifest and the byte stream in one call.
+    2:57:39 PM mark.cavage@eng.joyent.com: they feel hard to "merge"
+    2:57:44 PM trent: curl https://datasets.joyent.com/datasets/cc707720-359e-4d84-89a7-e50959ecba43 \
+        -X PUT \
+        -u joe:password \
+        -F manifest=@nodejs-1.0.0.dsmanifest \
+        -F nodejs-1.0.0.zfs.bz2=@nodejs-1.0.0.zfs.bz2
+    2:58:07 PM trent: only reason I could think to separate is that you want validation done early
+    2:58:16 PM mark.cavage@eng.joyent.com: yeah, if the image is big that's painful.
+    2:58:19 PM mark.cavage@eng.joyent.com: is all i meant.
+    2:58:20 PM trent: i.e. don't want to pay for the huge upload and ultimately fail because of a missing comma
+    2:58:22 PM mark.cavage@eng.joyent.com: but, meh. ok.
+
+So something like
+
+    POST /images -u AUTH \
+        -d name=foo
+        -d description=...
+        -d type=...
+        -d os=...
+        -d requirements=...
+        -d tag=bar
+        -d tag=baz
+    --
+    201 Created
+    Location: http://n.n.n.n/images/$uuid
+    ...
+
+    {
+        "name": "foo",
+        ...
+        "active": false,
+        "state": "waiting-for-file"   // or whatever
+    }
+
+Warning (TODO): watch out when proxying this 'Location' header via cloudapi.
+Make it relative? No, still should be absolute.
+
+Then add the file:
+
+    POST /images/$uuid/file -u AUTH -T foo.zfs.bz2    // curl's `-T FILE -X POST` option
+    --
+    200 OK
+    ...
+
+    {... the updated and now active image serialization ...}
+
+Then stream the file out via:
+
+    GET /images/$uuid/file
+
+
+## manta storage
+
+IMGAPI is running with a configured Manta. The PUT stores the file in
+"/imgapi/stor/images/$uuid/file0", where "imgapi" is actually the imgapi
+UFDS user's UUID.
+
+Note that possibly (need to understand the authn story) the GetImageFile
+could just redirect to the Manta download URL.
+
+
+## local storage
+
+The image file to be stored is requested to be stored in local storage:
+
+    POST /images/$uuid/file?storage=local
+
+Authz: only allow for operators and a configured whitelist of user UUIDs
+(config var `authzLocalStorateUuids`).
+
+Note: the HA limitation here: this IMGAPI can only be on the headnode.
+
+Physically the local storage is in "/usbkey/imgapi/images/$uuid/file0".
+"/usbkey/imgapi" is mounted into the (headnode) imgapi zone.
+
+
+## dcls storage
+
+TODO: determine how this works and revisit. However, likely this will
+be similar to 'local' storage:
+
+    POST /images/$uuid/file?storage=dcls
+
+Also, the HA limitation should *not* apply here.
+
+
+## bootstrapping an image from /usbkey/datasets
+
+    # ImportImage
+    POST /images/$uuid -H content-type:application/json \
+        --data-binary @/usbkey/datasets/smartos-1.6.3.dsmanifest
+    POST /images/$uuid/file -T /usbkey/datasets/smartos-1.6.3.zfs.bz2
+
+Authz: only allow for operators.
+
+See the "CopyImageFromDC" below:
+
+    POST /images?dc=us-west-1&uuid=:uuid
+
+Perhaps those should both be the same:
+
+    # ImportImage (only for operators)
+    POST /images/$uuid -H content-type:application/json \
+        --data-binary @/usbkey/datasets/smartos-1.6.3.dsmanifest
+
+    # ImportImage (limited to moving one's *own* images from another DC to
+    # this one).
+    POST /images/$uuid?dc=us-west-1
+
+
+## aside on multiple files
+
+The 'PUT /images/$uuid/file' works well as long as only one file is ever
+allowed. If we allow more, do we want to future proof with, say:
+
+    POST /images/$uuid/file0 -u AUTH -T foo1.zfs.bz2
+    POST /images/$uuid/file1 -u AUTH -T foo2.zfs.bz2
+    ...
+    POST /images/$uuid/end
+
+`curl -T` isn't as convenient here because it defaults to "PUT". Not sure
+if `-X POST` can just make that easy.
+
+Could then stream the files via:
+
+    GET /images/$uuid/file0
+    GET /images/$uuid/file1
+    ...
+
+Anyway, we'll cross the "multiple files" bridge if/when we come to it.
+
+
+
+
+
 # General IMGAPI plan (Sep-2012)
 
 - https://datasets.joyent.com will live until all SDC 6.x are done.
@@ -138,9 +282,6 @@ have moved on. *Add new sections to the top.*
     storage: manta, dcls, local
 
   TODO: plan out how these are handled.
-
-  - manta: Expose durability. What is the impact of that and saying
-    availability of the image in a given DC.
 
 - Q: do we need to support an SDC 6.5 headnode adminui speaking to
   images.joyent.com? Not sure. I hope not.
