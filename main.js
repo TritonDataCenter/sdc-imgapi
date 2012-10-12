@@ -121,11 +121,7 @@ function handleArgv() {
         name: NAME,
         level: logLevel,
         src: logSrc,
-        serializers: {
-            err: bunyan.stdSerializers.err,
-            req: bunyan.stdSerializers.req,
-            res: restify.bunyan.serializers.response
-        }
+        serializers: restify.bunyan.serializers
     });
     log.trace({opts: opts}, 'opts');
 
