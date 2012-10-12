@@ -22,6 +22,9 @@ TODO
 ||MigrateImage||POST /images/$uuid?dc=us-west-1||Migrate one of "my" images from another DC.||
 ||AdminImportImage||POST /images/$uuid||Only for operators to import an image with a specified UUID.||
 
+# Errors
+
+TODO
 
 # Use Cases
 

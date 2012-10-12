@@ -1,13 +1,6 @@
 
 # overview
 
-- get a clear error handling story (vError? long stack traces. documented errors)
-    - get current in
-        - ensure verror and restify patches get in
-    - errors.js -> ruhroh.js
-    - errors restdown generation
-    - full traceback in audit log (also need me to do restify patch for
-      formatter usage of error output?)
 - implement basic endpoints:
     - validation lib -> perhaps generic version of assert-plus
 - Fill out each of the use cases in index.restdown.
@@ -28,6 +21,8 @@
 - cacheKey in ufdsmodel.js for modelList is wrong, needs to be
   request-specific. Perhaps Model.cacheKeyFromReq()?
 - smartos-live/issues for imgadm and dsadm
+- error restdown table generation (TOOLS-204)
+- error response audit log body fix (restify#225)
 - npm shrinkwrap
 - convert dsapi test suite to a "bwcompat" test suite for
 - update imgadm man page
