@@ -104,7 +104,7 @@ function handleArgv() {
         usage(0);
     }
     if (opts.version) {
-        util.puts("IMGAPI " + VERSION);
+        util.puts('IMGAPI ' + VERSION);
         process.exit(0);
     }
     if (! opts.file) {
