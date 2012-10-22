@@ -98,7 +98,7 @@ function createUser(userData, next) {
       log("# User %s already exists.", user.login);
       return next(null, user);
     } else if (err.httpCode === 404) {
-      log("# Create %s.", user.login);
+      log("# Create %s.", userData.login);
       ufdsClient.addUser(userData, next);
     } else {
       return next(err);

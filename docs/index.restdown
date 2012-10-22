@@ -26,6 +26,116 @@ TODO
 
 TODO
 
+
+# Image manifest data
+
+An image manifest is all the data about an image except the image file itself.
+Generally this is represented as a JSON object. For example:
+
+    XXX
+    {
+      "uuid": "63ce06d8-7ae7-11e0-b0df-1fcf8f45c5d5",
+      "cloud_name": "sdc",
+      "creator_uuid": "930896af-bf8c-48d4-885c-6573a94b1853",
+      "type": "zone-dataset",
+      "name": "base 2.0.0",
+      "description": "Base template to build other templates on",
+      "published_at": "2011-05-10T09:25Z",
+      "os": "smartos",
+      "files": [
+        {
+          "path": "smartos-1.3.13.zfs.bz2",
+          "sha1": "a287dc535e2fb9a5a8e26b211156016b4e6cf267",
+          "size": 41982720
+        }
+      ],
+      "requirements": {
+        "networks": [
+          {
+            "name": "net0",
+            "description": "public"
+          }
+        ]
+      }
+    }
+
+A summary of fields (details are provided below)
+
+||**Field**||**Type**||**Required?**||**Notes**||
+||[uuid](#manifest-uuid)||UUID||N/A||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
+||[name](#manifest-name)||String||Yes||A short name (and optionally version) for this image. No uniqueness guarantee.||
+||[disabled](#manifest-disabled)||Boolean||No||Indicates if this image is available for provisioning.||
+||[published_at](#manifest-published_at)||Date||N/A||This is set by the server when published||
+||[type](#manifest-type)||String||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[os](#manifest-os)||String||Yes||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[files](#manifest-files)||Array||Yes||An array with a single object describing the image file.||
+
+<!--
+||[XXX](#manifest-XXX)||XXX||XXX||XXX||
+
+TODO: the optional ones
+TODO: bwcompat ones and new ones from datasets.joyent.com/docs
+TODO: new ones from design.restdown section
+-->
+
+
+## Manifest: uuid
+
+An image `uuid` is the unique identifier for this UUID. This is what you
+use to provision a VM. (For backwards compatibility unique identification
+via a `urn` field is supported for legacy images. See the [urn section
+below](#manifest-urn).)
+
+An image UUID is create by the server on the [CreateImage](#CreateImage).
+There are two exceptions: (1) The [MigrateImage](#MigrateImage) endpoint will
+copy an image between two datacenters in the same cloud and persist the
+UUID. (2) SDC operators can use the [AdminImportImage](#AdminImportImage)
+to add an image with a specified UUID. In the latter case it is the
+responsibility of the operator to ensure a given UUID is not duplicated,
+or refers to different image data between separate clouds. A common case
+for the latter is importing "core" Joyent-provided images from
+<https://images.joyent.com>.
+
+## Manifest: name
+
+TODO: docs
+
+
+## Manifest: disabled
+
+TODO: docs, show how to change this with UpdateImage
+
+
+## Manifest: published_at
+
+TODO: docs, server-set (same exceptions as UUID above)
+
+
+## Manifest: type
+
+The type of the image file. Must be one of:
+
+||**OS**||**DESCRIPTION**||
+||zone-dataset||a ZFS dataset used to create a new SmartOS zone||
+||zvol||a KVM virtual machine image||
+
+
+## Manifest: os
+
+The operating system of the image file. Must be one of:
+
+||**OS**||**NOTES**||
+||smartos||SmartOS||
+||linux||Linux, e.g. CentOS, Ubuntu, etc.||
+||windows||A Microsoft Windows OS image||
+||other||A catch-all for other operating systems.||
+
+
+## Manifest: files
+
+TODO: doc files
+
+
 # Use Cases
 
 Here we look at some SDC use cases that touch on IMGAPI, and hence drive
