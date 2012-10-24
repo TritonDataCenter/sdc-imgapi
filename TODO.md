@@ -2,7 +2,8 @@
 # overview
 
 - implement basic endpoints:
-    - validation lib -> perhaps generic version of assert-plus
+    - ListImages: by default exclude unactivated, provide way to show them,
+      what about disabled? in or out by default?
 - Fill out each of the use cases in index.restdown.
 - move datasets.joyent.com to JPC2
 - get headnode.sh starter images into IMGAPI

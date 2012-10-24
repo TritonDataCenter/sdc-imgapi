@@ -52,7 +52,7 @@ So something like
         "name": "foo",
         ...
         "active": false,
-        "state": "waiting-for-file"   // or whatever
+        "state": "unactivated"   // or whatever
     }
 
 Warning (TODO): watch out when proxying this 'Location' header via cloudapi.
@@ -60,16 +60,28 @@ Make it relative? No, still should be absolute.
 
 Then add the file:
 
-    POST /images/$uuid/file -u AUTH -T foo.zfs.bz2    // curl's `-T FILE -X POST` option
+    PUT /images/$uuid/file -u AUTH -T foo.zfs.bz2    // curl's `-T FILE` option
     --
     200 OK
     ...
 
-    {... the updated and now active image serialization ...}
+    {... the updated image serialization, state is 'unactivated' ...}
 
-Then stream the file out via:
+Not active yet, need to end file input -- this allows for future addition
+of support for multiple files.
+
+    POST /images/$uuid/activate
+    --
+    200 OK
+
+    {... active image serialization ...}
+
+Then can later stream the file out via:
 
     GET /images/$uuid/file
+
+Note that here we are implicitly using "file" as an alias for "file0". The
+latter will only be exposed if/when we support multi-file images.
 
 
 ## manta storage

@@ -15,6 +15,7 @@ var bunyan = require('bunyan');
 var async = require('async');
 
 var createApp = require('./lib/app').createApp;
+var objCopy = require('./lib/utils').objCopy;
 
 
 
@@ -72,7 +73,7 @@ function loadConfigSync(configPath) {
     if (configPath) {
         if (! fs.existsSync(configPath)) {
             usage(1, 'Config file not found: "' + configPath +
-              '" does not exist. Aborting. (Tip: An empty JSON doc is fine.)');
+              '" does not exist. Aborting.');
         }
         log.info('Loading additional config from "%s".', configPath);
         var extraConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
@@ -117,11 +118,13 @@ function handleArgv() {
         if (opts.debug.length > 2)
             logSrc = true;
     }
+    var serializers = objCopy(restify.bunyan.serializers);
+    serializers.image = function (image) { return image.serialize(); };
     log = bunyan.createLogger({  // `log` is intentionally global.
         name: NAME,
         level: logLevel,
         src: logSrc,
-        serializers: restify.bunyan.serializers
+        serializers: serializers
     });
     log.trace({opts: opts}, 'opts');
 
