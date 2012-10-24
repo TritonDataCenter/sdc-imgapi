@@ -9,23 +9,29 @@ apisections: Miscellaneous API, Images API
 TODO
 
 
+
 # API Summary
 
 ||**name**||**endpoint**||**notes**||
 ||ListImages||GET /images||List available images.||
 ||GetImage||GET /images/:uuid||Get a particular image manifest.||
-||GetImageFile||GET /images/:uuid/file||Stream the image file.||
+||GetImageFile||GET /images/:uuid/file||Get the file for this image.||
 ||DeleteImage||DELETE /images/:uuid||Delete an image (and its file).||
-||UpdateImage||PUT /images/:uuid||Update image manifest fields. This is limited. Some fields are immutable.||
-||CreateImage||POST /images||Create a new (inactive) image from a manifest.||
+||CreateImage||POST /images||Create a new (unactivated) image from a manifest.||
 ||AddImageFile||PUT /images/:uuid/file||Upload the image file.||
-||ActivateImage||POST /images/:uuid/activate||Activate the image.||
-||MigrateImage||POST /images/$uuid?dc=us-west-1||Migrate one of "my" images from another DC.||
-||AdminImportImage||POST /images/$uuid||Only for operators to import an image with a specified UUID.||
+||ActivateImage||POST /images/:uuid?action=activate||Activate the image.||
+||UpdateImage||POST /images/:uuid?action=update||**NYI** Update image manifest fields. This is limited. Some fields are immutable.||
+||DisableImage||POST /images/:uuid?action=disable||**NYI** Disable the image.||
+||EnableImage||POST /images/:uuid?action=enable||**NYI** Enable the image.||
+||MigrateImage||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
+||AdminImportImage||POST /images/$uuid?action=import||**NYI** Only for operators to import an image with a specified UUID.||
+
+
 
 # Errors
 
 TODO
+
 
 
 # Image manifest data
@@ -113,13 +119,13 @@ The current state of the image. One of the following values:
 ||**State**||**Description**||
 ||active||The image is ready for use, i.e. VMs can be provisioned using this image.||
 ||unactivated||The image has not yet been activated. See [ActivateImage](#ActivateImage).||
-||disabled||The image is disabled. This will be the state if the image is activated, but also `disabled == true`.||
+||disabled||The image is disabled. This will be the state if the image is activated, but also `disabled == true`. See [EnableImage](#EnableImage) and [DisableImage](#DisableImage).||
 
 
 
 ## Manifest: disabled
 
-TODO: docs, show how to change this with UpdateImage
+TODO: docs, show how to change this with DisableImage
 
 
 ## Manifest: published_at
@@ -150,6 +156,7 @@ The operating system of the image file. Must be one of:
 ## Manifest: files
 
 TODO: doc files
+
 
 
 # Use Cases
@@ -239,6 +246,7 @@ Open questions (TODO):
   an imgapi zone on a CN. How to avoid this limit?
 
 
+
 # Images API
 
 An "image" object is the metadata for an image file.
@@ -294,6 +302,127 @@ TODO: errors
 
     $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874
     TODO: example
+
+
+## GetImageFile (GET /images/:uuid/file)
+
+Get the image file.
+
+### Inputs
+
+None.
+
+### Returns
+
+The (typically large) image file content.
+
+### Errors
+
+TODO: errors
+
+### Example
+
+    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -o image.zfs.bz2
+
+
+## DeleteImage (DELETE /images/:uuid)
+
+Delete this image (and its file, if any).
+
+### Inputs
+
+None.
+
+### Returns
+
+Responds with HTTP 204 (No Content).
+
+### Errors
+
+TODO: errors
+
+### Example
+
+    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -X DELETE
+
+
+## CreateImage (POST /images)
+
+Create a new (unactivated) image from a manifest. The typical process is to
+subsequently call [AddImageFile](#AddImageFile) and then
+[ActivateImage](#ActivateImage) to finish with an image available for
+provisioning.
+
+### Inputs
+
+TODO: inputs
+
+### Returns
+
+The (unactivated) image object.
+
+### Errors
+
+TODO: errors
+
+### Example
+
+    $ sdc-image /images -X POST \
+        --data-binary '{"name": "foo", "type": "zone-dataset", "os": "smartos"}'
+    TODO: example
+
+
+## AddImageFile (PUT /images/:uuid/file)
+
+Add the image file. If the image already has a file, it will be overwritten.
+A file can only be added to an image that has not yet been activated. The
+typical process is to call this after [CreateImage](#CreateImage), and then
+subsequently call [ActivateImage](#ActivateImage) to make the image available
+for provisioning, `state == "active"`.
+
+### Inputs
+
+The image file.
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+TODO: errors
+
+### Example
+
+This example is using curl's `-T/--upload-file <file>` option, which results
+in a PUT.
+
+    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -T image.zfs.bz2
+
+
+## ActivateImage (POST /images/:uuid?action=activate)
+
+Activate the image. This makes the image available for provisioning -- the
+`state` field will be "active". The image must already have had a file
+uploaded via [AddImageFile](#AddImageFile). Once activated, an image cannot
+be "deactivated". However it can be [*disabled*](#DisableImage) temporarily
+or [*deleted*](#DeleteImage) permanently.
+
+### Inputs
+
+None.
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+TODO: errors
+
+### Example
+
+    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874?action=activate -X POST
 
 
 
@@ -372,6 +501,7 @@ Ping can also be used to simulate error responses from the IMGAPI:
       "code": "ResourceNotFound",
       "message": "nada"
     }
+
 
 
 # Configuration
