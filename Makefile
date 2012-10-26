@@ -44,7 +44,7 @@ TMPDIR          := /tmp/$(STAMP)
 #
 .PHONY: all
 all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS)
-	$(NPM) install && $(NPM) update
+	$(NPM) install
 
 $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
