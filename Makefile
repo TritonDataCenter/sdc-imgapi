@@ -69,6 +69,7 @@ release: all
 		$(TOP)/node_modules \
 		$(TOP)/package.json \
 		$(TOP)/smf \
+		$(TOP)/test \
 		$(TMPDIR)/root/opt/smartdc/$(NAME)
 	(cd $(TMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(TMPDIR)
