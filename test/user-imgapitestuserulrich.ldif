@@ -1,0 +1,16 @@
+dn: uuid=6a25f20a-1111-1111-1111-111111111111, ou=users, o=smartdc
+changetype: add
+login: imgapitestuserulrich
+uuid: 6a25f20a-1111-1111-1111-111111111111
+userpassword: 123123
+email: trentm+imgapitestuserulrich@gmail.com
+cn: Ulrich
+sn: IMGAPI Test User
+company: Joyent
+address: 1 Robson Street
+city: Vancouver
+state: BC
+postalCode: V1P 1A1
+country: Canada
+phone: +1 604 555 1212
+objectclass: sdcPerson

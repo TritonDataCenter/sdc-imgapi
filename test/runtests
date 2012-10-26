@@ -1,0 +1,195 @@
+#!/bin/bash
+#
+# Copyright (c) 2012, Joyent, Inc. All rights reserved.
+#
+# Run the IMGAPI tests. This is expected to be run from an IMGAPI zone
+# in a full SDC (and Manta) setup.
+#
+# This creates .tap files in the OUTPUT_DIR (/var/tmp/imgapitest) that
+# can be processed by a TAP reader. Testing config and log files are
+# also placed in this dir.
+#
+# Run `./runtests -h` for usage info.
+#
+
+if [ "$TRACE" != "" ]; then
+    export PS4='${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+
+#---- guard
+
+if [[ ! -f "/lib/sdc/.sdc-test-no-production-data" ]]; then
+    cat <<EOF
+To run this test you must create the file:
+
+    /lib/sdc/.sdc-test-no-production-data
+
+after ensuring you have no production data on this SDC.
+EOF
+    exit 2
+fi
+
+
+
+#---- support functions
+
+function fatal
+{
+    echo "$(basename $0): fatal error: $*"
+    exit 1
+}
+
+function usage
+{
+    echo "Usage:"
+    echo "  runtests [OPTIONS...]"
+    echo ""
+    echo "Options:"
+    echo "  -c          Just clean up test data, don't run the tests."
+    echo "  -q          Quick clean (don't blow away test users)."
+    echo "  -f FILTER   Filter pattern (substring match) for test files to run."
+}
+
+
+
+#---- mainline
+
+start_time=$(date +%s)
+
+TOP=$(cd $(dirname $0)/../; pwd)
+NODE_INSTALL=$TOP/build/node
+NODEUNIT=./node_modules/.bin/nodeunit
+
+
+# Options.
+opt_just_clean=
+opt_quick_clean=
+opt_test_pattern=
+opt_just_prep=
+while getopts "hcqpf:" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        c)
+            opt_just_clean=yes
+            ;;
+        q)
+            opt_quick_clean=yes
+            ;;
+        p)
+            opt_just_prep=yes
+            ;;
+        f)
+            opt_test_pattern=$OPTARG
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+
+# Setup a clean output dir.
+OUTPUT_DIR=/var/tmp/imgapitest
+echo "# Setup a clean output dir ($OUTPUT_DIR)."
+rm -rf $OUTPUT_DIR
+mkdir -p $OUTPUT_DIR
+
+
+# Gather datacenter data to be used by the test suite.
+CFG_FILE=/opt/smartdc/imgapi/etc/imgapi.config.json
+if [[ -z "$UFDS_URL" ]]; then
+    [[ ! -f "$CFG_FILE" ]] && fatal "'$CFG_FILE' does not exist"
+    export UFDS_URL=$(json ufds.url <$CFG_FILE)
+    export UFDS_ROOT_DN=$(json ufds.rootDn <$CFG_FILE)
+    export UFDS_PASSWORD=$(json ufds.password <$CFG_FILE)
+fi
+if [[ -z "$IMGAPI_URL" ]]; then
+    [[ ! -f "$CFG_FILE" ]] && fatal "'$CFG_FILE' does not exist"
+    export IMGAPI_URL=http://$(/usr/sbin/ifconfig net0 | grep inet | awk '{print $2}')
+    export IMGAPI_PORT=$(json port <$CFG_FILE)
+    if [[ -n "$IMGAPI_PORT" && "$IMGAPI_PORT" != "80" ]]; then
+        export IMGAPI_URL=$IMGAPI_URL:$IMGAPI_PORT
+    fi
+fi
+
+echo ""
+echo "# Datacenter config:"
+echo "# UFDS_URL is $UFDS_URL"
+echo "# UFDS_ROOTDN is $UFDS_ROOTDN"
+echo '# UFDS_PASSWORD is ***'
+echo "# IMGAPI_URL is $IMGAPI_URL"
+
+
+# Currently not sure if we need to run from $TOP. Let's just do so.
+cd $TOP
+
+# Clean old test data.
+echo ""
+clean_opts=
+if [[ -n "$opt_quick_clean" ]]; then
+    clean_opts+=" -q"
+fi
+bash $TOP/test/clean-test-data.sh $clean_opts
+if [[ -n "$opt_just_clean" ]]; then
+    exit 0;
+fi
+
+## Bootstrap base test data.
+#echo ""
+#PATH=$NODE_INSTALL/bin:$PATH node $TOP/test/prep.js
+#if [[ -n "$opt_just_prep" ]]; then
+#    exit 0;
+#fi
+
+# Run the tests.
+echo ""
+test_files=$(ls -1 test/*.test.js)
+if [[ -n "$opt_test_pattern" ]]; then
+    test_files=$(echo "$test_files" | grep "$opt_test_pattern" || true)
+    echo "# Running filtered set of test files: $test_files"
+fi
+# maintenances.test.js needs longer timeout
+if [[ -n "$test_files" ]]; then
+    PATH=$NODE_INSTALL/bin:$PATH $NODEUNIT --reporter tap $test_files \
+        | tee $OUTPUT_DIR/imgapi.tap
+fi
+
+
+echo ""
+echo "# test output:"
+ls $OUTPUT_DIR/*.tap
+
+
+# Colored summary of results (borrowed from smartos-live.git/src/vm/run-tests).
+echo ""
+echo "# test results:"
+
+end_time=$(date +%s)
+elapsed=$((${end_time} - ${start_time}))
+
+tests=$(grep "^# tests [0-9]" $OUTPUT_DIR/*.tap | cut -d ' ' -f3 | xargs | tr ' ' '+' | bc)
+passed=$(grep "^# pass  [0-9]" $OUTPUT_DIR/*.tap | tr -s ' ' | cut -d ' ' -f3 | xargs | tr ' ' '+' | bc)
+[[ -z ${tests} ]] && tests=0
+[[ -z ${passed} ]] && passed=0
+fail=$((${tests} - ${passed}))
+
+echo "# Completed in ${elapsed} seconds."
+echo -e "# \033[32mPASS: ${passed} / ${tests}\033[39m"
+if [[ ${fail} -gt 0 ]]; then
+    echo -e "# \033[31mFAIL: ${fail} / ${tests}\033[39m"
+fi
+echo ""
+
+if [[ ${tests} != ${passed} ]]; then
+    exit 1
+fi

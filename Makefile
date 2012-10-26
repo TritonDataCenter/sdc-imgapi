@@ -50,7 +50,7 @@ $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
 
 .PHONY: test
-test: $(NODEUNIT)
+test: | $(NODEUNIT)
 	$(NODEUNIT) test/*.test.js
 
 .PHONY: release
