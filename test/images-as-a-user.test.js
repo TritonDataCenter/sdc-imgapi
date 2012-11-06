@@ -23,6 +23,14 @@ var vader = '86055c40-2547-11e2-8a6b-4bb37edc84ba';
 var luke = '91ba0e64-2547-11e2-a972-df579e5fddb3';
 var emperor = 'a0b6b534-2547-11e2-b758-63a2afd747d1';
 var sdc = 'ba28f844-8cb4-f141-882d-46d6251e6a9f';
+var imageUuidFromName = {
+    'base-1.8.1': 'c58161c0-2547-11e2-a75e-9fdca1940570',
+    'nodejs-1.0.0': 'da58c25a-2547-11e2-9b8d-136daa650e8a',
+    'base-2.0.0': 'e078a6aa-2547-11e2-8688-03ac37b2b4a0',
+    'i-am-your-father': '7a1b1967-6ecf-1e4c-8f09-f49094cc36ad',
+    'come-to-the-dark-side': '9f819499-8298-9842-8cc5-1c2838196ab4',
+    'he-will-join-us-or-die': '2d28c64f-fb16-2145-a0ca-f626aea35c77'
+};
 
 
 
@@ -329,36 +337,32 @@ Object.keys(data).forEach(function (name) {
         });
     });
 })
-/*
-test('ListImages: everyone case see "base-1.8.1"', function (t) {
-    var self = this;
-    var name = 'base-1.8.1';
-    var users = [
-        {uuid: vader, cansee: true},
-        {uuid: luke, cansee: true},
-        {uuid: emperor, cansee: true},
-        {uuid: sdc, cansee: true},
-    ];
-    async.forEach(users, function (user, next) {
-        var opts = {user: user.uuid};
-        self.imgapiClient.listImages(opts, function (err, images) {
-            if (err) {
-                return next(err);
-            }
-            var names = images.map(function (i) { return i.name });
-            if (user.cansee) {
-                t.ok(names.indexOf(name) !== -1,
-                    format('user %s can see image %s', user.uuid, name));
-            } else {
-                t.equal(names.indexOf(name), -1,
-                    format('user %s cannot see image %s', user.uuid, name));
-            }
-            next();
+
+// Ensure the same visibilities for GetImage.
+Object.keys(data).forEach(function (name) {
+    test(format('GetImage: who can see "%s"?', name), function (t) {
+        var self = this;
+        var imageUuid = imageUuidFromName[name];
+        var users = data[name];
+        async.forEach(users, function (user, next) {
+            self.imgapiClient.getImage(imageUuid, user.uuid, function (err, image) {
+                if (!user.cansee) {
+                    t.ok(err);
+                    t.equal(err.statusCode, 404,
+                        format('user %s cannot see image %s', user.login,
+                               name));
+                    t.notOk(image);
+                } else {
+                    t.equal(image.uuid, imageUuid,
+                        format('user %s can see image %s', user.login, name));
+                    t.ifError(err, err);
+                }
+                next();
+            });
+        }, function (err2) {
+            t.ifError(err2, err2);
+            t.end();
         });
-    }, function (err2) {
-        t.ifError(err2, err2);
-        t.end();
     });
-});
-*/
+})
 

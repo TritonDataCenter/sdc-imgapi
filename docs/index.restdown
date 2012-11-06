@@ -311,9 +311,14 @@ TODO: errors
 
 Get a image by uuid.
 
+There are two typical calling styles to this endpoint: with 'user=$UUID' and
+without. The former is what cloudapi uses to ask on behalf of a particular
+authenticated user. The latter is for operator-only querying.
+
 ### Inputs
 
-None.
+||**Field**||**Type**||**Description**||
+||user||UUID||Only return an image visible to this account. A user can only see: (a) active public images, (b) active private images of which they are a designated 'user', and (c) their own images.||
 
 ### Returns
 
