@@ -2,6 +2,7 @@
 # overview
 
 - implement basic endpoints:
+    - GetImage: ?user=UUID visible handler as per ListImages
     - ListImages: cache invalidation testing
     - all except: UpdateImage, DisableImage, EnableImage, MigrateImage, AdminImportImage
     - local storage: /var/db/imgapi

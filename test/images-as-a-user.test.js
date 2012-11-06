@@ -6,6 +6,7 @@
 
 var format = require('util').format;
 
+var async = require('async');
 var IMGAPI = require('sdc-clients').IMGAPI;
 
 
@@ -255,4 +256,109 @@ test('ListImages: luke, owner=sdc', function (t) {
         t.end();
     })
 });
+
+
+// Tests from test-data.ldif comment.
+var data = {
+    // 1. everyone can see 'base-1.8.1'
+    'base-1.8.1': [
+        {uuid: vader,   login: 'vader',   cansee: true},
+        {uuid: luke,    login: 'luke',    cansee: true},
+        {uuid: emperor, login: 'emperor', cansee: true},
+        {uuid: sdc,     login: 'sdc',     cansee: true},
+    ],
+    // 2. only sdc can see 'nodejs-1.0.0'
+    'nodejs-1.0.0': [
+        {uuid: vader,   login: 'vader',   cansee: false},
+        {uuid: luke,    login: 'luke',    cansee: false},
+        {uuid: emperor, login: 'emperor', cansee: false},
+        {uuid: sdc,     login: 'sdc',     cansee: true},
+    ],
+    // 3. only sdc can see 'base-2.0.0'
+    'base-2.0.0': [
+        {uuid: vader,   login: 'vader',   cansee: false},
+        {uuid: luke,    login: 'luke',    cansee: false},
+        {uuid: emperor, login: 'emperor', cansee: false},
+        {uuid: sdc,     login: 'sdc',     cansee: true},
+    ],
+    // 4. vader and luke can see 'i-am-your-father'
+    'i-am-your-father': [
+        {uuid: vader,   login: 'vader',   cansee: true},
+        {uuid: luke,    login: 'luke',    cansee: true},
+        {uuid: emperor, login: 'emperor', cansee: false},
+        {uuid: sdc,     login: 'sdc',     cansee: false},
+    ],
+    // 5. only vader can see 'come-to-the-dark-side'
+    'come-to-the-dark-side': [
+        {uuid: vader,   login: 'vader',   cansee: true},
+        {uuid: luke,    login: 'luke',    cansee: false},
+        {uuid: emperor, login: 'emperor', cansee: false},
+        {uuid: sdc,     login: 'sdc',     cansee: false},
+    ],
+    // 6. only vader can see 'he-will-join-us-or-die'
+    'he-will-join-us-or-die': [
+        {uuid: vader,   login: 'vader',   cansee: true},
+        {uuid: luke,    login: 'luke',    cansee: false},
+        {uuid: emperor, login: 'emperor', cansee: false},
+        {uuid: sdc,     login: 'sdc',     cansee: false},
+    ],
+};
+Object.keys(data).forEach(function (name) {
+    test(format('ListImages: who can see "%s"?', name), function (t) {
+        var self = this;
+        var users = data[name];
+        async.forEach(users, function (user, next) {
+            var opts = {user: user.uuid, state: 'all'};
+            self.imgapiClient.listImages(opts, function (err, images) {
+                if (err) {
+                    return next(err);
+                }
+                var names = images.map(function (i) { return i.name });
+                if (user.cansee) {
+                    t.ok(names.indexOf(name) !== -1,
+                        format('user %s can see image %s', user.login, name));
+                } else {
+                    t.equal(names.indexOf(name), -1,
+                        format('user %s cannot see image %s', user.login, name));
+                }
+                next();
+            });
+        }, function (err2) {
+            t.ifError(err2, err2);
+            t.end();
+        });
+    });
+})
+/*
+test('ListImages: everyone case see "base-1.8.1"', function (t) {
+    var self = this;
+    var name = 'base-1.8.1';
+    var users = [
+        {uuid: vader, cansee: true},
+        {uuid: luke, cansee: true},
+        {uuid: emperor, cansee: true},
+        {uuid: sdc, cansee: true},
+    ];
+    async.forEach(users, function (user, next) {
+        var opts = {user: user.uuid};
+        self.imgapiClient.listImages(opts, function (err, images) {
+            if (err) {
+                return next(err);
+            }
+            var names = images.map(function (i) { return i.name });
+            if (user.cansee) {
+                t.ok(names.indexOf(name) !== -1,
+                    format('user %s can see image %s', user.uuid, name));
+            } else {
+                t.equal(names.indexOf(name), -1,
+                    format('user %s cannot see image %s', user.uuid, name));
+            }
+            next();
+        });
+    }, function (err2) {
+        t.ifError(err2, err2);
+        t.end();
+    });
+});
+*/
 
