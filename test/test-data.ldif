@@ -1,0 +1,152 @@
+# Test data for IMGAPI
+#
+# users (prefixed with 'imgapitest'): vader, luke, emperor, sdc
+# images:
+#   - base-1.8.1 (owner: sdc, state=active, public=true)
+#   - nodejs-1.0.0 (owner: sdc, state=disabled, public=true)
+#   - base-2.0.0 (owner: sdc, state=unactivated, public=true)
+#   - i-am-your-father (owner: vader, state=active, public=false, users=luke)
+#   - come-to-the-dark-side (owner: vader, state=disabled, public=false, users=luke)
+#   - he-will-join-us-or-die (owner: vader, state=unactivated, public=false, users=emperor)
+#
+# Image visibility cases (only applies when '?user=UUID' param is specified
+# to the relevant endpoints):
+# - unactivated: only owner can see
+# - public & active: all can see
+# - public & disabled: only owner can see
+# - private & active: only owner and users can see
+# - private & disabled: only owner can see
+#
+# ListImages visibility tests:
+# 1. everyone can see 'base-1.8.1'
+# 2. only sdc can see 'nodejs-1.0.0'
+# 3. only sdc can see 'base-2.0.0'
+# 4. vader and luke can see 'i-am-your-father'
+# 5. only vader can see 'come-to-the-dark-side'
+# 6. only vader can see 'he-will-join-us-or-die'
+#
+
+dn: uuid=86055c40-2547-11e2-8a6b-4bb37edc84ba, ou=users, o=smartdc
+changetype: add
+login: imgapitestvader
+uuid: 86055c40-2547-11e2-8a6b-4bb37edc84ba
+userpassword: 123123
+email: nobody+vader@joyent.com
+cn: Darth
+sn: IMGAPI Vader
+objectclass: sdcPerson
+
+dn: uuid=91ba0e64-2547-11e2-a972-df579e5fddb3, ou=users, o=smartdc
+changetype: add
+login: imgapitestluke
+uuid: 91ba0e64-2547-11e2-a972-df579e5fddb3
+userpassword: 123123
+email: nobody+luke@joyent.com
+cn: Luke
+sn: IMGAPI Skywalker
+objectclass: sdcPerson
+
+dn: uuid=a0b6b534-2547-11e2-b758-63a2afd747d1, ou=users, o=smartdc
+changetype: add
+login: imgapitestemperor
+uuid: a0b6b534-2547-11e2-b758-63a2afd747d1
+userpassword: 123123
+email: nobody+emperor@joyent.com
+cn: Emperor
+sn: IMGAPI Palpatine
+objectclass: sdcPerson
+
+dn: uuid=ba28f844-8cb4-f141-882d-46d6251e6a9f, ou=users, o=smartdc
+changetype: add
+login: imgapitestsdc
+uuid: ba28f844-8cb4-f141-882d-46d6251e6a9f
+userpassword: 123123
+email: nobody+sdc@joyent.com
+cn: sdc
+sn: IMGAPI sdc
+objectclass: sdcPerson
+
+
+dn: uuid=c58161c0-2547-11e2-a75e-9fdca1940570, ou=images, o=smartdc
+changetype: add
+uuid: c58161c0-2547-11e2-a75e-9fdca1940570
+name: base-1.8.1
+owner: ba28f844-8cb4-f141-882d-46d6251e6a9f
+public: true
+activated: true
+disabled: false
+os: smartos
+type: zone-dataset
+published_at: 2012-11-02T22:46:45.992Z
+files: []
+objectclass: sdcimage
+
+dn: uuid=da58c25a-2547-11e2-9b8d-136daa650e8a, ou=images, o=smartdc
+changetype: add
+uuid: da58c25a-2547-11e2-9b8d-136daa650e8a
+name: nodejs-1.0.0
+owner: ba28f844-8cb4-f141-882d-46d6251e6a9f
+public: true
+activated: true
+disabled: true
+os: smartos
+type: zone-dataset
+published_at: 2012-10-02T22:46:45.992Z
+files: []
+objectclass: sdcimage
+
+dn: uuid=e078a6aa-2547-11e2-8688-03ac37b2b4a0, ou=images, o=smartdc
+changetype: add
+uuid: e078a6aa-2547-11e2-8688-03ac37b2b4a0
+name: base-2.0.0
+owner: ba28f844-8cb4-f141-882d-46d6251e6a9f
+public: true
+activated: false
+disabled: false
+os: smartos
+type: zone-dataset
+objectclass: sdcimage
+
+
+dn: uuid=7a1b1967-6ecf-1e4c-8f09-f49094cc36ad, ou=images, o=smartdc
+changetype: add
+uuid: 7a1b1967-6ecf-1e4c-8f09-f49094cc36ad
+name: i-am-your-father
+owner: 86055c40-2547-11e2-8a6b-4bb37edc84ba
+public: false
+activated: true
+disabled: false
+os: smartos
+type: zone-dataset
+published_at: 2012-11-02T22:46:45.992Z
+files: []
+user: 91ba0e64-2547-11e2-a972-df579e5fddb3
+objectclass: sdcimage
+
+dn: uuid=9f819499-8298-9842-8cc5-1c2838196ab4, ou=images, o=smartdc
+changetype: add
+uuid: 9f819499-8298-9842-8cc5-1c2838196ab4
+name: come-to-the-dark-side
+owner: 86055c40-2547-11e2-8a6b-4bb37edc84ba
+public: false
+activated: true
+disabled: true
+os: smartos
+type: zone-dataset
+published_at: 2012-10-02T22:46:45.992Z
+files: []
+user: 91ba0e64-2547-11e2-a972-df579e5fddb3
+objectclass: sdcimage
+
+dn: uuid=2d28c64f-fb16-2145-a0ca-f626aea35c77, ou=images, o=smartdc
+changetype: add
+uuid: 2d28c64f-fb16-2145-a0ca-f626aea35c77
+name: he-will-join-us-or-die
+owner: 86055c40-2547-11e2-8a6b-4bb37edc84ba
+public: false
+activated: false
+disabled: false
+os: smartos
+type: zone-dataset
+user: a0b6b534-2547-11e2-b758-63a2afd747d1
+objectclass: sdcimage

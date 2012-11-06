@@ -51,7 +51,7 @@ function usage
     echo ""
     echo "Options:"
     echo "  -c          Just clean up test data, don't run the tests."
-    echo "  -q          Quick clean (don't blow away test users)."
+    echo "  -q          Quick. Don't reload the test data."
     echo "  -f FILTER   Filter pattern (substring match) for test files to run."
 }
 
@@ -68,10 +68,9 @@ NODEUNIT=./node_modules/.bin/nodeunit
 
 # Options.
 opt_just_clean=
-opt_quick_clean=
 opt_test_pattern=
-opt_just_prep=
-while getopts "hcqpf:" opt
+opt_quick=
+while getopts "hcqf:" opt
 do
     case "$opt" in
         h)
@@ -82,10 +81,7 @@ do
             opt_just_clean=yes
             ;;
         q)
-            opt_quick_clean=yes
-            ;;
-        p)
-            opt_just_prep=yes
+            opt_quick=yes
             ;;
         f)
             opt_test_pattern=$OPTARG
@@ -133,23 +129,17 @@ echo "# IMGAPI_URL is $IMGAPI_URL"
 # Currently not sure if we need to run from $TOP. Let's just do so.
 cd $TOP
 
-# Clean old test data.
-echo ""
-clean_opts=
-if [[ -n "$opt_quick_clean" ]]; then
-    clean_opts+=" -q"
-fi
-bash $TOP/test/clean-test-data.sh $clean_opts
-if [[ -n "$opt_just_clean" ]]; then
-    exit 0;
+# Reload test data.
+if [[ -z "$opt_quick" ]]; then
+    echo ""
+    if [[ -n "$opt_just_clean" ]]; then
+        bash $TOP/test/rm-test-data.sh
+        exit 0;
+    else
+        bash $TOP/test/reload-test-data.sh
+    fi
 fi
 
-## Bootstrap base test data.
-#echo ""
-#PATH=$NODE_INSTALL/bin:$PATH node $TOP/test/prep.js
-#if [[ -n "$opt_just_prep" ]]; then
-#    exit 0;
-#fi
 
 # Run the tests.
 echo ""
@@ -158,7 +148,6 @@ if [[ -n "$opt_test_pattern" ]]; then
     test_files=$(echo "$test_files" | grep "$opt_test_pattern" || true)
     echo "# Running filtered set of test files: $test_files"
 fi
-# maintenances.test.js needs longer timeout
 if [[ -n "$test_files" ]]; then
     PATH=$NODE_INSTALL/bin:$PATH $NODEUNIT --reporter tap $test_files \
         | tee $OUTPUT_DIR/imgapi.tap

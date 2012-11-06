@@ -331,7 +331,7 @@ and there.
 - files: limit to 1 explicitly, say it is a array to support adding multiple
   files (e.g. mounted disks) in the future possibly
 - deprecate files.N.path? Might still need it for 6.5 CNs.
-- tags: see discussion below
+- tags: see discussion below (update: *What* discussion?!)
 
 
 # Multi-DC images and the Portal (18-Jun-2012)

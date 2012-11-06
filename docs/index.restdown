@@ -12,19 +12,19 @@ TODO
 
 # API Summary
 
-||**name**||**endpoint**||**notes**||
-||ListImages||GET /images||List available images.||
-||GetImage||GET /images/:uuid||Get a particular image manifest.||
-||GetImageFile||GET /images/:uuid/file||Get the file for this image.||
-||DeleteImage||DELETE /images/:uuid||Delete an image (and its file).||
-||CreateImage||POST /images||Create a new (unactivated) image from a manifest.||
-||AddImageFile||PUT /images/:uuid/file||Upload the image file.||
-||ActivateImage||POST /images/:uuid?action=activate||Activate the image.||
-||UpdateImage||POST /images/:uuid?action=update||**NYI** Update image manifest fields. This is limited. Some fields are immutable.||
-||DisableImage||POST /images/:uuid?action=disable||**NYI** Disable the image.||
-||EnableImage||POST /images/:uuid?action=enable||**NYI** Enable the image.||
-||MigrateImage||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
-||AdminImportImage||POST /images/$uuid?action=import||**NYI** Only for operators to import an image with a specified UUID.||
+||**Name**||**Endpoint**||**Notes**||
+||[ListImages](#ListImages)||GET /images||List available images.||
+||[GetImage](#GetImage)||GET /images/:uuid||Get a particular image manifest.||
+||[GetImageFile](#GetImageFile)||GET /images/:uuid/file||Get the file for this image.||
+||[DeleteImage](#DeleteImage)||DELETE /images/:uuid||Delete an image (and its file).||
+||[CreateImage](#CreateImage)||POST /images||Create a new (unactivated) image from a manifest.||
+||[AddImageFile](#AddImageFile)||PUT /images/:uuid/file||Upload the image file.||
+||[ActivateImage](#ActivateImage)||POST /images/:uuid?action=activate||Activate the image.||
+||[UpdateImage](#UpdateImage)||POST /images/:uuid?action=update||**NYI** Update image manifest fields. This is limited. Some fields are immutable.||
+||[DisableImage](#DisableImage)||POST /images/:uuid?action=disable||**NYI** Disable the image.||
+||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||**NYI** Enable the image.||
+||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
+||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||**NYI** Only for operators to import an image with a specified UUID.||
 
 
 
@@ -71,18 +71,18 @@ A summary of fields (details are provided below)
 
 ||**Field**||**Type**||**Required?**||**Notes**||
 ||[uuid](#manifest-uuid)||UUID||N/A||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
+||[owner](#manifest-owner)||UUID||Yes||The UUID of the owner of this image (the account that created it).||
 ||[name](#manifest-name)||String||Yes||A short name (and optionally version) for this image. No uniqueness guarantee.||
 ||[state](#manifest-state)||String||No||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
 ||[disabled](#manifest-disabled)||Boolean||No||Indicates if this image is available for provisioning.||
+||[public](#manifest-public)||Boolean||No||Indicates if this image is publicly available.||
 ||[published_at](#manifest-published_at)||Date||N/A||The date at which the image is activated). Set by the IMGAPI server.||
 ||[type](#manifest-type)||String||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||Yes||The OS family this image provides. One of "smartos", "windows", and "linux".||
 ||[files](#manifest-files)||Array||Yes||An array with a single object describing the image file.||
+||[users](#manifest-users)||Array||No||An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 
 <!--
-||[XXX](#manifest-XXX)||XXX||XXX||XXX||
-
-
 TODO: the optional ones
 TODO: bwcompat ones and new ones from datasets.joyent.com/docs
 TODO: new ones from design.restdown section
@@ -107,6 +107,15 @@ for the latter is importing "core" Joyent-provided images from
 <https://images.joyent.com>.
 
 
+## Manifest: owner
+
+The account UUID of the owner/creator of this image.
+
+TODO: creator_uuid -> 'owner' for 6.5 -> 7 dataset imports.
+TODO: restricted_to_uuid -> 'user' for ACLs for 6.5 -> 7 dataset imports.
+
+
+
 ## Manifest: name
 
 TODO: docs
@@ -126,6 +135,12 @@ The current state of the image. One of the following values:
 ## Manifest: disabled
 
 TODO: docs, show how to change this with DisableImage
+
+
+## Manifest: public
+
+TODO: docs, show how to change this
+
 
 
 ## Manifest: published_at
@@ -260,13 +275,23 @@ In the API, an image contains the following fields:
 
 ## ListImages (GET /images)
 
-List all images.
+List images. Without query params this returns all active (`state ===
+"active"`) images.
+
+There are two typical calling styles to this endpoint: with 'user=$UUID' and
+without. The former is what cloudapi uses to ask on behalf of a particular
+authenticated user. The latter is for operator-only querying.
 
 ### Inputs
 
-None.
-
-TODO: filter on owner_uuid or whatever field to see a *user's* available images.
+||**Field**||**Type**||**Description**||
+||user||UUID||Only list images visible to this account. A user can only see: (a) active public images, (b) active private images of which they are a designated 'user', and (c) their own images.||
+||owner||UUID||Only list images owned by this account.||
+||state||String||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
+||name||String||List images with the given name. Prefix with `~` to do a substring match. E.g., `~foo`.||
+||public||Boolean||List just public or just private images.||
+||os||String||List images with the given os.||
+||type||String||List images of the given type.||
 
 ### Returns
 
@@ -519,7 +544,6 @@ top-level keys in the factory settings. For example: if providing
 ||ufds.url||String||-||LDAP URL to connect to UFDS.||
 ||ufds.rootDn||String||-||UFDS root dn.||
 ||ufds.password||String||-||UFDS root dn password.||
-||ufds.caching||Boolean||true||Should UFDS caching should be enabled?||
 ||userCache.size||Number||1000||The number of entries to cache.||
 ||userCache.expiry||Number||300000 (5min)||The number of milliseconds for which cache entries are valid.||
 
