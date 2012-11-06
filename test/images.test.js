@@ -5,8 +5,8 @@
  */
 
 var format = require('util').format;
-
-var IMGAPI = require('sdc-clients').IMGAPI;
+//var IMGAPI = require('sdc-clients').IMGAPI;   // temp broken by TOOLS-211
+var IMGAPI = require('sdc-clients/lib/imgapi');
 
 
 // node-tap API
@@ -67,4 +67,3 @@ test('GetImage existing', function (t) {
 //        t.end();
 //    })
 //});
-
