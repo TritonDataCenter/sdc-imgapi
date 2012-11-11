@@ -22,6 +22,8 @@ var test = tap4nodeunit.test;
 
 
 
+//---- tests
+
 before(function (next) {
     this.client = new IMGAPI({url: process.env.IMGAPI_URL});
     next();
@@ -88,6 +90,7 @@ test('CreateImage', function (t) {
     var uuid;
     var size;
     var sha1;
+    var md5;
     var aImage;
 
     function create(next) {
@@ -107,11 +110,20 @@ test('CreateImage', function (t) {
         });
     }
     function getSha1(next) {
-        var sha1sum = crypto.createHash('sha1');
+        var hash = crypto.createHash('sha1');
         var s = fs.createReadStream(filePath);
-        s.on('data', function (d) { sha1sum.update(d); });
+        s.on('data', function (d) { hash.update(d); });
         s.on('end', function () {
-            sha1 = sha1sum.digest('hex');
+            sha1 = hash.digest('hex');
+            next();
+        });
+    }
+    function getMd5(next) {
+        var hash = crypto.createHash('md5');
+        var s = fs.createReadStream(filePath);
+        s.on('data', function (d) { hash.update(d); });
+        s.on('end', function () {
+            md5 = hash.digest('base64');
             next();
         });
     }
@@ -137,20 +149,29 @@ test('CreateImage', function (t) {
         });
     }
     function getImage(next) {
-        self.client.getImage(uuid, luke, function (err, image, res) {
+        self.client.getImage(uuid, vader, function (err, image, res) {
             t.ifError(err, err);
             t.equal(JSON.stringify(aImage), JSON.stringify(image), 'matches');
             next();
         });
     }
     function getFile(next) {
-        self.client.getImageFile(uuid, '/var/tmp/foo.zfs.bz2', luke, function (err, res) {
+        var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
+            process.pid);
+        self.client.getImageFile(uuid, tmpFilePath, vader, function (err, res) {
             t.ifError(err, err);
-            //XXX START HERE
-            // - test checksum of headers
-            // - test sha1 content
-            // - real filePath to which to download
-            next();
+            if (err) {
+                return next(err);
+            }
+            t.equal(md5, res.headers['content-md5'], 'md5');
+            var hash = crypto.createHash('sha1');
+            var s = fs.createReadStream(tmpFilePath);
+            s.on('data', function (d) { hash.update(d); });
+            s.on('end', function () {
+                var actual_sha1 = hash.digest('hex');
+                t.equal(sha1, actual_sha1, 'sha1');
+                next();
+            });
         });
     }
 
@@ -159,6 +180,7 @@ test('CreateImage', function (t) {
             create,
             getSize,
             getSha1,
+            getMd5,
             addFile,
             activate,
             getImage,
