@@ -69,7 +69,7 @@ test('GetImage existing', function (t) {
  * - luke creates a public one
  * - adds an image file
  * - activates it
- * - ensure all can see it
+ * - ensure others (e.g. vader) can see it
  */
 var vader = '86055c40-2547-11e2-8a6b-4bb37edc84ba';
 var luke = '91ba0e64-2547-11e2-a972-df579e5fddb3';
@@ -169,7 +169,9 @@ test('CreateImage', function (t) {
             s.on('data', function (d) { hash.update(d); });
             s.on('end', function () {
                 var actual_sha1 = hash.digest('hex');
-                t.equal(sha1, actual_sha1, 'sha1');
+                t.equal(sha1, actual_sha1, 'sha1 matches upload');
+                t.equal(aImage.files[0].sha1, actual_sha1,
+                    'sha1 matches image data');
                 next();
             });
         });
