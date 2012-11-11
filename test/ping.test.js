@@ -38,7 +38,7 @@ test('ping', function (t) {
 test('ping error', function (t) {
     this.imgapiClient.ping('ValidationFailed', function (err, pong, res) {
         t.ok(err, 'got error');
-        t.equal(err.httpCode, '422', 'httpCode');
+        t.equal(err.statusCode, '422', 'err.statusCode');
         t.equal(err.body.code, 'ValidationFailed', 'body.code');
         t.ok(err.body.message, 'res body has a message');
         t.notOk(pong, 'no pong');
