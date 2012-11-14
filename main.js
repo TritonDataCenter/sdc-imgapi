@@ -13,6 +13,7 @@ var nopt = require('nopt');
 var restify = require('restify');
 var bunyan = require('bunyan');
 var async = require('async');
+var assert = require('assert-plus');
 
 var createApp = require('./lib/app').createApp;
 var objCopy = require('./lib/utils').objCopy;
@@ -28,6 +29,8 @@ var DEFAULT_CFG = path.resolve(__dirname, 'etc', NAME + '.config.json');
 var theConfig;
 var theApp;
 var log;
+var serviceUnavailable = false;
+var serviceUnavailableDetails = [];
 
 
 
@@ -60,7 +63,7 @@ function printHelp() {
 /**
  * Load config.
  *
- * This loads 'factory-settings.json' and any given `configPath`.
+ * This loads factory settings (etc/defaults.json) and any given `configPath`.
  * Note that this is synchronous.
  *
  * @param configPath {String} Optional. Path to JSON config file to load.
@@ -82,6 +85,38 @@ function loadConfigSync(configPath) {
         }
     } else {
         config.configPath = null;
+    }
+
+    // Validation
+    if (!config.storage) {
+        usage(1, '"config.storage" is not set');
+    }
+    var IMGAPI_DEVELOPMENT = (process.env.IMGAPI_DEVELOPMENT
+        && process.env.IMGAPI_DEVELOPMENT.length > 0);
+    if (!IMGAPI_DEVELOPMENT) {
+        assert.ok(!config.storage.local, 'cannot have "storage.local" in '
+            + 'config for production (IMGAPI_DEVELOPMENT envvar not defined)');
+        assert.ok(config.storage.manta || config.storage.dcls,
+            'missing "storage.manta" and/or "storage.dcls" in config '
+            + 'for production (IMGAPI_DEVELOPMENT envvar not defined)');
+    } else {
+        assert.notEqual(Object.keys(config.storage).length, 0,
+            'missing "storage.manta" and/or "storage.dcls" in config '
+            + 'for production (IMGAPI_DEVELOPMENT envvar not defined)');
+    }
+    if (config.storage.manta) {
+        var manta = config.storage.manta;
+        assert.string(manta.url, 'config.storage.manta.url');
+        assert.string(manta.user, 'config.storage.manta.user');
+        assert.string(manta.password, 'config.storage.manta.password');
+    }
+    if (config.storage.dcls) {
+        var dcls = config.storage.dcls;
+        assert.string(dcls.dir, 'config.storage.dcls.dir');
+    }
+    if (config.storage.local) {
+        var local = config.storage.local;
+        assert.string(local.dir, 'config.storage.local.dir');
     }
 
     return config;

@@ -241,24 +241,46 @@ in the DC).
 
 1. manta: Requires an available Manta for this DC's region. All files are
    store in the "imgapi" user's Manta area.
-2. dcls: Data Center Local Storage. TODO: details from wdp how this would
-   be used.
-3. local: A locally mounted storage dir. Currently this is '/usbkey/datasets'
-   mounted into the 'imgapi' zone(s).
+2. dcls: Data Center Local Storage.
+   TODO: details from wdp how this would be used.
+3. local: A local dir (or locally mounted dir). Only useful for testing and
+   development. This is insufficient for production usage because a locally
+   mounted dir can't handle HA (imgapi zones on more than one server).
 
-This is the preferred order. Only operators can add use 'local' storage.
+The set of available storages is set in the configuration. E.g.:
+
+    "storage": {
+        "manta": {
+            "url": "https://manta.bh1-kvm1.joyent.us",   // or something
+            "user": "imgapi",
+            "password": "***"
+        },
+        "dcls": {
+            "dir": "/mnt/share/imgapi"
+        },
+        "local": {
+            "dir": "/var/db/imgapi"
+        }
+    }
+
+A production setup needs at least one of "manta" or "dcls" storage, where
+"production" is defined as running without the `IMGAPI_DEVELOPMENT` envvar
+defined (with a non-empty string value). Likewise, usage of "local" is only
+allowed if `IMGAPI_DEVELOPMENT` is set.
+
+When adding an image file the storage used is determined as follows:
+
+- if "manta" is available, use that
+- else if "dcls" is available, use that
+- else if "local" is available, use that
+
 
 Open questions (TODO):
 
-- Revisit with product whether allowing a blessed set of users to add custom
-  images should require dcls. Or, IOW, should there be a fourth option
-  between "usbkey" and "dcls": just a mount of a lot of space to the 'imgapi'
-  zone?
+- Do we need more control than the above storate determination?
 - Should 'dcls' usage be limited to a set of users? Or have a config item
   to limit the set of users that can use it. If so, then need an endpoint
   to update that config.
-- 'local' storage being a mount from the GZ limits HA for imgapi: can't put
-  an imgapi zone on a CN. How to avoid this limit?
 
 
 
@@ -551,6 +573,7 @@ top-level keys in the factory settings. For example: if providing
 ||ufds.password||String||-||UFDS root dn password.||
 ||userCache.size||Number||1000||The number of entries to cache.||
 ||userCache.expiry||Number||300000 (5min)||The number of milliseconds for which cache entries are valid.||
+||storage||Object||-||TODO: document this||
 
 
 

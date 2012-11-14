@@ -2,6 +2,7 @@
 # overview
 
 - implement basic endpoints:
+    - amon for log.fatal|error|warn in imgapi
     - ListImages: cache invalidation testing
     - all except: UpdateImage, DisableImage, EnableImage, MigrateImage, AdminImportImage
     - local storage: /var/db/imgapi

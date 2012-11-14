@@ -18,6 +18,8 @@
         <method_credential user="nobody" group="nobody" privileges="basic,net_privaddr"/>
         <method_environment>
           <envvar name="LD_PRELOAD_32" value="/usr/lib/extendedFILE.so.1" />
+          <!-- TODO: remove usage of IMGAPI_DEVELOPMENT for production -->
+          <envvar name="IMGAPI_DEVELOPMENT" value="1" />
         </method_environment>
       </method_context>
     </exec_method>
