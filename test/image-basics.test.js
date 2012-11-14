@@ -70,6 +70,8 @@ test('GetImage existing', function (t) {
  * - adds an image file
  * - activates it
  * - ensure others (e.g. vader) can see it
+ * ...
+ * - clean up: delete it
  */
 var vader = '86055c40-2547-11e2-8a6b-4bb37edc84ba';
 var luke = '91ba0e64-2547-11e2-a972-df579e5fddb3';
@@ -176,6 +178,16 @@ test('CreateImage', function (t) {
             });
         });
     }
+    function deleteImage(next) {
+        self.client.deleteImage(uuid, luke, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            t.equal(res.statusCode, 204, 'res.statusCode 204');
+            next();
+        });
+    }
 
     async.series(
         [
@@ -186,7 +198,8 @@ test('CreateImage', function (t) {
             addFile,
             activate,
             getImage,
-            getFile
+            getFile,
+            deleteImage
         ],
         function (err) {
             t.end();
