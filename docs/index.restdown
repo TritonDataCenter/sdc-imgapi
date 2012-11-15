@@ -619,7 +619,7 @@ Reference docs on configuration vars to imgapi. Default values are in
 the "-f CFG-FILE" command-line option. By default this is
 "./etc/imgapi.config.json". Note that given custom values override full
 top-level keys in the factory settings. For example: if providing
-'userCache', one must provide the whole userCache object.
+'ufds', one must provide the whole 'ufds' object.
 
 ||**var**||**type**||**default**||**description**||
 ||port||Number||8080||Port number on which to listen.||
@@ -627,8 +627,6 @@ top-level keys in the factory settings. For example: if providing
 ||ufds.url||String||-||LDAP URL to connect to UFDS.||
 ||ufds.rootDn||String||-||UFDS root dn.||
 ||ufds.password||String||-||UFDS root dn password.||
-||userCache.size||Number||1000||The number of entries to cache.||
-||userCache.expiry||Number||300000 (5min)||The number of milliseconds for which cache entries are valid.||
 ||storage||Object||-||TODO: document this||
 
 

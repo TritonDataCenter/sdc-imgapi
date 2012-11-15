@@ -1,7 +1,6 @@
 
 # overview
 
-- drop userCache (not used)
 - implement basic endpoints:
     - change ?user=UUID to ?account=UUID ??? to avoid confusion with 'users' field?
       Yes. Having 'users' and 'user' in play in images.js is too confusing.
