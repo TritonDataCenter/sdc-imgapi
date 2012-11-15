@@ -2,13 +2,6 @@
 # overview
 
 - implement basic endpoints:
-    - change ?user=UUID to ?account=UUID ??? to avoid confusion with 'users' field?
-      Yes. Having 'users' and 'user' in play in images.js is too confusing.
-        sdc-imgapi /images?account=$uuid    <--- this one
-        sdc-imgapi /images?co=$uuid
-        sdc-imgapi /images?onbehalfof=$uuid
-        sdc-imgapi /images?who=$uuid
-    - amon for log.fatal|error|warn in imgapi
     - ListImages: cache invalidation testing
     - TICKET for 6.5 compat: add provisioner for 6.5 ability to take
       a "dataset_url" field from which to install a dataset. This instead

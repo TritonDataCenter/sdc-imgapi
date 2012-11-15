@@ -96,7 +96,10 @@ putprobe $account "{
     \"agent\": \"$zonename\"
 }"
 
+
 # Probe: Monitor FATALs in the imgapi service log.
+# TODO: It is silly to have three probes for this. Amon should support
+# rolling these up.
 putprobe $account "{
     \"skipauthz\": true,
     \"group\": \"$group_uuid\",
@@ -122,6 +125,21 @@ putprobe $account "{
         \"smfServiceName\": \"imgapi\",
         \"fields\": {
             \"level\": \"error\"
+        }
+    }
+}"
+
+# Probe: Monitor WARNs in the imgapi service log.
+putprobe $account "{
+    \"skipauthz\": true,
+    \"group\": \"$group_uuid\",
+    \"name\": \"imgapi log warn\",
+    \"type\": \"bunyan-log-scan\",
+    \"agent\": \"$zonename\",
+    \"config\": {
+        \"smfServiceName\": \"imgapi\",
+        \"fields\": {
+            \"level\": \"warn\"
         }
     }
 }"
