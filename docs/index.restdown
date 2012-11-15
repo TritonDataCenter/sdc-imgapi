@@ -73,6 +73,7 @@ A summary of fields (details are provided below)
 ||[uuid](#manifest-uuid)||UUID||N/A||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
 ||[owner](#manifest-owner)||UUID||Yes||The UUID of the owner of this image (the account that created it).||
 ||[name](#manifest-name)||String||Yes||A short name (and optionally version) for this image. No uniqueness guarantee.||
+||[description](#manifest-description)||String||No||A short description of the image.||
 ||[state](#manifest-state)||String||No||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
 ||[disabled](#manifest-disabled)||Boolean||No||Indicates if this image is available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||Indicates if this image is publicly available.||
@@ -117,6 +118,11 @@ TODO: restricted_to_uuid -> 'user' for ACLs for 6.5 -> 7 dataset imports.
 
 
 ## Manifest: name
+
+TODO: docs
+
+
+## Manifest: description
 
 TODO: docs
 
@@ -407,7 +413,59 @@ provisioning.
 
 ### Inputs
 
-TODO: inputs
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||[user](#manifest-owner)||UUID||No||-||The UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this user. At least one of `user` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[owner](#manifest-owner)||UUID||No||-||The UUID of the owner of this image (the account that created it). If not given, the given `user` is used. At least one of `user` or `owner` is required.||
+||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. No uniqueness guarantee.||
+||[description](#manifest-description)||String||No||-||A short description of the image.||
+||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
+||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
+||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[os](#manifest-os)||String||Yes||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[users](#manifest-users)||Array||No||-||An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+
+The following extra inputs are allowed for operator usage (typically for
+backward compatibility for importing old SDC6-era datasets). Here "operator
+usage" means that the `users` field is NOT provided:
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||[urn](#manifest-urn)||String||No||-||An old SDC6 dataset URN, e.g. "sdc:sdc:smartos:1.6.3". Dataset URNs are only supported for backward compatibility. New images cannot have a URN.
+||[published_at](#manifest-published-at)||Date||No||-||The time at which this image/dataset was published (a.k.a. made active).||
+
+
+TODOs:
+
+- TODO s/users/XXX/    It is used already.
+- dsmanifest2imgmanifest:
+    json -e 'owner = creator_uuid' \
+        -e 'name = this.name + "-" + this.version' \
+        -e 'this.creator_uuid=undefined' \
+        -e 'this.vendor_uuid=undefined' \
+        -e 'this.creator_name=undefined' \
+        -e 'this.cloud_name=undefined' \
+        -e 'this.version=undefined' \
+        -e 'if (this.restricted_to_uuid) { this.public = false; this.users = [this.restricted_to_uuid]; } else { this.public = true }' \
+        -e 'this.restricted_to_uuid=undefined' \
+        -e 'this.owner_uuid=undefined' \
+        -e 'this.created_at=undefined' \
+        -e 'this.updated_at=undefined' \
+        -e 'this.platform_type=undefined'
+
+    make this part of sdc-dsimport?
+- TODO: requirements field
+- TODO: users field
+- TODO: urn in CreateImage
+- TODO: published_at in CreateImage
+- TODO: support get by URN
+- TODO: generate_passwords field
+- TODO: inherited_directories field
+- TODO: nic_driver field
+- TODO: disk_driver field
+- TODO: cpu_type field
+- TODO: image_size field
+- TODO: document dropped/deprecated 6.5 fields and why: platform_type, urn,
+  version,
+
 
 ### Returns
 
