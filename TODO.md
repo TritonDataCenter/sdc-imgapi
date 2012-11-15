@@ -1,11 +1,16 @@
 
 # overview
 
+- drop userCache (not used)
 - implement basic endpoints:
+    - change ?user=UUID to ?account=UUID ??? to avoid confusion with 'users' field?
+      Yes. Having 'users' and 'user' in play in images.js is too confusing.
+        sdc-imgapi /images?account=$uuid    <--- this one
+        sdc-imgapi /images?co=$uuid
+        sdc-imgapi /images?onbehalfof=$uuid
+        sdc-imgapi /images?who=$uuid
     - amon for log.fatal|error|warn in imgapi
     - ListImages: cache invalidation testing
-    - all except: UpdateImage, DisableImage, EnableImage, MigrateImage, AdminImportImage
-    - local storage: /var/db/imgapi
     - TICKET for 6.5 compat: add provisioner for 6.5 ability to take
       a "dataset_url" field from which to install a dataset. This instead
       of "dataset_name". Then CNAPI should send dataset_uuid and dataset_url
@@ -74,11 +79,11 @@
               pgsql_pw: 'Kv;QWybRgr',
               zone_template: 'smartosplus-3.0.7',
               package_name: 'Medium 4GB' }
+- get headnode.sh starter images into IMGAPI
+- get storage (local and manta) working
 - Fill out each of the use cases in index.restdown. Do those use cases cover
   all of UpdateImage, DisableImage, EnableImage, MigrateImage, AdminImportImage?
   Tickets for each.
-- get headnode.sh starter images into IMGAPI
-- get storage (local and manta) working
 - re-write imgadm to be reliable
 - Spec the cloudapi endpoints.
 - Compat with SDC6 cloudapi dataset endpoints.

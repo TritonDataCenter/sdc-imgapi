@@ -42,7 +42,7 @@ before(function (next) {
 
 
 test('ListImages: vader', function (t) {
-    var opts = {user: vader};
+    var opts = {account: vader};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -59,7 +59,7 @@ test('ListImages: vader', function (t) {
 });
 
 test('ListImages: vader, state=all', function (t) {
-    var opts = {user: vader, state: 'all'}
+    var opts = {account: vader, state: 'all'}
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -78,7 +78,7 @@ test('ListImages: vader, state=all', function (t) {
 });
 
 test('ListImages: vader, state=disabled', function (t) {
-    var opts = {user: vader, state: 'disabled'}
+    var opts = {account: vader, state: 'disabled'}
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -89,7 +89,7 @@ test('ListImages: vader, state=disabled', function (t) {
 });
 
 test('ListImages: vader, state=unactivated', function (t) {
-    var opts = {user: vader, state: 'unactivated'}
+    var opts = {account: vader, state: 'unactivated'}
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -100,7 +100,7 @@ test('ListImages: vader, state=unactivated', function (t) {
 });
 
 test('ListImages: vader, public=false', function (t) {
-    var opts = {user: vader, state: 'all', public: false};
+    var opts = {account: vader, state: 'all', public: false};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -118,7 +118,7 @@ test('ListImages: vader, public=false', function (t) {
 });
 
 test('ListImages: vader, public=true', function (t) {
-    var opts = {user: vader, state: 'all', public: true};
+    var opts = {account: vader, state: 'all', public: true};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -134,9 +134,9 @@ test('ListImages: vader, public=true', function (t) {
     })
 });
 
-// 'user'
+// 'account'
 test('ListImages: luke', function (t) {
-    var opts = {user: luke};
+    var opts = {account: luke};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -159,7 +159,7 @@ test('ListImages: luke', function (t) {
 
 // 'type'
 test('ListImages: vader, type=zone-dataset', function (t) {
-    var opts = {user: vader, type: 'zone-dataset'};
+    var opts = {account: vader, type: 'zone-dataset'};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -168,7 +168,7 @@ test('ListImages: vader, type=zone-dataset', function (t) {
     })
 });
 test('ListImages: vader, type=bogus', function (t) {
-    var opts = {user: vader, type: 'bogus'};
+    var opts = {account: vader, type: 'bogus'};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -179,7 +179,7 @@ test('ListImages: vader, type=bogus', function (t) {
 
 // 'os'
 test('ListImages: vader, os=smartos', function (t) {
-    var opts = {user: vader, os: 'smartos'};
+    var opts = {account: vader, os: 'smartos'};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -188,7 +188,7 @@ test('ListImages: vader, os=smartos', function (t) {
     })
 });
 test('ListImages: vader, os=bogus', function (t) {
-    var opts = {user: vader, os: 'bogus'};
+    var opts = {account: vader, os: 'bogus'};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -199,7 +199,7 @@ test('ListImages: vader, os=bogus', function (t) {
 
 // 'name'
 test('ListImages: vader, name=i-am-your-father', function (t) {
-    var opts = {user: vader, name: 'i-am-your-father'};
+    var opts = {account: vader, name: 'i-am-your-father'};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -211,7 +211,7 @@ test('ListImages: vader, name=i-am-your-father', function (t) {
 
 // '~name'
 test('ListImages: vader, name=~father', function (t) {
-    var opts = {user: vader, name: '~father'};
+    var opts = {account: vader, name: '~father'};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -221,9 +221,9 @@ test('ListImages: vader, name=~father', function (t) {
     })
 });
 
-// 'owner' (*and* 'user')
+// 'owner' (*and* 'account')
 test('ListImages: vader, owner=vader, state=all', function (t) {
-    var opts = {user: vader, owner: vader, state: 'all'};
+    var opts = {account: vader, owner: vader, state: 'all'};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -240,7 +240,7 @@ test('ListImages: vader, owner=vader, state=all', function (t) {
     })
 });
 test('ListImages: luke, owner=vader', function (t) {
-    var opts = {user: luke, owner: vader};
+    var opts = {account: luke, owner: vader};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -252,7 +252,7 @@ test('ListImages: luke, owner=vader', function (t) {
     })
 });
 test('ListImages: luke, owner=sdc', function (t) {
-    var opts = {user: luke, owner: sdc};
+    var opts = {account: luke, owner: sdc};
     this.imgapiClient.listImages(opts, function (err, images) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
@@ -314,20 +314,20 @@ var data = {
 Object.keys(data).forEach(function (name) {
     test(format('ListImages: who can see "%s"?', name), function (t) {
         var self = this;
-        var users = data[name];
-        async.forEach(users, function (user, next) {
-            var opts = {user: user.uuid, state: 'all'};
+        var accounts = data[name];
+        async.forEach(accounts, function (account, next) {
+            var opts = {account: account.uuid, state: 'all'};
             self.imgapiClient.listImages(opts, function (err, images) {
                 if (err) {
                     return next(err);
                 }
                 var names = images.map(function (i) { return i.name });
-                if (user.cansee) {
+                if (account.cansee) {
                     t.ok(names.indexOf(name) !== -1,
-                        format('user %s can see image %s', user.login, name));
+                        format('account %s can see image %s', account.login, name));
                 } else {
                     t.equal(names.indexOf(name), -1,
-                        format('user %s cannot see image %s', user.login, name));
+                        format('account %s cannot see image %s', account.login, name));
                 }
                 next();
             });
@@ -343,18 +343,18 @@ Object.keys(data).forEach(function (name) {
     test(format('GetImage: who can see "%s"?', name), function (t) {
         var self = this;
         var imageUuid = imageUuidFromName[name];
-        var users = data[name];
-        async.forEach(users, function (user, next) {
-            self.imgapiClient.getImage(imageUuid, user.uuid, function (err, image) {
-                if (!user.cansee) {
+        var accounts = data[name];
+        async.forEach(accounts, function (account, next) {
+            self.imgapiClient.getImage(imageUuid, account.uuid, function (err, image) {
+                if (!account.cansee) {
                     t.ok(err);
                     t.equal(err.statusCode, 404,
-                        format('user %s cannot see image %s', user.login,
+                        format('account %s cannot see image %s', account.login,
                                name));
                     t.notOk(image);
                 } else {
                     t.equal(image.uuid, imageUuid,
-                        format('user %s can see image %s', user.login, name));
+                        format('account %s can see image %s', account.login, name));
                     t.ifError(err, err);
                 }
                 next();
@@ -365,4 +365,3 @@ Object.keys(data).forEach(function (name) {
         });
     });
 })
-

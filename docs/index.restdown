@@ -81,7 +81,7 @@ A summary of fields (details are provided below)
 ||[type](#manifest-type)||String||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||Yes||The OS family this image provides. One of "smartos", "windows", and "linux".||
 ||[files](#manifest-files)||Array||Yes||An array with a single object describing the image file.||
-||[users](#manifest-users)||Array||No||An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+||[acl](#manifest-acl)||Array||No||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 
 <!--
 TODO: the optional ones
@@ -112,8 +112,6 @@ for the latter is importing "core" Joyent-provided images from
 
 The account UUID of the owner/creator of this image.
 
-TODO: creator_uuid -> 'owner' for 6.5 -> 7 dataset imports.
-TODO: restricted_to_uuid -> 'user' for ACLs for 6.5 -> 7 dataset imports.
 
 
 
@@ -306,14 +304,14 @@ In the API, an image contains the following fields:
 List images. Without query params this returns all active (`state ===
 "active"`) images.
 
-There are two typical calling styles to this endpoint: with 'user=$UUID' and
+There are two typical calling styles to this endpoint: with 'account=$UUID' and
 without. The former is what cloudapi uses to ask on behalf of a particular
-authenticated user. The latter is for operator-only querying.
+authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
 ||**Field**||**Type**||**Description**||
-||user||UUID||Only list images visible to this account. A user can only see: (a) active public images, (b) active private images of which they are a designated 'user', and (c) their own images.||
+||account||UUID||Only list images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are listing in the ACL, and (c) their own images.||
 ||owner||UUID||Only list images owned by this account.||
 ||state||String||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
 ||name||String||List images with the given name. Prefix with `~` to do a substring match. E.g., `~foo`.||
@@ -339,14 +337,14 @@ TODO: errors
 
 Get a image by uuid.
 
-There are two typical calling styles to this endpoint: with 'user=$UUID' and
+There are two typical calling styles to this endpoint: with 'account=$UUID' and
 without. The former is what cloudapi uses to ask on behalf of a particular
-authenticated user. The latter is for operator-only querying.
+authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
 ||**Field**||**Type**||**Description**||
-||user||UUID||Only return an image visible to this account. A user can only see: (a) active public images, (b) active private images of which they are a designated 'user', and (c) their own images.||
+||account||UUID||Only return an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images.||
 
 ### Returns
 
@@ -414,19 +412,19 @@ provisioning.
 ### Inputs
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||[user](#manifest-owner)||UUID||No||-||The UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this user. At least one of `user` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[owner](#manifest-owner)||UUID||No||-||The UUID of the owner of this image (the account that created it). If not given, the given `user` is used. At least one of `user` or `owner` is required.||
+||[account](#manifest-owner)||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[owner](#manifest-owner)||UUID||No||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
 ||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||-||A short description of the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||Yes||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
-||[users](#manifest-users)||Array||No||-||An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+||[acl](#manifest-acl)||Array||No||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 
 The following extra inputs are allowed for operator usage (typically for
 backward compatibility for importing old SDC6-era datasets). Here "operator
-usage" means that the `users` field is NOT provided:
+usage" means that the `account` field is NOT provided:
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
 ||[urn](#manifest-urn)||String||No||-||An old SDC6 dataset URN, e.g. "sdc:sdc:smartos:1.6.3". Dataset URNs are only supported for backward compatibility. New images cannot have a URN.
@@ -435,16 +433,16 @@ usage" means that the `users` field is NOT provided:
 
 TODOs:
 
-- TODO s/users/XXX/    It is used already.
 - dsmanifest2imgmanifest:
-    json -e 'owner = creator_uuid' \
-        -e 'name = this.name + "-" + this.version' \
+    json \
+        -e 'this.owner = this.creator_uuid' \
+        -e 'this.name = this.name + "-" + this.version' \
         -e 'this.creator_uuid=undefined' \
         -e 'this.vendor_uuid=undefined' \
         -e 'this.creator_name=undefined' \
         -e 'this.cloud_name=undefined' \
         -e 'this.version=undefined' \
-        -e 'if (this.restricted_to_uuid) { this.public = false; this.users = [this.restricted_to_uuid]; } else { this.public = true }' \
+        -e 'if (this.restricted_to_uuid) { this.public = false; this.acl = [this.restricted_to_uuid]; } else { this.public = true }' \
         -e 'this.restricted_to_uuid=undefined' \
         -e 'this.owner_uuid=undefined' \
         -e 'this.created_at=undefined' \

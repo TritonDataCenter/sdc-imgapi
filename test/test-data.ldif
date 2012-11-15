@@ -1,20 +1,20 @@
 # Test data for IMGAPI
 #
-# users (prefixed with 'imgapitest'): vader, luke, emperor, sdc
-# images:
+# Users (prefixed with 'imgapitest'): vader, luke, emperor, sdc
+# Images:
 #   - base-1.8.1 (owner: sdc, state=active, public=true)
 #   - nodejs-1.0.0 (owner: sdc, state=disabled, public=true)
 #   - base-2.0.0 (owner: sdc, state=unactivated, public=true)
-#   - i-am-your-father (owner: vader, state=active, public=false, users=luke)
-#   - come-to-the-dark-side (owner: vader, state=disabled, public=false, users=luke)
-#   - he-will-join-us-or-die (owner: vader, state=unactivated, public=false, users=emperor)
+#   - i-am-your-father (owner: vader, state=active, public=false, acl=luke)
+#   - come-to-the-dark-side (owner: vader, state=disabled, public=false, acl=luke)
+#   - he-will-join-us-or-die (owner: vader, state=unactivated, public=false, acl=emperor)
 #
-# Image visibility cases (only applies when '?user=UUID' param is specified
+# Image visibility cases (only applies when '?account=UUID' param is specified
 # to the relevant endpoints):
 # - unactivated: only owner can see
 # - public & active: all can see
 # - public & disabled: only owner can see
-# - private & active: only owner and users can see
+# - private & active: only owner and ACL members can see
 # - private & disabled: only owner can see
 #
 # ListImages visibility tests:
@@ -120,7 +120,7 @@ os: smartos
 type: zone-dataset
 published_at: 2012-11-02T22:46:45.992Z
 files: []
-user: 91ba0e64-2547-11e2-a972-df579e5fddb3
+acl: 91ba0e64-2547-11e2-a972-df579e5fddb3
 objectclass: sdcimage
 
 dn: uuid=9f819499-8298-9842-8cc5-1c2838196ab4, ou=images, o=smartdc
@@ -135,7 +135,7 @@ os: smartos
 type: zone-dataset
 published_at: 2012-10-02T22:46:45.992Z
 files: []
-user: 91ba0e64-2547-11e2-a972-df579e5fddb3
+acl: 91ba0e64-2547-11e2-a972-df579e5fddb3
 objectclass: sdcimage
 
 dn: uuid=2d28c64f-fb16-2145-a0ca-f626aea35c77, ou=images, o=smartdc
@@ -148,5 +148,5 @@ activated: false
 disabled: false
 os: smartos
 type: zone-dataset
-user: a0b6b534-2547-11e2-b758-63a2afd747d1
+acl: a0b6b534-2547-11e2-b758-63a2afd747d1
 objectclass: sdcimage
