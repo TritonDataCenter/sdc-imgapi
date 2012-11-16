@@ -99,7 +99,9 @@ test('CreateImage', function (t) {
         self.client.createImage(data, luke, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
-            uuid = image.uuid;
+            if (image) {
+                uuid = image.uuid;
+            }
             next(err);
         });
     }
