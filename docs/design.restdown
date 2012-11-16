@@ -200,7 +200,8 @@ Anyway, we'll cross the "multiple files" bridge if/when we come to it.
 - There is an IMGAPI in each DC: the imgapi zone(s). This is the authority
   for which images are available for provisioning in that DC.
   The provisioning process will lazily 'zfs receive' images on CNs as
-  necessary -- streaming from the IMGAPI.
+  necessary -- streaming from the IMGAPI (imgadm on that machine handles
+  that).
 
 - IMGAPI image manifest data are stored in UFDS and replicated across all
   DCs, along with fields saying what DCs
@@ -331,7 +332,7 @@ and there.
 - files: limit to 1 explicitly, say it is a array to support adding multiple
   files (e.g. mounted disks) in the future possibly
 - deprecate files.N.path? Might still need it for 6.5 CNs.
-- tags: see discussion below (update: *What* discussion?!)
+- tags: requests by Drew for portal usage
 
 
 # Multi-DC images and the Portal (18-Jun-2012)

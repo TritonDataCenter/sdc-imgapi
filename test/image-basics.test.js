@@ -84,7 +84,7 @@ test('CreateImage', function (t) {
         description: 'Describing the Millenium Falcon.',
         os: 'smartos',
         type: 'zone-dataset',
-        public: 'true'
+        public: true
     };
 
     var self = this;

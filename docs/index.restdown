@@ -329,7 +329,7 @@ TODO: errors
 
 ### Example
 
-    $ sdc-images /images
+    $ sdc-imgapi /images
     TODO: example
 
 
@@ -356,7 +356,7 @@ TODO: errors
 
 ### Example
 
-    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874
     TODO: example
 
 
@@ -378,7 +378,7 @@ TODO: errors
 
 ### Example
 
-    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -o image.zfs.bz2
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -o image.zfs.bz2
 
 
 ## DeleteImage (DELETE /images/:uuid)
@@ -399,7 +399,7 @@ TODO: errors
 
 ### Example
 
-    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -X DELETE
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -X DELETE
 
 
 ## CreateImage (POST /images)
@@ -412,8 +412,8 @@ provisioning.
 ### Inputs
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||[account](#manifest-owner)||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[owner](#manifest-owner)||UUID||No||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
+||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[owner](#manifest-owner)||UUID||Yes\*||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
 ||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||-||A short description of the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
@@ -475,7 +475,7 @@ TODO: errors
 
 ### Example
 
-    $ sdc-image /images -X POST \
+    $ sdc-imgapi /images -X POST \
         --data-binary '{"name": "foo", "type": "zone-dataset", "os": "smartos"}'
     TODO: example
 
@@ -505,7 +505,7 @@ TODO: errors
 This example is using curl's `-T/--upload-file <file>` option, which results
 in a PUT.
 
-    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -T image.zfs.bz2
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -T image.zfs.bz2
 
 
 ## ActivateImage (POST /images/:uuid?action=activate)
@@ -530,7 +530,50 @@ TODO: errors
 
 ### Example
 
-    $ sdc-image /images/f9bbbc9f-d281-be42-9651-72c6be875874?action=activate -X POST
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874?action=activate -X POST
+
+
+
+## AdminImportImage (POST /images/:uuid?action=import)
+
+Import an image (preserving its `uuid` and `published_at` fields). This is
+typically used for importing an image from <https://images.joyent.com>,
+Joyent's central repository of vetted SmartOS images.
+
+This may only be used by operators. This is enforced by requiring that
+`account=UUID` is NOT provided. All usage of IMGAPI on behalf of end users
+is required to use `account=UUID`; operator usage (e.g. from AdminUI) is
+not.
+
+This creates an unactivated image. The typical process is to subsequently
+call [AddImageFile](#AddImageFile) and then [ActivateImage](#ActivateImage)
+to finish with an image available for provisioning.
+
+
+### Inputs
+
+The same fields as for [CreateImage](#CreateImage), including the SDC6-era
+backward compat fields, with the following additions and changes:
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||account||UUID||No\*||-||This must NOT be provided. See the discussion above.||
+||uuid||UUID||Yes||-||The existing image UUID.||
+||published_at||Date||No||-||The published date/time of the image.||
+
+
+### Returns
+
+The (unactivated) image object.
+
+### Errors
+
+TODO: errors
+
+### Example
+
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import \
+        -X POST --data-binary @smartos-1.6.3.dsmanifest
+    TODO: example
 
 
 

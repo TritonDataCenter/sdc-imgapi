@@ -5,7 +5,7 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
-    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#9d79216",
+    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#ee8d21a",
     "ldapjs": "0.5.7",
     "bunyan": "0.16.6",
     "restify": "git://github.com/mcavage/node-restify.git#a1173a4",

@@ -81,7 +81,9 @@
 - Compat with SDC6 cloudapi dataset endpoints.
 - Review usage with customer image creation plan DATASET-323.
   Trent ref: https://mail.google.com/mail/u/1/?ui=2&shva=1#inbox/1379fad460845d56
+- CRUD on image traits per <https://gist.github.com/1484f5712530f5075044#gistcomment-596222>
 - usageapi/billing issues
+- multi-dc and support for adminui and portal
 - what else?
 
 
