@@ -88,22 +88,8 @@ function loadConfigSync(configPath) {
     }
 
     // Validation
-    if (!config.storage) {
-        usage(1, '"config.storage" is not set');
-    }
-    var IMGAPI_DEVELOPMENT = (process.env.IMGAPI_DEVELOPMENT
-        && process.env.IMGAPI_DEVELOPMENT.length > 0);
-    if (!IMGAPI_DEVELOPMENT) {
-        assert.ok(!config.storage.local, 'cannot have "storage.local" in '
-            + 'config for production (IMGAPI_DEVELOPMENT envvar not defined)');
-        assert.ok(config.storage.manta || config.storage.dcls,
-            'missing "storage.manta" and/or "storage.dcls" in config '
-            + 'for production (IMGAPI_DEVELOPMENT envvar not defined)');
-    } else {
-        assert.notEqual(Object.keys(config.storage).length, 0,
-            'missing "storage.manta" and/or "storage.dcls" in config '
-            + 'for production (IMGAPI_DEVELOPMENT envvar not defined)');
-    }
+    assert.number(config.port, 'config.port');
+    assert.object(config.storage, 'config.storage');
     if (config.storage.manta) {
         var manta = config.storage.manta;
         assert.string(manta.url, 'config.storage.manta.url');
@@ -117,6 +103,19 @@ function loadConfigSync(configPath) {
     if (config.storage.local) {
         var local = config.storage.local;
         assert.string(local.dir, 'config.storage.local.dir');
+    }
+    assert.object(config.database, 'config.database');
+    if (!config.database.type) {
+        config.database.type = 'ufds';
+    }
+    assert.notEqual(['ufds', 'local'].indexOf(config.database.type), -1,
+        'config.database.type not "ufds" or "local"');
+    if (config.database.type === 'ufds') {
+        assert.string(config.database.url, 'config.database.url');
+        assert.string(config.database.rootDn, 'config.database.rootDn');
+        assert.string(config.database.password, 'config.database.password');
+    } else if (config.database.type === 'local') {
+        assert.string(config.database.dir, 'config.database.dir');
     }
 
     return config;
