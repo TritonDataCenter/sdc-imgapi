@@ -1,0 +1,13 @@
+{
+    "port": 8080,
+    "logLevel": "debug",
+    "database": {
+        "type": "local",
+        "dir": "/var/tmp/imgapi/db/manifests"
+    },
+    "storage": {
+        "local": {
+            "dir": "/var/tmp/imgapi/db/images"
+        }
+    }
+}

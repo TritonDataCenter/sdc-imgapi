@@ -58,7 +58,9 @@ test('GetImage existing', function (t) {
     this.client.getImage(uuid, function (err, image, res) {
         t.ifError(err, err);
         t.ok(image, 'image');
-        t.equal(image.uuid, uuid, 'image.uuid');
+        if (image) {
+            t.equal(image.uuid, uuid, 'image.uuid');
+        }
         t.end();
     });
 });

@@ -364,6 +364,7 @@ test('AdminImportImage from local .dsmanifest', function (t) {
     );
 });
 
+
 /**
  * AdminImportImage scenario from images.joyent.com:
  * - get manifest from images.joyent.com/images/:uuid
@@ -518,4 +519,3 @@ test('AdminImportImage from local .dsmanifest', function (t) {
  * - clean up: delete it
  */
 //XXX: TODO
-

@@ -14,8 +14,20 @@ fi
 set -o errexit
 set -o pipefail
 
-TOP=$(unset CDPATH; cd $(dirname $0)/; pwd)
 
+TOP=$(unset CDPATH; cd $(dirname $0)/../; pwd)
+
+
+#---- support functions
+
+function usage
+{
+    echo "Usage:"
+    echo "  ./test/reload-test-data.sh [OPTIONS...]"
+    echo ""
+    echo "Options:"
+    echo "  -l          Reload data for an imgapi using 'test/local.json'."
+}
 
 function fatal
 {
@@ -32,6 +44,41 @@ function cleanup () {
 trap 'cleanup' EXIT
 
 
-# mainline
-$TOP/rm-test-data.sh
-$TOP/sdc-ldap modify -f $TOP/test-data.ldif
+#---- mainline
+
+# Options.
+opt_local=
+while getopts "l" opt
+do
+    case "$opt" in
+        l)
+            opt_local=yes
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+$TOP/test/rm-test-data.sh $*
+if [[ -n "$opt_local" ]]; then
+    # Hack in $manifestsDatabaseDir/$uuid.raw for each image in test-data.ldif.
+    CFG_FILE=$TOP/test/local.json
+    raw_dir=$(json database.dir <$CFG_FILE)
+    if [[ ! -d $raw_dir ]]; then
+        mkdir -p $raw_dir
+    fi
+    test_images=$($TOP/test/ldif2json $TOP/test/test-data.ldif | json -c 'objectclass=="sdcimage"')
+    num_test_images=$(echo "$test_images" | json length)
+    i=0
+    while [[ $i < $num_test_images ]]; do
+        image=$(echo "$test_images" | json $i | json -e 'this.changetype=undefined')
+        uuid=$(echo "$image" | json uuid)
+        raw_path=$raw_dir/$uuid.raw
+        echo "$image" >$raw_path
+        i=$(($i + 1))
+    done
+else
+    $TOP/test/sdc-ldap modify -f $TOP/test/test-data.ldif
+fi

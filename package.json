@@ -15,12 +15,12 @@
     "expiring-lru-cache": "2.1.0",
     "generic-pool": "1.0.10",
     "assert-plus": "0.1.2",
-    "mkdirp": "0.3.4"
+    "mkdirp": "0.3.4",
+    "rimraf": "2.0.2"
   },
   "devDependencies": {
     "jshint": "0.5",
-    "nodeunit": "0.7.4",
-    "node-dev": "0.2"
+    "nodeunit": "0.7.4"
   },
   "scripts": {
     "test": "make test"

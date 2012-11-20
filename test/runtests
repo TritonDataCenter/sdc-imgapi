@@ -21,27 +21,20 @@ set -o pipefail
 
 
 
-#---- guard
-
-if [[ ! -f "/lib/sdc/.sdc-test-no-production-data" ]]; then
-    cat <<EOF
-To run this test you must create the file:
-
-    /lib/sdc/.sdc-test-no-production-data
-
-after ensuring you have no production data on this SDC.
-EOF
-    exit 2
-fi
-
-
-
 #---- support functions
 
 function fatal
 {
     echo "$(basename $0): fatal error: $*"
     exit 1
+}
+
+function cleanup () {
+    local status=$?
+    imgapi_stop $IMGAPI_URL
+    if [[ $status -ne 0 ]]; then
+        echo "error $status (run 'TRACE=1 $0' for more info)"
+    fi
 }
 
 function usage
@@ -53,11 +46,33 @@ function usage
     echo "  -c          Just clean up test data, don't run the tests."
     echo "  -q          Quick. Don't reload the test data."
     echo "  -f FILTER   Filter pattern (substring match) for test files to run."
+    echo "  -l          Run tests against an imgapi presumed to be using "
+    echo "              'test/local.json'."
+}
+
+function imgapi_is_running
+{
+    local imgapi_url=$1
+    local response=$(curl -iSs -H accept:application/json $imgapi_url/ping?caller=runtests)
+    if [[ $(echo "$response" | json -H ping) == "pong" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function imgapi_stop
+{
+    local imgapi_url=$1
+    local pid=$(curl -iSs -H accept:application/json $imgapi_url/ping | json -H pid)
+    kill $pid
 }
 
 
 
 #---- mainline
+
+trap 'cleanup' EXIT
 
 start_time=$(date +%s)
 
@@ -71,7 +86,8 @@ opt_just_clean=
 opt_test_pattern=
 opt_quick=
 opt_reporter=tap
-while getopts "hcqf:r:" opt
+opt_local=
+while getopts "hcqf:r:l" opt
 do
     case "$opt" in
         h)
@@ -90,12 +106,30 @@ do
         r)
             opt_reporter=$OPTARG
             ;;
+        l)
+            opt_local=yes
+            ;;
         *)
             usage
             exit 1
             ;;
     esac
 done
+
+
+# Guard from running in production.
+if [[ -z "$opt_local" ]]; then
+if [[ ! -f "/lib/sdc/.sdc-test-no-production-data" ]]; then
+    cat <<EOF
+To run this test you must create the file:
+
+    /lib/sdc/.sdc-test-no-production-data
+
+after ensuring you have no production data on this SDC.
+EOF
+    exit 2
+fi
+fi
 
 
 # Setup a clean output dir.
@@ -107,6 +141,11 @@ mkdir -p $OUTPUT_DIR
 
 # Gather datacenter data to be used by the test suite.
 CFG_FILE=/opt/smartdc/imgapi/etc/imgapi.config.json
+if [[ -n "$opt_local" ]]; then
+    CFG_FILE=$TOP/test/local.json
+    export UFDS_URL="n/a"
+    export IMGAPI_URL=http://localhost:$(json port <$CFG_FILE)
+fi
 if [[ -z "$UFDS_URL" ]]; then
     [[ ! -f "$CFG_FILE" ]] && fatal "'$CFG_FILE' does not exist"
     export UFDS_URL=$(json ufds.url <$CFG_FILE)
@@ -130,18 +169,46 @@ echo '# UFDS_PASSWORD is ***'
 echo "# IMGAPI_URL is $IMGAPI_URL"
 
 
-# Currently not sure if we need to run from $TOP. Let's just do so.
+# Simplify: just run everything from $TOP.
 cd $TOP
 
-# Reload test data.
-if [[ -z "$opt_quick" ]]; then
-    echo ""
-    if [[ -n "$opt_just_clean" ]]; then
-        bash $TOP/test/rm-test-data.sh
-        exit 0;
-    else
-        bash $TOP/test/reload-test-data.sh
+
+# Clean out old test data.
+echo ""
+if [[ -n "$opt_just_clean" ]]; then
+    echo "# Remove test data."
+    rm_opts=""
+    if [[ -n "$opt_local" ]]; then
+        rm_opts+=" -l"
     fi
+    bash $TOP/test/rm-test-data.sh $rm_opts
+    exit 0;
+fi
+
+# Load test data.
+if [[ -z "$opt_quick" ]]; then
+    echo "# Reload test data."
+    reload_opts=""
+    if [[ -n "$opt_local" ]]; then
+        reload_opts+=" -l"
+    fi
+    bash $TOP/test/reload-test-data.sh $reload_opts
+fi
+
+# Start the imgapi service, if necessary (only for local testing).
+if [[ -n "$opt_local" ]]; then
+    echo '# Start local imgapi (`tail -f tmp/local.log | bunyan`).'
+    mkdir -p tmp
+    node main.js -ddd -f test/local.json >tmp/local.log 2>&1 &
+    for i in 1 2 3 4 5 6 7 8 9; do
+        sleep 0.5
+        echo "# Check if local imgapi is up yet ($IMGAPI_URL)."
+        if imgapi_is_running $IMGAPI_URL; then
+            break
+        fi
+    done
+    imgapi_is_running $IMGAPI_URL || fatal 'Local imgapi did not start.'
+    echo "# Local imgapi is up."
 fi
 
 

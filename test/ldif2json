@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+"""Convert an LDIF (LDAP data file) to a JSON repr."""
+
+import sys
+import os
+import json
+import codecs
+
+
+#---- exported functions
+
+def ldif2obj(ldif_str):
+    lines = ldif_str.splitlines(False)
+    changes = []
+    for i, line in enumerate(lines):
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('dn:'):
+            changes.append({})
+        change = changes[-1]
+        key, value = line.split(':', 1)
+        key = key.strip()
+        value = value.strip()
+        if change.has_key(key):
+            if not isinstance(change[key], list):
+                change[key] = [change[key]]
+            change[key].append(value)
+        else:
+            change[key] = value
+    return changes
+
+def ldif2json(ldif_str, indent=2):
+    obj = ldif2obj(ldif_str)
+    return json.dumps(obj, indent=indent)
+
+
+#---- mainline
+
+def main(argv):
+    if len(argv) != 2:
+        raise RuntimeError('incorrect number of args (usage: `ldif2json foo.ldif`)')
+    path = argv[1]
+    f = codecs.open(path, 'r', 'utf-8')
+    ldif_str = f.read()
+    f.close()
+    json_str = ldif2json(ldif_str)
+    print json_str
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
