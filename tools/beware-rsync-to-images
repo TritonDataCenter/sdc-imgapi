@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Rsync the master in this working copy to the *production* install on
+# images.joyent.com.
+#
+
+#set -x
+set -e
+TOP=$(cd $(dirname $0)/../; pwd)
+# Using Trent's "~/.ssh/config" entry.
+NODE=images
+
+rsync -av ${TOP}/ \
+    $NODE:/root/services/imgapi/ \
+    --exclude "*.node" \
+    --include "test/*.zfs.bz2" \
+    --exclude "*.zfs.bz2" \
+    --exclude .git/ \
+    --exclude etc/imgapi.config.json \
+    --exclude deps/ \
+    --exclude doc/ \
+    --exclude tools/ \
+    --exclude tmp/ \
+    --exclude build/
+
+state=$(ssh ${NODE} svcs -H -o state imgapi)
+if [[ "$state" == "maintenance" ]]; then
+    ssh ${NODE} svcadm clear imgapi
+else
+    ssh ${NODE} svcadm restart imgapi
+fi

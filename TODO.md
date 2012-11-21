@@ -71,13 +71,24 @@
               pgsql_pw: 'Kv;QWybRgr',
               zone_template: 'smartosplus-3.0.7',
               package_name: 'Medium 4GB' }
-- get headnode.sh starter images into IMGAPI
-- get storage (local and manta) working
+- images.joyent.com:
+    - working
+    - loaded with current zone datasets (skipping zvols for now b/c of
+      missing attributes)
+    - auth story for only particular people publishing (just basic auth with
+      a hardcoded bcrypted password? with a local tool to change that?)
+    - 'public' mode: auth, auth non-admin endpoints (/state)
+    - ask about the restricted_to_uuid single example (fca6434e-da62-11e1-8e93-af79adacd365)
+    - try loading with all stuff:datasets
+    - get images.joyent.com DNS setup (still really want this private?)
+    - redir / -> /images (perhaps later to keep it obscure)
 - Fill out each of the use cases in index.restdown. Do those use cases cover
   all of UpdateImage, DisableImage, EnableImage, MigrateImage, AdminImportImage?
   Tickets for each.
-- re-write imgadm to be reliable
-- Spec the cloudapi endpoints.
+- imgadm2
+- get storage (local and manta) working
+- fill in all missing attributes for zvols and add those to images.joyent.com
+- test cloudapi compat
 - Compat with SDC6 cloudapi dataset endpoints.
 - Review usage with customer image creation plan DATASET-323.
   Trent ref: https://mail.google.com/mail/u/1/?ui=2&shva=1#inbox/1379fad460845d56
@@ -89,6 +100,13 @@
 
 # general todos
 
+- public docs for images.joyent.com: docs/public.restdown and a deploy
+  task to put serve those (and *not* the other html files) on
+  images.joyent.com
+- add this use case: Don't break this usage:
+    http://datasets.at/#/about
+  IOW, imgadm2 should still use sources.list?! Update compat is more important
+  than back-and-forth compat.
 - cacheKey in ufdsmodel.js for modelList is wrong, needs to be
   request-specific. Perhaps Model.cacheKeyFromReq()?
 - smartos-live/issues for imgadm and dsadm

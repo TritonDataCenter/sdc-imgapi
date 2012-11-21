@@ -83,6 +83,16 @@ publish: release
 	mkdir -p $(BITS_DIR)/$(NAME)
 	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
 
+.PHONY: deploy_images_joyent_com
+deploy_images_joyent_com:
+	@echo '# Deploy to images.joyent.com. This is a *production* server.'
+	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
+	@read
+	ssh root@images.joyent.com '
+		cd /root/services/imgapi \
+			&& git fetch origin \
+			&& git pull --rebase origin master \
+			&& svcadm restart imgapi'
 
 
 include ./tools/mk/Makefile.deps
