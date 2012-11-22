@@ -374,140 +374,143 @@ test('AdminImportImage from local .dsmanifest', function (t) {
  * - GetImage, GetImageFile checks
  * - clean up: delete it
  */
-//test('AdminImportImage from images.joyent.com', function (t) {
-//    var self = this;
-//    var uuid = "1fc068b0-13b0-11e2-9f4e-2f3f6a96d9bc";
-//    var manifest;
-//    var size;
-//    var sha1;
-//    var md5;
-//    var aImage;
-//
-//    var imagesClient = new IMGAPI({url: 'https://images.joyent.com'});
-//
-//    //XXX: START HERE
-//    function getManifest(next) {
-//        imagesClient.getImage(uuid, function (err, image) {
-//            t.ifError(err, err);
-//            t.ok(image);
-//            manifest = image;
-//            next();
-//        })
-//    }
-//    function create(next) {
-//        self.client.adminImportImage(data, function (err, image, res) {
-//            t.ifError(err, err);
-//            t.ok(image);
-//            if (image) {
-//                t.equal(image.uuid, data.uuid);
-//                t.equal(image.published_at, data.published_at);
-//                t.equal(image.state, 'unactivated');
-//            }
-//            next(err);
-//        });
-//    }
-//    function getSize(next) {
-//        fs.stat(filePath, function (err, stats) {
-//            if (err)
-//                return next(err);
-//            size = stats.size;
-//            next();
-//        });
-//    }
-//    function getSha1(next) {
-//        var hash = crypto.createHash('sha1');
-//        var s = fs.createReadStream(filePath);
-//        s.on('data', function (d) { hash.update(d); });
-//        s.on('end', function () {
-//            sha1 = hash.digest('hex');
-//            next();
-//        });
-//    }
-//    function getMd5(next) {
-//        var hash = crypto.createHash('md5');
-//        var s = fs.createReadStream(filePath);
-//        s.on('data', function (d) { hash.update(d); });
-//        s.on('end', function () {
-//            md5 = hash.digest('base64');
-//            next();
-//        });
-//    }
-//    function addFile(next) {
-//        self.client.addImageFile(uuid, filePath, function (err, image, res) {
-//            t.ifError(err, err);
-//            t.ok(image);
-//            t.equal(image.files.length, 1, 'image.files');
-//            t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
-//            t.equal(image.files[0].size, size, 'image.files.0.size');
-//            next(err);
-//        });
-//    }
-//    function activate(next) {
-//        self.client.activateImage(uuid, function (err, image, res) {
-//            t.ifError(err, err);
-//            t.ok(image);
-//            t.equal(image.state, 'active');
-//            aImage = image;
-//            next();
-//        });
-//    }
-//    function getImage(next) {
-//        self.client.getImage(uuid, vader, function (err, image, res) {
-//            t.ifError(err, err);
-//            t.equal(JSON.stringify(aImage), JSON.stringify(image), 'matches');
-//            next();
-//        });
-//    }
-//    function getFile(next) {
-//        var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
-//            process.pid);
-//        self.client.getImageFile(uuid, tmpFilePath, vader, function (err, res) {
-//            t.ifError(err, err);
-//            if (err) {
-//                return next(err);
-//            }
-//            t.equal(md5, res.headers['content-md5'], 'md5');
-//            var hash = crypto.createHash('sha1');
-//            var s = fs.createReadStream(tmpFilePath);
-//            s.on('data', function (d) { hash.update(d); });
-//            s.on('end', function () {
-//                var actual_sha1 = hash.digest('hex');
-//                t.equal(sha1, actual_sha1, 'sha1 matches upload');
-//                t.equal(aImage.files[0].sha1, actual_sha1,
-//                    'sha1 matches image data');
-//                next();
-//            });
-//        });
-//    }
-//    function deleteImage(next) {
-//        self.client.deleteImage(uuid, function (err, res) {
-//            t.ifError(err, err);
-//            if (err) {
-//                return next(err);
-//            }
-//            t.equal(res.statusCode, 204, 'res.statusCode 204');
-//            next();
-//        });
-//    }
-//
-//    async.series(
-//        [
-//            getManifest,
-//            create,
-//            getSize,
-//            getSha1,
-//            getMd5,
-//            addFile,
-//            activate,
-//            getImage,
-//            getFile,
-//            deleteImage
-//        ],
-//        function (err) {
-//            t.end();
-//        }
-//    );
-//});
+test('AdminImportImage from images.joyent.com', function (t) {
+    var self = this;
+    // smartos-1.3.18 (40MB) -- pick a small one for faster download in
+    // shitty-networking BH-1 where testing is typically done.
+    var uuid = "47e6af92-daf0-11e0-ac11-473ca1173ab0";
+    var manifest;
+    var filePath = format('/var/tmp/images-test-file-%s.zfs.bz2', process.pid);
+    var size;
+    var sha1;
+    var md5;
+    var aImage;
+
+    //XXX var imagesClient = new IMGAPI({url: 'https://images.joyent.com'});
+    var imagesClient = new IMGAPI({url: 'https://64.30.133.39'});
+
+    function getManifestFromImagesJo(next) {
+        imagesClient.getImage(uuid, function (err, image) {
+            t.ifError(err, err);
+            t.ok(image);
+            manifest = image;
+            next();
+        })
+    }
+    function getFileFromImagesJo(next) {
+        imagesClient.getImageFile(uuid, filePath, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            var sha1hash = crypto.createHash('sha1');
+            var md5hash = crypto.createHash('md5');
+            size = 0;
+            var s = fs.createReadStream(filePath);
+            s.on('data', function (d) {
+                sha1hash.update(d);
+                md5hash.update(d);
+                size += d.length;
+            });
+            s.on('end', function () {
+                sha1 = sha1hash.digest('hex');
+                md5 = md5hash.digest('base64');
+                t.equal(md5, res.headers['content-md5'], 'md5');
+                t.equal(sha1, manifest.files[0].sha1,
+                    'sha1 matches manifest data');
+                t.equal(size, manifest.files[0].size,
+                    'size matches manifest data');
+                next();
+            });
+        });
+    }
+    function create(next) {
+        self.client.adminImportImage(manifest, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            if (image) {
+                t.equal(image.uuid, manifest.uuid);
+                t.equal(image.published_at, manifest.published_at);
+                t.equal(image.state, 'unactivated');
+            }
+            next(err);
+        });
+    }
+    function addFile(next) {
+        self.client.addImageFile(uuid, filePath, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.files.length, 1, 'image.files');
+            t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
+            t.equal(image.files[0].size, size, 'image.files.0.size');
+            next(err);
+        });
+    }
+    function activate(next) {
+        self.client.activateImage(uuid, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.state, 'active');
+            aImage = image;
+            next();
+        });
+    }
+    function getImage(next) {
+        self.client.getImage(uuid, vader, function (err, image, res) {
+            t.ifError(err, err);
+            t.equal(JSON.stringify(aImage), JSON.stringify(image), 'matches');
+            next();
+        });
+    }
+    function getFile(next) {
+        var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
+            process.pid);
+        self.client.getImageFile(uuid, tmpFilePath, vader, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            t.equal(md5, res.headers['content-md5'], 'md5');
+            var hash = crypto.createHash('sha1');
+            var s = fs.createReadStream(tmpFilePath);
+            s.on('data', function (d) { hash.update(d); });
+            s.on('end', function () {
+                var actual_sha1 = hash.digest('hex');
+                t.equal(sha1, actual_sha1, 'sha1 matches upload');
+                t.equal(aImage.files[0].sha1, actual_sha1,
+                    'sha1 matches image data');
+                next();
+            });
+        });
+    }
+    function deleteImage(next) {
+        self.client.deleteImage(uuid, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            t.equal(res.statusCode, 204, 'res.statusCode 204');
+            next();
+        });
+    }
+
+    async.series(
+        [
+            getManifestFromImagesJo,
+            getFileFromImagesJo,
+            create,
+            addFile,
+            activate,
+            getImage,
+            getFile,
+            deleteImage
+        ],
+        function (err) {
+            t.end();
+        }
+    );
+});
+
 
 /**
  * AdminImportImage scenario from datasets.joyent.com:

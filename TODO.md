@@ -72,9 +72,6 @@
               zone_template: 'smartosplus-3.0.7',
               package_name: 'Medium 4GB' }
 - images.joyent.com:
-    - working
-    - loaded with current zone datasets (skipping zvols for now b/c of
-      missing attributes)
     - auth story for only particular people publishing (just basic auth with
       a hardcoded bcrypted password? with a local tool to change that?)
     - 'public' mode: auth, auth non-admin endpoints (/state)
