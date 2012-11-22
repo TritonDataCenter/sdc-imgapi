@@ -83,5 +83,6 @@ else
     done
 fi
 
-rm -rf /var/tmp/images-test-file-*
 rm -rf /var/tmp/imgapi-test-file-*
+rm -rf /var/tmp/image-test-file-*
+rm -rf /var/tmp/dataset-test-file-*
