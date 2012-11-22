@@ -13,6 +13,7 @@ set -o errexit
 set -o pipefail
 
 
+TOP=$(unset CDPATH; cd $(dirname $0)/../; pwd)
 arch=$(uname -s)
 
 
@@ -41,10 +42,10 @@ shift;
 
 
 # Determine connection and auth info.
-UFDS_ADMIN_IPS=$(grep UFDS_ADMIN_IPS /opt/smartdc/etc/zoneconfig | cut -d"'" -f 2)
+UFDS_ADMIN_IPS=$(grep UFDS_ADMIN_IPS $TOP/../etc/zoneconfig | cut -d"'" -f 2)
 UFDS_HOST=${UFDS_ADMIN_IPS%%,*}
-ufds_dn=$(grep UFDS_LDAP_ROOT_DN /opt/smartdc/etc/zoneconfig | cut -d"'" -f 2)
-ufds_pw=$(grep UFDS_LDAP_ROOT_PW /opt/smartdc/etc/zoneconfig | cut -d"'" -f 2)
+ufds_dn=$(grep UFDS_LDAP_ROOT_DN $TOP/../etc/zoneconfig | cut -d"'" -f 2)
+ufds_pw=$(grep UFDS_LDAP_ROOT_PW $TOP/../etc/zoneconfig | cut -d"'" -f 2)
 UFDS_PORT=636
 if [[ -z "$UFDS_HOST" ]]; then
     echo "Unable to find UFDS host." >&2
