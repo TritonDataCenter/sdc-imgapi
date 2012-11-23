@@ -1,6 +1,20 @@
 {
     "port": 8080,
     "logLevel": "debug",
+    "mode": "public",
+    "// auth": {
+        "type": "basic",
+        "realm": "IMGAPI",
+        "users": {
+            "guest": "$2a$10$Mqn0lKFw2XI6GbUbI5S8vekyMgpcXe2yimmzoaEmIQeYycP.K9oEW"
+        }
+    },
+    "auth": {
+        "type": "signature",
+        "users": {
+            "trent": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAn6QHOqxWJr9Ice+fsqGPiURLgEOSWPt7slo1JkfncBLTlEswk/QpI36zepystMfrYq5kHNdgml3IivPgGLzLX3faNGup5z9dhFxv0Q9sX7WpDhtQNBhd9JZHX9x5PEDHq+bHpHmtJ6zDNfTkeH7Z+3pd9szVKxsSrRB96I2tB5hF4QQo4uv5H1Ljbk7+2mBlzEHxBnW3SYHgppLiADIaMolosYSPG/iIqORx9PRhAPXvu1pvvp5CTiWwvepq/S9/2dX/9acYvOo/0Ub0PY7uG+Do8dA1Nea7i4qH9L+iFNdpE95SQMPlNBSXU20YpMvKdrIUpnk4ojHw2l24uq9Lfw== trent.mick@joyent.com (take 2)"
+        }
+    },
     "database": {
         "type": "local",
         "dir": "/var/tmp/imgapi/db/manifests"

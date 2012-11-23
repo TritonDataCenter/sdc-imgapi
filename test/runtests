@@ -219,7 +219,8 @@ fi
 
 
 # Clear caches.
-#XXX:TODO
+echo "# Drop IMGAPI caches."
+curl -isS $IMGAPI_URL/state?action=dropcaches -X POST >/dev/null
 
 
 # Run the tests.

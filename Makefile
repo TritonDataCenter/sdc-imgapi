@@ -94,6 +94,10 @@ deploy_images_joyent_com:
 			&& git pull --rebase origin master \
 			&& svcadm restart imgapi'
 
+.PHONY: devrun
+devrun:
+	node-dev main.js -f test/local.json | bunyan -o short
+
 
 include ./tools/mk/Makefile.deps
 ifeq ($(shell uname -s),SunOS)

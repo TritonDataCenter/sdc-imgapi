@@ -711,6 +711,10 @@ top-level keys in the factory settings. For example: if providing
 ||**var**||**type**||**default**||**description**||
 ||port||Number||8080||Port number on which to listen.||
 ||logLevel||String or Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
+||mode||String||public||One of 'public' (default), running as a public server (e.g. images.joyent.com), or 'dc', running as the IMGAPI in an SDC datacenter.||
+||auth||Object||-||If in 'public' mode, then auth details are required. 'dc' mode does no auth.||
+||auth.type||String||-||One of 'basic' (HTTP Basic Auth) or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)).||
+||auth.users||Object||-||Required if `auth.type === 'basic'`. A mapping of username to bcrypt-hashed password. Use the `bin/hash-basic-auth-password` tool to create the hash.||
 ||database||Object||-||Database info. The "database" is how the image manifest data is stored.||
 ||database.type||String||ufds||One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images.||
 ||database.url||String||-||LDAP URL to connect to UFDS. Required if `database.type === 'ufds'`.||

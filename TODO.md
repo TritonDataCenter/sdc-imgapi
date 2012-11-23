@@ -23,6 +23,7 @@
 - CRUD on image traits per <https://gist.github.com/1484f5712530f5075044#gistcomment-596222>
 - usageapi/billing issues
 - multi-dc and support for adminui and portal
+- node-smartdc update: new "--image" options, deprecate "--dataset"
 - what else?
 
 

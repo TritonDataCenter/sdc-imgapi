@@ -89,6 +89,12 @@ function loadConfigSync(configPath) {
 
     // Validation
     assert.number(config.port, 'config.port');
+    if (config.mode === undefined) {
+        config.mode = 'public';
+    }
+    assert.string(config.mode, 'config.mode');
+    assert.ok(['public', 'dc'].indexOf(config.mode) !== -1,
+        'invalid config.mode');
     assert.object(config.storage, 'config.storage');
     if (config.storage.manta) {
         var manta = config.storage.manta;
