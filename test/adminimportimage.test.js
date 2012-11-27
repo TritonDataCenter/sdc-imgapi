@@ -5,6 +5,7 @@
  */
 
 var format = require('util').format;
+var exec = require('child_process').exec
 var crypto = require('crypto');
 var fs = require('fs');
 var https = require('https');
@@ -31,13 +32,28 @@ function skiptest() {}; // quick hack to comment out a test
 var vader = '86055c40-2547-11e2-8a6b-4bb37edc84ba';
 var luke = '91ba0e64-2547-11e2-a972-df579e5fddb3';
 var sdc = 'ba28f844-8cb4-f141-882d-46d6251e6a9f';
+var IMAGES_JOYENT_COM_IP = null;
+var DATASETS_JOYENT_COM_IP = null;
 
 
 //---- tests
 
 before(function (next) {
     this.client = new IMGAPI({url: process.env.IMGAPI_URL});
-    next();
+
+    // We typically run this test suite from the GZ, where DNS isn't enabled.
+    // We need to manually get the IPs for services we are hitting.
+    exec('dig images.joyent.com +short', function (err, stdout, stderr) {
+        if (err)
+            return next(err);
+        IMAGES_JOYENT_COM_IP = stdout.trim();
+        exec('dig datasets.joyent.com +short', function (err, stdout, stderr) {
+            if (err)
+                return next(err);
+            DATASETS_JOYENT_COM_IP = stdout.trim();
+            next();
+        });
+    });
 });
 
 
@@ -391,8 +407,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
     var md5;
     var aImage;
 
-    //XXX var imagesClient = new IMGAPI({url: 'https://images.joyent.com'});
-    var imagesClient = new IMGAPI({url: 'https://64.30.133.39'});
+    var imagesClient = new IMGAPI({url: 'https://' + IMAGES_JOYENT_COM_IP});
 
     function getManifestFromImagesJo(next) {
         imagesClient.getImage(uuid, function (err, image) {
@@ -538,9 +553,7 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
     var md5;
     var aImage;
 
-    //var datasetsClient = new DSAPI({url: 'https://datasets.joyent.com'});
-    // XXX Hack for running from the GZ:
-    var datasetsClient = new DSAPI({url: 'https://165.225.154.107'});
+    var datasetsClient = new DSAPI({url: 'https://' + DATASETS_JOYENT_COM_IP});
 
     function getManifestFromDatasetsJo(next) {
         datasetsClient.getImage(uuid, function (err, dataset) {
@@ -552,8 +565,8 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
     }
     function getFileFromDatasetsJo(next) {
         var url = manifest.files[0].url;
-        // XXX Hack for running from the GZ:
-        url = url.replace('datasets.joyent.com', '165.225.154.107');
+        // Tests run from the GZ where we don't have DNS.
+        url = url.replace('datasets.joyent.com', DATASETS_JOYENT_COM_IP);
         var stream = fs.createWriteStream(filePath);
         https.get(url, function (res) {
             var sha1hash = crypto.createHash('sha1');
