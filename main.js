@@ -87,7 +87,7 @@ function loadConfigSync(configPath) {
         config.configPath = null;
     }
 
-    // Validation
+    // Validation and defaults.
     assert.number(config.port, 'config.port');
     if (config.mode === undefined) {
         config.mode = 'public';
