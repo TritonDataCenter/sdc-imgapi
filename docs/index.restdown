@@ -698,6 +698,32 @@ Ping can also be used to simulate error responses from the IMGAPI:
     }
 
 
+## AdminGetState (GET /state)
+
+Return server internal state. For debugging/dev only.
+
+### Inputs
+
+None.
+
+### Returns
+
+A JSON representation of some internal state.
+
+### Example
+
+    $ sdc-imgapi /state
+    {
+      "cache": {
+        ...
+      },
+      "log": {
+        "level": 20
+      },
+      ...
+    }
+
+
 
 # Configuration
 

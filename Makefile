@@ -96,7 +96,7 @@ deploy_images_joyent_com:
 
 .PHONY: devrun
 devrun:
-	node-dev main.js -f test/local.json | bunyan -o short
+	node-dev main.js -f tools/imgapi.config.local-signature-auth.json | bunyan -o short
 
 
 include ./tools/mk/Makefile.deps
