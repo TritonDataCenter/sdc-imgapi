@@ -49,9 +49,11 @@ all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS)
 $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
 
+# Run *local* server tests.
 .PHONY: test
 test: | $(NODEUNIT)
-	$(NODEUNIT) test/*.test.js
+	./test/runtests -lp  # test local 'public' mode
+	./test/runtests -l   # test local 'dc' mode
 
 .PHONY: release
 release: all

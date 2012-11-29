@@ -45,11 +45,15 @@ trap 'cleanup' EXIT
 
 # Options.
 opt_local=
-while getopts "l" opt
+opt_mode=dc
+while getopts "lp" opt
 do
     case "$opt" in
         l)
             opt_local=yes
+            ;;
+        p)
+            opt_mode=public
             ;;
         *)
             usage
@@ -60,10 +64,10 @@ done
 
 
 if [[ -n "$opt_local" ]]; then
-    CFG_FILE=$TOP/test/local.json
+    CFG_FILE=$TOP/test/imgapi-config-local-$opt_mode.json
     rm -rf $(json database.dir <$CFG_FILE)
     rm -rf $(json storage.local.dir <$CFG_FILE)
-else
+elif [[ "$opt_mode" == "dc" ]]; then
     # Luke's created datasets.
     dns=$($TOP/test/sdc-ldap s -b 'ou=images, o=smartdc' \
         '(&(objectclass=sdcimage)(owner=91ba0e64-2547-11e2-a972-df579e5fddb3))' \

@@ -5,7 +5,7 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
-    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#f48407d",
+    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#46907a9",
     "ldapjs": "0.5.7",
     "bunyan": "0.16.7",
     "restify": "git://github.com/mcavage/node-restify.git#a1173a4",
@@ -24,7 +24,8 @@
   },
   "devDependencies": {
     "jshint": "0.5",
-    "nodeunit": "0.7.4"
+    "nodeunit": "0.7.4",
+    "imgapi-cli": "git+ssh://git@git.joyent.com:imgapi-cli.git#a96af79"
   },
   "scripts": {
     "test": "make test"

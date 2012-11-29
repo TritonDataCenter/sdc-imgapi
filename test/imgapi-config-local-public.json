@@ -1,0 +1,21 @@
+{
+    "port": 8081,
+    "logLevel": "debug",
+    "mode": "public",
+    "auth": {
+        "type": "basic",
+        "realm": "IMGAPI",
+        "users": {
+            "guest": "$2a$10$Mqn0lKFw2XI6GbUbI5S8vekyMgpcXe2yimmzoaEmIQeYycP.K9oEW"
+        }
+    },
+    "database": {
+        "type": "local",
+        "dir": "/var/tmp/imgapi-test-public/db/manifests"
+    },
+    "storage": {
+        "local": {
+            "dir": "/var/tmp/imgapi-test-public/db/images"
+        }
+    }
+}

@@ -48,11 +48,15 @@ trap 'cleanup' EXIT
 
 # Options.
 opt_local=
-while getopts "l" opt
+opt_mode=dc
+while getopts "lp" opt
 do
     case "$opt" in
         l)
             opt_local=yes
+            ;;
+        p)
+            opt_mode=public
             ;;
         *)
             usage
@@ -61,10 +65,12 @@ do
     esac
 done
 
+[[ "$opt_mode" == "public" ]] && fatal "This isn't supported for 'public' tests yet."
+
 $TOP/test/rm-test-data.sh $*
 if [[ -n "$opt_local" ]]; then
     # Hack in $manifestsDatabaseDir/$uuid.raw for each image in test-data.ldif.
-    CFG_FILE=$TOP/test/local.json
+    CFG_FILE=$TOP/test/imgapi-config-local-$opt_mode.json
     raw_dir=$(json database.dir <$CFG_FILE)
     if [[ ! -d $raw_dir ]]; then
         mkdir -p $raw_dir

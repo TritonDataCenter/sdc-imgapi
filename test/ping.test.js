@@ -5,8 +5,9 @@
  */
 
 var format = require('util').format;
-//var IMGAPI = require('sdc-clients').IMGAPI;   // temp broken by TOOLS-211
-var IMGAPI = require('sdc-clients/lib/imgapi');
+var assert = require('assert-plus');
+//var imgapi = require('sdc-clients').IMGAPI;   // temp broken by TOOLS-211
+var imgapi = require('sdc-clients/lib/imgapi');
 
 
 // node-tap API
@@ -20,7 +21,24 @@ var test = tap4nodeunit.test;
 
 
 before(function (next) {
-    this.imgapiClient = new IMGAPI({url: process.env.IMGAPI_URL});
+    var options = {
+        url: process.env.IMGAPI_URL
+    };
+    if (process.env.IMGAPI_PASSWORD) {
+        options.user = process.env.IMGAPI_USER;
+        options.password = process.env.IMGAPI_PASSWORD;
+    } else if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
+        assert.ok(process.env.JOYENT_IMGADM_USER,
+            'JOYENT_IMGADM_USER envvar is not set');
+        assert.ok(process.env.JOYENT_IMGADM_IDENTITY,
+            'JOYENT_IMGADM_IDENTITY envvar is not set');
+        options.user = process.env.JOYENT_IMGADM_USER;
+        options.sign = imgapi.cliSigner({
+            keyId: process.env.JOYENT_IMGADM_IDENTITY,
+            user: process.env.JOYENT_IMGADM_USER
+        });
+    }
+    this.imgapiClient = imgapi.createClient(options);
     next();
 });
 
