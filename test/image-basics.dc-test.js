@@ -83,6 +83,7 @@ var what_a_piece_of_junk;
 test('CreateImage', function (t) {
     var data = {
         name: 'what-a-piece-of-junk',
+        version: '1.0.0',
         description: 'Describing the Millenium Falcon.',
         os: 'smartos',
         type: 'zone-dataset',

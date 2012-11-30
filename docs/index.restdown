@@ -44,7 +44,8 @@ Generally this is represented as a JSON object. For example:
       "state": "active",
       "disabled": false,
       "type": "zone-dataset",
-      "name": "base 2.0.0",
+      "name": "base"
+      "version": "2.0.0",
       "description": "Base template to build other templates on",
       "published_at": "2011-05-10T09:25:12Z",
       "os": "smartos",
@@ -72,7 +73,8 @@ A summary of fields (details are provided below)
 ||**Field**||**Type**||**Always Present?**||**Notes**||
 ||[uuid](#manifest-uuid)||UUID||Yes||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
 ||[owner](#manifest-owner)||UUID||Yes||The UUID of the owner of this image (the account that created it).||
-||[name](#manifest-name)||String||Yes||A short name (and optionally version) for this image. No uniqueness guarantee.||
+||[name](#manifest-name)||String||Yes||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
+||[version](#manifest-version)||String||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||A short description of the image.||
 ||[state](#manifest-state)||String||Yes||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
 ||[disabled](#manifest-disabled)||Boolean||Yes||Indicates if this image is available for provisioning.||
@@ -128,6 +130,20 @@ The account UUID of the owner/creator of this image.
 ## Manifest: name
 
 TODO: docs
+
+
+## Manifest: version
+
+A version string for this image. Maximum 128 characters. This is an opaque
+string, i.e. no particular format or structure is enforced and
+no ordering with other versions is implied. However, it is strongly suggested
+that the [semver](http://semver.org/) versioning scheme be
+followed. Further, the simple `Major.Minor.Patch` semver subset is ideal.
+
+Note that image `name` and `version` do not make a unique identifier for
+an image. Separate users (and even the same user) can create images with
+the same name and version. The image `uuid` is the only unique identifier
+for an image.
 
 
 ## Manifest: description
@@ -377,6 +393,7 @@ authenticated account. The latter is for operator-only querying.
 ||owner||UUID||Only list images owned by this account.||
 ||state||String||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
 ||name||String||List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
+||version||String||List images with the given version.||
 ||public||Boolean||List just public or just private images.||
 ||os||String||List images with the given os.||
 ||type||String||List images of the given type.||
@@ -476,7 +493,8 @@ provisioning.
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
 ||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
 ||[owner](#manifest-owner)||UUID||Yes\*||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
-||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. No uniqueness guarantee.||
+||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
+||[version](#manifest-version)||String||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||-||A short description of the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
@@ -520,7 +538,12 @@ TODO: errors
 ### Example
 
     $ sdc-imgapi /images -X POST \
-        --data-binary '{"name": "foo", "type": "zone-dataset", "os": "smartos"}'
+        --data-binary '{
+            "name": "foo",
+            "version": "1.0.0",
+            "type": "zone-dataset",
+            "os": "smartos"
+        }'
     TODO: example
 
 

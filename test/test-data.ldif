@@ -70,7 +70,8 @@ objectclass: sdcPerson
 dn: uuid=c58161c0-2547-11e2-a75e-9fdca1940570, ou=images, o=smartdc
 changetype: add
 uuid: c58161c0-2547-11e2-a75e-9fdca1940570
-name: base-1.8.1
+name: base
+version: 1.8.1
 owner: ba28f844-8cb4-f141-882d-46d6251e6a9f
 public: true
 activated: true
@@ -84,7 +85,8 @@ objectclass: sdcimage
 dn: uuid=da58c25a-2547-11e2-9b8d-136daa650e8a, ou=images, o=smartdc
 changetype: add
 uuid: da58c25a-2547-11e2-9b8d-136daa650e8a
-name: nodejs-1.0.0
+name: nodejs
+version: 1.0.0
 owner: ba28f844-8cb4-f141-882d-46d6251e6a9f
 public: true
 activated: true
@@ -98,7 +100,8 @@ objectclass: sdcimage
 dn: uuid=e078a6aa-2547-11e2-8688-03ac37b2b4a0, ou=images, o=smartdc
 changetype: add
 uuid: e078a6aa-2547-11e2-8688-03ac37b2b4a0
-name: base-2.0.0
+name: base
+version: 2.0.0
 owner: ba28f844-8cb4-f141-882d-46d6251e6a9f
 public: true
 activated: false
@@ -112,6 +115,7 @@ dn: uuid=7a1b1967-6ecf-1e4c-8f09-f49094cc36ad, ou=images, o=smartdc
 changetype: add
 uuid: 7a1b1967-6ecf-1e4c-8f09-f49094cc36ad
 name: i-am-your-father
+version: 0.0.1
 owner: 86055c40-2547-11e2-8a6b-4bb37edc84ba
 public: false
 activated: true
@@ -127,6 +131,7 @@ dn: uuid=9f819499-8298-9842-8cc5-1c2838196ab4, ou=images, o=smartdc
 changetype: add
 uuid: 9f819499-8298-9842-8cc5-1c2838196ab4
 name: come-to-the-dark-side
+version: 42.1.2
 owner: 86055c40-2547-11e2-8a6b-4bb37edc84ba
 public: false
 activated: true
@@ -142,6 +147,7 @@ dn: uuid=2d28c64f-fb16-2145-a0ca-f626aea35c77, ou=images, o=smartdc
 changetype: add
 uuid: 2d28c64f-fb16-2145-a0ca-f626aea35c77
 name: he-will-join-us-or-die
+version: 1.2.3
 owner: 86055c40-2547-11e2-8a6b-4bb37edc84ba
 public: false
 activated: false
