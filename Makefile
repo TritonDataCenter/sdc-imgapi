@@ -43,8 +43,23 @@ TMPDIR          := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS)
+all: $(SMF_MANIFESTS) images.joyent.com-node-hack | $(NODEUNIT) $(REPO_DEPS)
 	$(NPM) install
+
+# Node hack for images.joyent.com
+#
+# Fake out 'Makefile.node_prebuilt.*' by symlinking build/node
+# to the node we want to use. We can't use sdcnode here because
+# of GCC mismatch with current sdcnode builds.
+.PHONY: images.joyent.com-node-hack
+images.joyent.com-node-hack:
+	if [[ -f "$(HOME)/THIS-IS-IMAGES.JOYENT.COM.txt" ]]; then \
+		if [[ ! -d "$(TOP)/build/node" ]]; then \
+			(cd $(TOP)/build && ln -s $(HOME)/opt/node-0.8.14 node); \
+			touch $(NODE_EXEC); \
+			touch $(NPM_EXEC); \
+		fi; \
+	fi
 
 $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
