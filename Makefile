@@ -104,16 +104,21 @@ publish: release
 	mkdir -p $(BITS_DIR)/$(NAME)
 	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
 
-.PHONY: deploy_images_joyent_com
-deploy_images_joyent_com:
+.PHONY: deploy-images.joyent.com
+deploy-images.joyent.com:
 	@echo '# Deploy to images.joyent.com. This is a *production* server.'
 	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
 	@read
-	ssh root@images.joyent.com '
-		cd /root/services/imgapi \
-			&& git fetch origin \
-			&& git pull --rebase origin master \
-			&& svcadm restart imgapi'
+	ssh root@images.joyent.com ' \
+		set -x \
+		&& cd /root/services \
+		&& cp -PR imgapi imgapi.`date "+%Y%m%dT%H%M%SZ"` \
+		&& cd /root/services/imgapi \
+		&& git fetch origin \
+		&& git pull --rebase origin master \
+		&& /opt/local/gnu/bin/make \
+		&& svcadm restart imgapi \
+		&& tail -f `svcs -L imgapi` | bunyan -o short'
 
 .PHONY: devrun
 devrun:
