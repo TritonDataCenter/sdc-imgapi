@@ -363,8 +363,8 @@ In the API, an image contains the following fields:
 
 ## ListImages (GET /images)
 
-List images. Without query params this returns all active (`state ===
-"active"`) images.
+List images. Without query params this returns all active
+(`state === "active"`) images.
 
 There are two typical calling styles to this endpoint: with 'account=$UUID' and
 without. The former is what cloudapi uses to ask on behalf of a particular
@@ -376,7 +376,7 @@ authenticated account. The latter is for operator-only querying.
 ||account||UUID||Only list images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are listing in the ACL, and (c) their own images.||
 ||owner||UUID||Only list images owned by this account.||
 ||state||String||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
-||name||String||List images with the given name. Prefix with `~` to do a substring match. E.g., `~foo`.||
+||name||String||List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
 ||public||Boolean||List just public or just private images.||
 ||os||String||List images with the given os.||
 ||type||String||List images of the given type.||
