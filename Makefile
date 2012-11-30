@@ -49,11 +49,15 @@ all: $(SMF_MANIFESTS) | $(NODEUNIT) $(REPO_DEPS)
 $(NODEUNIT): | $(NPM_EXEC)
 	$(NPM) install
 
-# Run *local* server tests.
-.PHONY: test
+.PHONY: test test-kvm7 test-images.joyent.com
 test: | $(NODEUNIT)
 	./test/runtests -lp  # test local 'public' mode
 	./test/runtests -l   # test local 'dc' mode
+test-kvm7: | $(NODEUNIT)
+	./tools/rsync-to-kvm7
+	./tools/runtests-on-kvm7
+test-images.joyent.com: | $(NODEUNIT)
+	./test/runtests -p
 
 .PHONY: release
 release: all

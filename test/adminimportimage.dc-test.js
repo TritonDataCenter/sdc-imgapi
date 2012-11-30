@@ -41,6 +41,10 @@ var DATASETS_JOYENT_COM_IP = null;
 before(function (next) {
     this.client = new IMGAPI({url: process.env.IMGAPI_URL});
 
+    if (process.env.IMGAPI_TEST_OFFLINE) {
+        return next();
+    }
+
     // We typically run this test suite from the GZ, where DNS isn't enabled.
     // We need to manually get the IPs for services we are hitting.
     exec('dig images.joyent.com +short', function (err, stdout, stderr) {
@@ -395,6 +399,7 @@ test('AdminImportImage from local .dsmanifest', function (t) {
  * - GetImage, GetImageFile checks
  * - clean up: delete it
  */
+if (!process.env.IMGAPI_TEST_OFFLINE)
 test('AdminImportImage from images.joyent.com', function (t) {
     var self = this;
     // smartos-1.3.18 (40MB) -- pick a small one for faster download in
@@ -541,6 +546,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
  * - GetImage, GetImageFile checks
  * - clean up: delete it
  */
+if (!process.env.IMGAPI_TEST_OFFLINE)
 test('AdminImportImage from datasets.joyent.com', function (t) {
     var self = this;
     // smartos-1.3.18 (40MB) -- pick a small one for faster download in

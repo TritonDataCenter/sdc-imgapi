@@ -24,8 +24,7 @@
   },
   "devDependencies": {
     "jshint": "0.5",
-    "nodeunit": "0.7.4",
-    "imgapi-cli": "git+ssh://git@git.joyent.com:imgapi-cli.git#a96af79"
+    "nodeunit": "0.7.4"
   },
   "scripts": {
     "test": "make test"

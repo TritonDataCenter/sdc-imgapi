@@ -49,13 +49,14 @@ function usage () {
     echo "  -p          Run tests against 'public' mode IMGAPI."
     echo "  -l          Start a local IMGAPI using './imgapi-config-local-$MODE.json'"
     echo "              and test against that."
+    echo "  -o          Offline. Skip tests and setup that require the internet."
 }
 
 function imgapi_is_running () {
     local imgapi_url=$1
     local response=$(curl $CURL_IMGAPI_AUTH -iSs -H accept:application/json \
         $imgapi_url/ping?caller=runtests)
-    if [[ $(echo "$response" | json -H ping) == "pong" ]]; then
+    if [[ $(echo "$response" | json -qH ping) == "pong" ]]; then
         return 0
     else
         return 1
@@ -89,7 +90,8 @@ opt_quick=
 opt_reporter=tap
 opt_mode=dc
 opt_local=
-while getopts "hcqf:r:lp" opt
+opt_offline=
+while getopts "hcqf:r:lpo" opt
 do
     case "$opt" in
         h)
@@ -114,6 +116,9 @@ do
         l)
             opt_local=yes
             ;;
+        o)
+            opt_offline=yes
+            ;;
         *)
             usage
             exit 1
@@ -126,6 +131,9 @@ if [[ -n "$opt_local" ]]; then
 fi
 if [[ "$opt_mode" == "public" ]]; then
     script_opts+=" -p"
+fi
+if [[ -n "$opt_offline" ]]; then
+    export IMGAPI_TEST_OFFLINE=1
 fi
 
 
@@ -217,7 +225,6 @@ cd $TOP
 
 # Clean out old test data.
 echo ""
-
 if [[ -n "$opt_just_clean" ]]; then
     echo "# Remove test data."
     bash $TOP/test/rm-test-data.sh $script_opts
@@ -226,10 +233,8 @@ fi
 
 # Load test data.
 if [[ -z "$opt_quick" ]]; then
-    if [[ "$opt_mode" == "dc" ]]; then
-        echo "# Reload test data."
-        bash $TOP/test/reload-test-data.sh $script_opts
-    fi
+    echo "# Reload test data."
+    bash $TOP/test/reload-test-data.sh $script_opts
 fi
 
 # Start the imgapi service, if necessary (only for local testing).
@@ -260,12 +265,12 @@ fi
 # Gather tests to run.
 echo ""
 if [[ "$opt_mode" == "dc" ]]; then
-    test_files=$(ls -1 test/*.test.js)
+    test_files=$(ls -1 test/*.test.js test/*.dc-test.js)
 else
-    # Public mode tests are just a subset because:
+    # Public mode tests are a separate set because:
     # - we aren't currently loading test data
     # - we must be non-destructive for images.joyent.com tests
-    test_files=test/ping.test.js
+    test_files=$(ls -1 test/*.test.js test/*.public-test.js || true)
 fi
 if [[ -n "$opt_test_pattern" ]]; then
     test_files=$(echo "$test_files" | grep "$opt_test_pattern" || true)

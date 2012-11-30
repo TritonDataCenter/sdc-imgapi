@@ -65,8 +65,6 @@ do
     esac
 done
 
-[[ "$opt_mode" == "public" ]] && fatal "This isn't supported for 'public' tests yet."
-
 $TOP/test/rm-test-data.sh $*
 if [[ -n "$opt_local" ]]; then
     # Hack in $manifestsDatabaseDir/$uuid.raw for each image in test-data.ldif.
@@ -85,6 +83,8 @@ if [[ -n "$opt_local" ]]; then
         echo "$image" >$raw_path
         i=$(($i + 1))
     done
-else
+elif [[ "$opt_mode" == "dc" ]]; then
     $TOP/test/sdc-ldap modify -f $TOP/test/test-data.ldif
+else
+    echo "# No test data is loaded for images.joyent.com test."
 fi
