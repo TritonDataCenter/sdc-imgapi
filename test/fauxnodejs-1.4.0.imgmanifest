@@ -1,7 +1,7 @@
 {
   "uuid": "1fc068b0-13b0-11e2-9f4e-2f3f6a96d9bc",
   "owner": "91ba0e64-2547-11e2-a972-df579e5fddb3",
-  "name": "nodejs",
+  "name": "fauxnodejs",
   "version": "1.4.0",
   "description": "Node.js Image with MongoDB",
   "published_at": "2012-10-11T14:40:57.936Z",

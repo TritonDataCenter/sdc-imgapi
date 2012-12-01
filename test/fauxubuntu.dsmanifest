@@ -1,0 +1,38 @@
+{
+  "name": "ubuntu-12.04",
+  "version": "2.2.1",
+  "type": "zvol",
+  "cpu_type": "qemu64",
+  "description": "Ubuntu 12.04 64-bit image with just essential packages installed. Ideal for users who are comfortable with setting up their own environment and tools.",
+  "created_at": "2012-11-30T11:40:03.494Z",
+  "updated_at": "2012-11-30T11:40:03.494Z",
+  "os": "linux",
+  "image_size": "16384",
+  "files": [
+    {
+      "path": "ubuntu-12.04-2.2.1.zfs.bz2",
+      "sha1": "4b2498d73ccd74dd3974b48fb328e4a6acff84cf",
+      "size": 121349552,
+      "url": "https://datasets.joyent.com/datasets/583287ae-366b-11e2-aea4-bf6c552eb39b/ubuntu-12.04-2.2.1.zfs.bz2"
+    }
+  ],
+  "requirements": {
+    "networks": [
+      {
+        "name": "net0",
+        "description": "public"
+      }
+    ],
+    "ssh_key": true
+  },
+  "disk_driver": "virtio",
+  "nic_driver": "virtio",
+  "uuid": "583287ae-366b-11e2-aea4-bf6c552eb39b",
+  "creator_uuid": "a979f956-12cb-4216-bf4c-ae73e6f14dde",
+  "vendor_uuid": "a979f956-12cb-4216-bf4c-ae73e6f14dde",
+  "creator_name": "jpc",
+  "platform_type": "smartos",
+  "cloud_name": "sdc",
+  "urn": "sdc:jpc:ubuntu-12.04:2.2.1",
+  "published_at": "2012-11-30T11:40:03.494Z"
+}

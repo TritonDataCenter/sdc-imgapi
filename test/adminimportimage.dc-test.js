@@ -124,7 +124,7 @@ test('AdminImportImage should 404 on bogus UUID', function (t) {
 });
 
 /**
- * AdminImportImage scenario from local file:
+ * AdminImportImage scenario: zone-dataset manifest local file
  * - AdminImportImage from local imgmanifest file
  * - AddImageFile from local file
  * - ActivateImage
@@ -258,7 +258,7 @@ test('AdminImportImage from local .imgmanifest', function (t) {
 });
 
 /**
- * AdminImportImage scenario from local file:
+ * AdminImportImage scenario: zone-dataset dsmanifest local file
  * - AdminImportImage from local dsmanifest file
  * - AddImageFile from local file
  * - ActivateImage
@@ -283,6 +283,143 @@ test('AdminImportImage from local .dsmanifest', function (t) {
             if (image) {
                 t.equal(image.uuid, data.uuid);
                 t.equal(image.published_at, data.published_at);
+                t.equal(image.state, 'unactivated');
+            }
+            next(err);
+        });
+    }
+    function getSize(next) {
+        fs.stat(filePath, function (err, stats) {
+            if (err)
+                return next(err);
+            size = stats.size;
+            next();
+        });
+    }
+    function getSha1(next) {
+        var hash = crypto.createHash('sha1');
+        var s = fs.createReadStream(filePath);
+        s.on('data', function (d) { hash.update(d); });
+        s.on('end', function () {
+            sha1 = hash.digest('hex');
+            next();
+        });
+    }
+    function getMd5(next) {
+        var hash = crypto.createHash('md5');
+        var s = fs.createReadStream(filePath);
+        s.on('data', function (d) { hash.update(d); });
+        s.on('end', function () {
+            md5 = hash.digest('base64');
+            next();
+        });
+    }
+    function addFile(next) {
+        var fopts = {uuid: uuid, file: filePath};
+        self.client.addImageFile(fopts, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.files.length, 1, 'image.files');
+            t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
+            t.equal(image.files[0].size, size, 'image.files.0.size');
+            next(err);
+        });
+    }
+    function activate(next) {
+        self.client.activateImage(uuid, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.state, 'active');
+            aImage = image;
+            next();
+        });
+    }
+    function getImage(next) {
+        self.client.getImage(uuid, vader, function (err, image, res) {
+            t.ifError(err, err);
+            t.equal(JSON.stringify(aImage), JSON.stringify(image), 'matches');
+            next();
+        });
+    }
+    function getFile(next) {
+        var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
+            process.pid);
+        self.client.getImageFile(uuid, tmpFilePath, vader, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            t.equal(md5, res.headers['content-md5'], 'md5');
+            var hash = crypto.createHash('sha1');
+            var s = fs.createReadStream(tmpFilePath);
+            s.on('data', function (d) { hash.update(d); });
+            s.on('end', function () {
+                var actual_sha1 = hash.digest('hex');
+                t.equal(sha1, actual_sha1, 'sha1 matches upload');
+                t.equal(aImage.files[0].sha1, actual_sha1,
+                    'sha1 matches image data');
+                next();
+            });
+        });
+    }
+    function deleteImage(next) {
+        self.client.deleteImage(uuid, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            t.equal(res.statusCode, 204, 'res.statusCode 204');
+            next();
+        });
+    }
+
+    async.series(
+        [
+            create,
+            getSize,
+            getSha1,
+            getMd5,
+            addFile,
+            activate,
+            getImage,
+            getFile,
+            deleteImage
+        ],
+        function (err) {
+            t.end();
+        }
+    );
+});
+
+
+/**
+ * AdminImportImage scenario: zvol dsmanifest local file
+ * - AdminImportImage from local dsmanifest file
+ * - AddImageFile from local file
+ * - ActivateImage
+ * - GetImage, GetImageFile checks
+ * - clean up: delete it
+ */
+test('AdminImportImage zvol from local .dsmanifest', function (t) {
+    var self = this;
+    var data = JSON.parse(
+        fs.readFileSync(__dirname + '/fauxubuntu.dsmanifest', 'utf8'));
+    var uuid = data.uuid;
+    var filePath = __dirname + '/fauxubuntu.zfs.bz2';
+    var size;
+    var sha1;
+    var md5;
+    var aImage;
+
+    function create(next) {
+        self.client.adminImportImage(data, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            if (image) {
+                t.equal(image.uuid, data.uuid);
+                t.equal(image.published_at, data.published_at);
+                t.notOk(image.created_at);
+                t.equal(image.disk_driver, data.disk_driver);
                 t.equal(image.state, 'unactivated');
             }
             next(err);

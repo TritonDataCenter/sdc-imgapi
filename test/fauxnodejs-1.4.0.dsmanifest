@@ -1,5 +1,5 @@
 {
-  "name": "nodejs",
+  "name": "fauxnodejs",
   "version": "1.4.0",
   "type": "zone-dataset",
   "description": "Node.js Image with MongoDB",

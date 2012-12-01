@@ -80,6 +80,7 @@ os: smartos
 type: zone-dataset
 published_at: 2012-11-02T22:46:45.992Z
 files: []
+urn: sdc:sdc:base:1.8.1
 objectclass: sdcimage
 
 dn: uuid=da58c25a-2547-11e2-9b8d-136daa650e8a, ou=images, o=smartdc
@@ -95,6 +96,7 @@ os: smartos
 type: zone-dataset
 published_at: 2012-10-02T22:46:45.992Z
 files: []
+urn: sdc:sdc:nodejs:1.0.0
 objectclass: sdcimage
 
 dn: uuid=e078a6aa-2547-11e2-8688-03ac37b2b4a0, ou=images, o=smartdc
