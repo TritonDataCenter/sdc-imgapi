@@ -91,6 +91,11 @@ A summary of fields (details are provided below)
 ||[requirements.max_ram](#manifest-requirements-max-ram)||Integer||No||TODO:doc||
 ||[users](#manifest-users)||Array||No||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
+||[inherited_directories](#manifest-inherited-directories)||Array||No||TODO:doc||
+||[nic_driver](#manifest-nic-driver)||String||Yes\*||TODO:doc||
+||[disk_driver](#manifest-disk-driver)||String||Yes\*||TODO:doc||
+||[cpu_type](#manifest-cpu-type)||String||Yes\*||TODO:doc||
+||[image_size](#manifest-image-size)||Number||Yes\*||TODO:doc||
 
 An always present value of "Yes\*" means that this field will always be
 present for *activated* images.
@@ -123,8 +128,6 @@ for the latter is importing "core" Joyent-provided images from
 ## Manifest: owner
 
 The account UUID of the owner/creator of this image.
-
-
 
 
 ## Manifest: name
@@ -253,6 +256,21 @@ for provisioning. This may only make sense for some datasets. Example:
 Optional. `generate_passwords` is a boolean indicating whether to generate
 passwords for the users in the "users" field. If not present, the default
 value is true.
+
+## Manifest: inherited_directories
+TODO:doc
+
+## Manifest: nic_driver
+TODO:doc
+
+## Manifest: disk_driver
+TODO:doc
+
+## Manifest: cpu_type
+TODO:doc
+
+## Manifest: image_size
+TODO:doc
 
 
 
@@ -504,27 +522,11 @@ provisioning.
 ||[requirements](#manifest-requirements)||Object||No||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
 ||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||-||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
-
-The following extra inputs are allowed for operator usage (typically for
-backward compatibility for importing old SDC6-era datasets). Here "operator
-usage" means that the `account` field is NOT provided:
-
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||[urn](#manifest-urn)||String||No||-||An old SDC6 dataset URN, e.g. "sdc:sdc:smartos:1.6.3". Dataset URNs are only supported for backward compatibility. New images cannot have a URN.
-||[published_at](#manifest-published-at)||Date||No||-||The time at which this image/dataset was published (a.k.a. made active).||
-
-
-TODOs:
-
-- TODO: urn in CreateImage
-- TODO: support get by URN
-- TODO: inherited_directories field
-- TODO: nic_driver field
-- TODO: disk_driver field
-- TODO: cpu_type field
-- TODO: image_size field
-- TODO: document dropped/deprecated 6.5 fields and why: platform_type, urn,
-  version,
+||[inherited_directories](#manifest-inherited-directories)||Array||No||-||TODO:doc||
+||[nic_driver](#manifest-nic-driver)||String||Yes\*||-||TODO:doc||
+||[disk_driver](#manifest-disk-driver)||String||Yes\*||-||TODO:doc||
+||[cpu_type](#manifest-cpu-type)||String||Yes\*||-||TODO:doc||
+||[image_size](#manifest-image-size)||Number||Yes\*||-||TODO:doc||
 
 
 ### Returns

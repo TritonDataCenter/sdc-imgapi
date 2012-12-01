@@ -150,6 +150,9 @@ test('AdminImportImage from local .imgmanifest', function (t) {
                 t.equal(image.uuid, data.uuid);
                 t.equal(image.published_at, data.published_at);
                 t.equal(image.state, 'unactivated');
+                t.equal(image.inherited_directories.join(','),
+                    data.inherited_directories.join(','),
+                    'inherited_directories');
             }
             next(err);
         });
@@ -284,6 +287,9 @@ test('AdminImportImage from local .dsmanifest', function (t) {
                 t.equal(image.uuid, data.uuid);
                 t.equal(image.published_at, data.published_at);
                 t.equal(image.state, 'unactivated');
+                t.equal(image.inherited_directories.join(','),
+                    data.inherited_directories.join(','),
+                    'inherited_directories');
             }
             next(err);
         });

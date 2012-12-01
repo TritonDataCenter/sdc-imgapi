@@ -28,5 +28,6 @@
       "name": "mongodb"
     }
   ],
-  "generate_passwords": true
+  "generate_passwords": true,
+  "inherited_directories": ["/opt/node_service"]
 }
