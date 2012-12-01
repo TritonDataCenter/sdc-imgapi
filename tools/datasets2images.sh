@@ -55,9 +55,6 @@ function push2images {
         if [[ "\$type_" == "vmimage" ]]; then
             echo "Skipping import of image \$uuid: vmimage type is invalid."
             continue
-        elif [[ "\$type_" == "zvol" ]]; then
-            echo "Skipping import of image \$uuid: zvol not quite supported yet."
-            continue
         elif [[ -n "\$restricted_to_uuid" ]]; then
             echo "Skipping import of image \$uuid: private."
             continue
