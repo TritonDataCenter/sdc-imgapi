@@ -135,16 +135,15 @@ test('CreateImage', function (t) {
         });
     }
     function addFile(next) {
-        self.client.addImageFile(uuid, filePath, luke,
-            function (err, image, res) {
-                t.ifError(err, err);
-                t.ok(image);
-                t.equal(image.files.length, 1, 'image.files');
-                t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
-                t.equal(image.files[0].size, size, 'image.files.0.size');
-                next(err);
-            }
-        );
+        var fopts = {uuid: uuid, file: filePath};
+        self.client.addImageFile(fopts, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.files.length, 1, 'image.files');
+            t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
+            t.equal(image.files[0].size, size, 'image.files.0.size');
+            next(err);
+        });
     }
     function activate(next) {
         self.client.activateImage(uuid, luke, function (err, image, res) {

@@ -88,7 +88,9 @@ test('401 on modifying endpoints without auth', function (t) {
     var self = this;
     var endpoints = [
         ['createImage', [{}]],
-        ['addImageFile', ['900850d9-4bc2-da4b-84be-7e7cd50fe136', __filename]],
+        ['addImageFile', [{uuid: '900850d9-4bc2-da4b-84be-7e7cd50fe136',
+                           file: __filename,
+                           size: 42}]],
         ['activateImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']],
         ['deleteImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']]
     ];
@@ -115,7 +117,7 @@ test('401 on modifying endpoints without auth', function (t) {
 test('CreateImage fail for a private image', function (t) {
     var data = {
         name: 'my-priv-image',
-        //version: '1.0.0',
+        version: '1.0.0',
         os: 'smartos',
         owner: '639e90cd-71ec-c449-bc7a-2446651cce7c',
         public: false,

@@ -181,7 +181,8 @@ test('AdminImportImage from local .imgmanifest', function (t) {
         });
     }
     function addFile(next) {
-        self.client.addImageFile(uuid, filePath, function (err, image, res) {
+        var fopts = {uuid: uuid, file: filePath};
+        self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.files.length, 1, 'image.files');
@@ -314,7 +315,8 @@ test('AdminImportImage from local .dsmanifest', function (t) {
         });
     }
     function addFile(next) {
-        self.client.addImageFile(uuid, filePath, function (err, image, res) {
+        var fopts = {uuid: uuid, file: filePath};
+        self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.files.length, 1, 'image.files');
@@ -462,7 +464,8 @@ test('AdminImportImage from images.joyent.com', function (t) {
         });
     }
     function addFile(next) {
-        self.client.addImageFile(uuid, filePath, function (err, image, res) {
+        var fopts = {uuid: uuid, file: filePath};
+        self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.files.length, 1, 'image.files');
@@ -610,7 +613,8 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
         });
     }
     function addFile(next) {
-        self.client.addImageFile(uuid, filePath, function (err, image, res) {
+        var fopts = {uuid: uuid, file: filePath};
+        self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.files.length, 1, 'image.files');
