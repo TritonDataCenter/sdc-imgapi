@@ -28,26 +28,30 @@ echo '# WARNING: images.joyent.com is a *production* server.'
 echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
 read
 
-$SSH -T $DATASETS_LOGIN <<SCRIPT
+$SSH -A -T $DATASETS_LOGIN <<SCRIPT
 
-# TODO: should be images.joyent.com when that is DNS'd.
-IMGAPI_URL=https://64.30.133.39
+if [ "$TRACE" != "" ]; then
+    #export PS4='[\D{%FT%TZ}] \${BASH_SOURCE}:\${LINENO}: \${FUNCNAME[0]:+\${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
 
-function imgapi {
-    local path=\$1
-    shift
-    curl -k --connect-timeout 10 -sS -i -H accept:application/json \
-        --url \$IMGAPI_URL\$path "\$@" | json -q
-}
+export JOYENT_IMGADM_IDENTITY=b3:f0:a1:6c:18:3b:47:63:ae:6e:57:22:74:71:d4:bc
+export JOYENT_IMGADM_USER=trentm
+JOYENT_IMGADM=\$HOME/bin/joyent-imgadm
+JSON=\$HOME/bin/json
+
 
 function push2images {
+    local have_uuids=\$(\$JOYENT_IMGADM list -a -j | \$JSON -a uuid)
     local manifests=\$(ls -1 /shared/dsapi/manifests/*.dsmanifest)
     for manifest in \$manifests; do
-        local uuid=\$(json uuid < \$manifest)
-        local name=\$(json name < \$manifest)
-        local version=\$(json version < \$manifest)
-        local restricted_to_uuid=\$(json restricted_to_uuid < \$manifest)
-        local type_=\$(json type < \$manifest)
+        local uuid=\$(\$JSON uuid < \$manifest)
+        local name=\$(\$JSON name < \$manifest)
+        local version=\$(\$JSON version < \$manifest)
+        local restricted_to_uuid=\$(\$JSON restricted_to_uuid < \$manifest)
+        local type_=\$(\$JSON type < \$manifest)
         if [[ "\$type_" == "vmimage" ]]; then
             echo "Skipping import of image \$uuid: vmimage type is invalid."
             continue
@@ -58,20 +62,15 @@ function push2images {
             echo "Skipping import of image \$uuid: private."
             continue
         fi
-        local status=\$(imgapi /images/\$uuid | head -1 | awk '{print \$2}')
-        if [[ "\$status" == "404" ]]; then
+        if [[ -z "\$(echo "\$have_uuids" | grep \$uuid)" ]]; then
             local file=\$(ls /shared/dsapi/assets/\$uuid/*)
             echo "Importing image \$uuid \$name-\$version into IMGAPI."
             echo "  manifest: \$manifest"
             echo "  file:     \$file"
             [[ -f "\$file" ]] || fatal "Image \$uuid file '\$file' not found."
-            imgapi /images/\$uuid?action=import -d @\$manifest -f
-            imgapi /images/\$uuid/file -T \$file -f
-            imgapi /images/\$uuid?action=activate -X POST -f
-        elif [[ "\$status" == "200" ]]; then
-            echo "Skipping import of image \$uuid: already in IMGAPI."
+            \$JOYENT_IMGADM import -P -m "\$manifest" -f "\$file"
         else
-            echo "Error checking if image \$uuid is in IMGAPI: HTTP \$status"
+            echo "Skipping import of image \$uuid: already in IMGAPI."
         fi
     done
 }
