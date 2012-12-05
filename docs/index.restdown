@@ -202,7 +202,7 @@ The operating system of the image file. Must be one of:
 
 
 ## Manifest: files
-TODO: doc files
+TODO: doc files: size, sha1, compression
 
 ## Manifest: acl
 TODO: doc acl
@@ -559,7 +559,10 @@ for provisioning, `state == "active"`.
 
 ### Inputs
 
-The image file.
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||account||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[compression](#manifest-files)||UUID||Yes||-||The type of compression used for the file content. One of 'none', 'gzip' or 'bzip2'.||
+||(file content in the body)||binary||Yes||-||The image file content.||
 
 ### Returns
 
@@ -574,7 +577,9 @@ TODO: errors
 This example is using curl's `-T/--upload-file <file>` option, which results
 in a PUT.
 
-    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -T image.zfs.bz2
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file?compression=bzip2 \
+        -T image.zfs.bz2
+    ... TODO: example
 
 
 ## ActivateImage (POST /images/:uuid?action=activate)

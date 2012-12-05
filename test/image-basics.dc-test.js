@@ -92,6 +92,7 @@ test('CreateImage', function (t) {
 
     var self = this;
     var filePath = __dirname + '/what_a_piece_of_junk.zfs.bz2';
+    var fileCompression = 'bzip2';
     var uuid;
     var size;
     var sha1;
@@ -135,7 +136,7 @@ test('CreateImage', function (t) {
         });
     }
     function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath};
+        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
         self.client.addImageFile(fopts, luke, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);

@@ -1,14 +1,6 @@
 
 # overview
 
-- images.joyent.com:
-    - auth story for only particular people publishing (just basic auth with
-      a hardcoded bcrypted password? with a local tool to change that?)
-    - 'public' mode: auth, auth non-admin endpoints (/state)
-    - ask about the restricted_to_uuid single example (fca6434e-da62-11e1-8e93-af79adacd365)
-    - try loading with all stuff:datasets
-    - get images.joyent.com DNS setup (still really want this private?)
-    - redir / -> /images (perhaps later to keep it obscure)
 - Fill out each of the use cases in index.restdown. Do those use cases cover
   all of UpdateImage, DisableImage, EnableImage, MigrateImage, AdminImportImage?
   Tickets for each.
@@ -29,6 +21,9 @@
 
 # general todos
 
+- images.joyent.com:
+    - ask about the restricted_to_uuid single example (fca6434e-da62-11e1-8e93-af79adacd365)
+    - redir / -> /images (perhaps later to keep it obscure)
 - public docs for images.joyent.com: docs/public.restdown and a deploy
   task to put serve those (and *not* the other html files) on
   images.joyent.com

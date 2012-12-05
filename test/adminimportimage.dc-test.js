@@ -137,6 +137,7 @@ test('AdminImportImage from local .imgmanifest', function (t) {
         fs.readFileSync(__dirname + '/fauxnodejs-1.4.0.imgmanifest', 'utf8'));
     var uuid = data.uuid;
     var filePath = __dirname + '/fauxnodejs-1.4.0.zfs.bz2';
+    var fileCompression = 'bzip2';
     var size;
     var sha1;
     var md5;
@@ -184,7 +185,7 @@ test('AdminImportImage from local .imgmanifest', function (t) {
         });
     }
     function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath};
+        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
         self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
@@ -274,6 +275,7 @@ test('AdminImportImage from local .dsmanifest', function (t) {
         fs.readFileSync(__dirname + '/fauxnodejs-1.4.0.dsmanifest', 'utf8'));
     var uuid = data.uuid;
     var filePath = __dirname + '/fauxnodejs-1.4.0.zfs.bz2';
+    var fileCompression = 'bzip2';
     var size;
     var sha1;
     var md5;
@@ -321,7 +323,7 @@ test('AdminImportImage from local .dsmanifest', function (t) {
         });
     }
     function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath};
+        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
         self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
@@ -412,6 +414,7 @@ test('AdminImportImage zvol from local .dsmanifest', function (t) {
         fs.readFileSync(__dirname + '/fauxubuntu.dsmanifest', 'utf8'));
     var uuid = data.uuid;
     var filePath = __dirname + '/fauxubuntu.zfs.bz2';
+    var fileCompression = 'bzip2';
     var size;
     var sha1;
     var md5;
@@ -458,7 +461,7 @@ test('AdminImportImage zvol from local .dsmanifest', function (t) {
         });
     }
     function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath};
+        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
         self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
@@ -552,6 +555,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
     var uuid = "47e6af92-daf0-11e0-ac11-473ca1173ab0";
     var manifest;
     var filePath = format('/var/tmp/image-test-file-%s.zfs.bz2', process.pid);
+    var fileCompression = 'bzip2';
     var size;
     var sha1;
     var md5;
@@ -607,7 +611,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
         });
     }
     function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath};
+        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
         self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
@@ -700,6 +704,7 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
     var uuid = "47e6af92-daf0-11e0-ac11-473ca1173ab0";
     var manifest;
     var filePath = format('/var/tmp/dataset-test-file-%s.zfs.bz2', process.pid);
+    var fileCompression = 'bzip2';
     var size;
     var sha1;
     var md5;
@@ -756,7 +761,7 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
         });
     }
     function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath};
+        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
         self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
