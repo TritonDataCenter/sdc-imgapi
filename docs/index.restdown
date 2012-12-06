@@ -24,7 +24,7 @@ TODO
 ||[DisableImage](#DisableImage)||POST /images/:uuid?action=disable||**NYI** Disable the image.||
 ||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||**NYI** Enable the image.||
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
-||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||**NYI** Only for operators to import an image with a specified UUID.||
+||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain UUID and published_at.||
 
 
 
