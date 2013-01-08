@@ -1313,6 +1313,7 @@ top-level keys in the factory settings. For example: if providing
 
 ||**var**||**type**||**default**||**description**||
 ||port||Number||8080||Port number on which to listen.||
+||serverName||String||IMGAPI/$version||Name of the HTTP server. This value is present on every HTTP response in the 'server' header.||
 ||logLevel||String or Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
 ||mode||String||public||One of 'public' (default), running as a public server (e.g. images.joyent.com), or 'dc', running as the IMGAPI in an SDC datacenter.||
 ||auth||Object||-||If in 'public' mode, then auth details are required. 'dc' mode does no auth.||
