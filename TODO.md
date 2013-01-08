@@ -5,7 +5,9 @@
   all of UpdateImage, DisableImage, EnableImage, MigrateImage, AdminImportImage?
   Tickets for each.
 - imgadm2
-- get storage (local and manta) working
+- get storage (local and manta) working:
+    - local needs to have a formal separate delegated dataset ... which
+      only works for HN. What's the HA plan? We doing DCLS or no?
 - fill in all missing attributes for zvols and add those to images.joyent.com
 - test cloudapi compat
 - Compat with SDC6 cloudapi dataset endpoints.
@@ -21,6 +23,11 @@
 
 # general todos
 
+- manifest fields:
+    TODO: the optional ones (any more left?)
+    TODO: bwcompat ones and new ones from datasets.joyent.com/docs
+    TODO: new ones from design.restdown section
+    TODO: compare validtion with rules in mapi/models/dataset.rb
 - images.joyent.com:
     - ask about the restricted_to_uuid single example (fca6434e-da62-11e1-8e93-af79adacd365)
     - redir / -> /images (perhaps later to keep it obscure)
@@ -31,8 +38,6 @@
     http://datasets.at/#/about
   IOW, imgadm2 should still use sources.list?! Update compat is more important
   than back-and-forth compat.
-- cacheKey in ufdsmodel.js for modelList is wrong, needs to be
-  request-specific. Perhaps Model.cacheKeyFromReq()?
 - smartos-live/issues for imgadm and dsadm
 - error restdown table generation (TOOLS-204)
 - error response audit log body fix (restify#225)
@@ -43,6 +48,10 @@
   does) but doc that it is a list for future possible
 - DCLS handling once wdp has DCLS ready
 - understand the zoneinit reboot compat (6.5 CN) issues (see design)
+
+# testing
+
+- test odd chars in 'name' and 'version': unicode, '\0', quoting chars, etc.
 
 
 # someday/maybe
@@ -56,6 +65,7 @@
 - tangent on linode StackScripts for SDC... with gist integration, etc.
   cloudapi does the userscript aggregation. This is a good potential
   backstop for IMGAPI in SDC 6.
+
 
 
 

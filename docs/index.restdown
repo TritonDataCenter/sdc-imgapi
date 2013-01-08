@@ -6,8 +6,85 @@ apisections: Miscellaneous API, Images API
 
 # Image API (IMGAPI)
 
-TODO
+The Image API (or Images API, or IMGAPI) is the SDC7 replacement for the Dataset
+API (DSAPI) in earlier versions of SDC. Along with the SmartOS `imgadm`
+tool, various instances of the IMGAPI manage images in the SDC and SmartOS
+ecosystem.
 
+
+# Introduction
+
+An "image" is virtual machine image content (e.g. a zfs dataset for a
+SmartOS zone or a KVM machine image) plus [the metadata for the image (called
+the "manifest")](#image-manifest-data). The following API instances and tools
+are relevant for managing images in SDC and SmartOS.
+
+The old DSAPI (https://datasets.joyent.com) will live until all SDC 6
+instances are done. This provides Joyent-vetted images (a.k.a. datasets) for
+use in SDC 6 standups. In SDC 6, MAPI (the Master API) running inside each
+datacenter manages datasets within that datacenter. MAPI's "/datasets"
+endpoints provide a subset of the DSAPI API.
+
+The joyent IMGAPI (https://images.joyent.com) is the new central repository
+of Joyent-vetted base images for usage in SmartOS. (Images from software
+vendors may exist here, but are still vetted by Joyent.) All images here are
+public -- no read auth, no private images. SmartOS' `imgadm` version 2
+(the default imgadm after TODO:release-date) is configured to use this
+image repository by default. SDC's operator portal (a.k.a. adminui) is
+configured by default to list this repository from which to import images.
+Administration of the https://images.joyent.com is via the `joyent-imgadm`
+tool (currently available in <git@git.joyent.com:imgapi-cli.git>).
+
+There is an IMGAPI in each SDC datacenter that manages images available in
+that datacenter. "IMGAPI" without scoping typically refers to this IMGAPI
+in a given datacenter. This is the authority for which images are available
+for provisioning in that DC. The provisioning process will lazily
+`zfs receive` images on CNs as necessary -- streaming from the IMGAPI
+(`imgadm` on that machine handles that). IMGAPI supports private images,
+customer-owned images, etc. CloudAPI speaks to IMGAPI for its
+['/images'](https://mo.joyent.com/docs/cloudapi/master/#images) and legacy
+['/datasets'](https://mo.joyent.com/docs/cloudapi/master/#datasets)
+endpoints.
+
+See [Use Cases](#use-cases) for details on how IMGAPI is (designed to be)
+used.
+
+
+# Current Status
+
+- Good: The 'imgapi' zone is available and running in sdc with most endpoints
+  implemented (see [API Summary](#api-summary)).
+
+- Bad: Notably unimplemented is UpdateImage for modifying mutable manifest
+  data on already loaded images and the MigrateImage for copying images
+  between datacenters in the same SDC cloud.
+
+- Good: `sdc-imgadm` is available in SDC GZs for managing the datacenter's
+  IMGAPI from the command-line.
+
+- Bad: IMGAPI is **not** yet being bootstrapped with manta images on
+  `manta-init` because of
+  [MANTA-815](https://devhub.joyent.com/jira/browse/MANTA-815).
+
+- Bad: The replacement `imgadm` for SmartOS (imgadm v2) is **not** yet
+  complete nor included in the platform. This and provisioner agent
+  integration are required.
+
+- Bad: SDC 6 backward compatibility testing hasn't been done yet. However,
+  this is somewhat vetted already.
+
+- Bad: The full process for a user creating a custom image
+
+- Bad: A number of manifest fields remain to be added: `traits` for
+  DAPI/server role handling (IMGAPI-43), `tags` for portal usage, `homepage`
+  for reference to external info (e.g. a changelog) on a given image,
+  `billing_tags` (IMGAPI-70), etc.
+
+- Bad: don't yet support manta as a storage backend (though the framework
+  is there for it).
+
+- Bad: Multi-DC support (replicated manifest info in UFDS) isn't fully
+  specified yet.
 
 
 # API Summary
@@ -24,14 +101,16 @@ TODO
 ||[DisableImage](#DisableImage)||POST /images/:uuid?action=disable||**NYI** Disable the image.||
 ||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||**NYI** Enable the image.||
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
-||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain UUID and published_at.||
+||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
 
 
 
 # Errors
 
-TODO
+The full list of errors returned by the IMGAPI are described in
+[errors.js](https://mo.joyent.com/imgapi/blob/master/lib/errors.js).
 
+TODO: generate a nice table here.
 
 
 # Image manifest data
@@ -40,24 +119,24 @@ An image manifest is all the data about an image except the image file itself.
 Generally this is represented as a JSON object. For example:
 
     {
-      "uuid": "63ce06d8-7ae7-11e0-b0df-1fcf8f45c5d5",
+      "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
+      "owner": "352971aa-31ba-496c-9ade-a379feaecd52",
+      "name": "smartos",
+      "version": "1.6.3",
       "state": "active",
       "disabled": false,
+      "public": true,
+      "published_at": "2012-05-02T15:14:45.805Z",
       "type": "zone-dataset",
-      "name": "base"
-      "version": "2.0.0",
-      "description": "Base template to build other templates on",
-      "published_at": "2011-05-10T09:25:12Z",
       "os": "smartos",
-      // TODO:
-      "creator_uuid": "930896af-bf8c-48d4-885c-6573a94b1853",  //XXX or owner_uuid? look at other data
       "files": [
         {
-          "path": "smartos-1.3.13.zfs.bz2",
-          "sha1": "a287dc535e2fb9a5a8e26b211156016b4e6cf267",
-          "size": 41982720
+          "sha1": "97f20b32c2016782257176fb58a35e5044f05840",
+          "size": 46271847,
+          "compression": "bzip2"
         }
       ],
+      "description": "Base template to build other templates on",
       "requirements": {
         "networks": [
           {
@@ -68,7 +147,8 @@ Generally this is represented as a JSON object. For example:
       }
     }
 
-A summary of fields (details are provided below)
+
+A summary of fields (details are provided below):
 
 ||**Field**||**Type**||**Always Present?**||**Notes**||
 ||[uuid](#manifest-uuid)||UUID||Yes||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
@@ -79,33 +159,25 @@ A summary of fields (details are provided below)
 ||[state](#manifest-state)||String||Yes||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
 ||[disabled](#manifest-disabled)||Boolean||Yes||Indicates if this image is available for provisioning.||
 ||[public](#manifest-public)||Boolean||Yes||Indicates if this image is publicly available.||
-||[published_at](#manifest-published_at)||Date||Yes\*||The date at which the image is activated). Set by the IMGAPI server.||
+||[published_at](#manifest-published_at)||Date||Yes (if activated)||The date at which the image is activated). Set by the IMGAPI server.||
 ||[type](#manifest-type)||String||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||Yes||The OS family this image provides. One of "smartos", "windows", "linux" or "other".||
-||[files](#manifest-files)||Array||Yes\*||An array with a single object describing the image file.||
+||[files](#manifest-files)||Array||Yes (if activated)||An array with a single object describing the image file.||
 ||[acl](#manifest-acl)||Array||No||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||No||A set of named requirements for provisioning a VM with this image||
-||[requirements.networks](#manifest-requirements-networks)||Array||No||TODO:doc||
-||[requirements.ssh_key](#manifest-requirements-ssh-key)||Boolean||No||TODO:doc||
-||[requirements.min_ram](#manifest-requirements-min-ram)||Integer||No||TODO:doc||
-||[requirements.max_ram](#manifest-requirements-max-ram)||Integer||No||TODO:doc||
+||[requirements.networks](#manifest-requirements-networks)||Array||No||Defines the minimum number of network interfaces required by this image.||
+||[requirements.ssh_key](#manifest-requirements-ssh-key)||Boolean||No||Indicates that provisioning with this image requires that an SSH public key be provided.||
+||[requirements.min_ram](#manifest-requirements-min-ram)||Integer||No||Minimum RAM (in MiB) required to provision this image.||
+||[requirements.max_ram](#manifest-requirements-max-ram)||Integer||No||Maximum RAM (in MiB) this image may be provisioned with.||
 ||[users](#manifest-users)||Array||No||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
-||[inherited_directories](#manifest-inherited-directories)||Array||No||TODO:doc||
-||[nic_driver](#manifest-nic-driver)||String||Yes\*||TODO:doc||
-||[disk_driver](#manifest-disk-driver)||String||Yes\*||TODO:doc||
-||[cpu_type](#manifest-cpu-type)||String||Yes\*||TODO:doc||
-||[image_size](#manifest-image-size)||Number||Yes\*||TODO:doc||
+||[inherited_directories](#manifest-inherited-directories)||Array||No||A list of inherited directories (other than the defaults for the brand).||
+||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||NIC driver used by this VM image.||
+||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||Disk driver used by this VM image.||
+||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||The QEMU CPU model to use for this VM image.||
+||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||The size (in MiB) of this VM image's disk.||
 
-An always present value of "Yes\*" means that this field will always be
-present for *activated* images.
 
-<!--
-TODO: the optional ones
-TODO: bwcompat ones and new ones from datasets.joyent.com/docs
-TODO: new ones from design.restdown section
-TODO: compare validtion with rules in mapi/models/dataset.rb
--->
 
 ## Manifest: uuid
 
@@ -114,7 +186,7 @@ use to provision a VM. (For backwards compatibility unique identification
 via a `urn` field is supported for legacy images. See the [urn section
 below](#manifest-urn).)
 
-An image UUID is create by the server on the [CreateImage](#CreateImage).
+An image UUID is created by the server on the [CreateImage](#CreateImage).
 There are two exceptions: (1) The [MigrateImage](#MigrateImage) endpoint will
 copy an image between two datacenters in the same cloud and persist the
 UUID. (2) SDC operators can use the [AdminImportImage](#AdminImportImage)
@@ -125,6 +197,16 @@ for the latter is importing "core" Joyent-provided images from
 <https://images.joyent.com>.
 
 
+## Manifest: urn
+
+**Deprecated.**  In SDC versions before SDC 7, an image (then called a
+"dataset") could be uniquely identified by its `uuid` *and* by its `urn`.
+While this is still true (images with a URN imported into IMGAPI retain
+their URN), new images do not get a URN. The assumptions for the components
+of URN (`<cloud_name>:<creator_name>:<name>:<version>`) are not maintainable
+in global ecosystem of SmartOS images. Therefore the URN has been dropped as
+a supported mechanism of uniquely identifying images. Use the `uuid` field.
+
 ## Manifest: owner
 
 The account UUID of the owner/creator of this image.
@@ -132,7 +214,13 @@ The account UUID of the owner/creator of this image.
 
 ## Manifest: name
 
-TODO: docs
+A name for this image. Maximum 512 characters. However, typical names should
+be much shorter, e.g. 5-20 characters.
+
+Note that image `name` and `version` do not make a unique identifier for
+an image. Separate users (and even the same user) can create images with
+the same name and version. The image `uuid` is the only unique identifier
+for an image.
 
 
 ## Manifest: version
@@ -151,7 +239,7 @@ for an image.
 
 ## Manifest: description
 
-TODO: docs
+A short prose description of this image. Maximum 512 characters.
 
 
 ## Manifest: state
@@ -163,22 +251,45 @@ The current state of the image. One of the following values:
 ||unactivated||The image has not yet been activated. See [ActivateImage](#ActivateImage).||
 ||disabled||The image is disabled. This will be the state if the image is activated, but also `disabled == true`. See [EnableImage](#EnableImage) and [DisableImage](#DisableImage).||
 
+Note that [`disabled`](#manifest-disabled) and [`state`](#manifest-state) can
+seem like duplicate information. However `state` is a computed value from
+`disabled` and whether an image has yet been activated.
 
 
 ## Manifest: disabled
 
-TODO: docs, show how to change this with DisableImage
+A boolean indicating if this image is disabled. A disabled image is only
+visible to its owner in cloudapi. A disabled image cannot be used for
+provisioning.
+
+The [DisableImage](#DisableImage) and [EnableImage](#EnableImage) api
+endpoints can be used to update the disabled state of an image.
+
+Note that [`disabled`](#manifest-disabled) and [`state`](#manifest-state) can
+seem like duplicate information. However `state` is a computed value from
+`disabled` and whether an image has yet been activated.
 
 
 ## Manifest: public
 
-TODO: docs, show how to change this
-
+A boolean indicating if this image is publicly available. Public images are
+visible (and usable for provisioning) to anyone in cloudapi. Private images
+(`public === false`) are only visible to the image owner and accounts listed
+in [`acl`](#manifest-acl).
 
 
 ## Manifest: published_at
 
-TODO: docs, server-set (same exceptions as UUID above)
+The date (in ISO-8601 format, e.g. "2012-05-02T15:14:45.805Z") at which this
+image was published (i.e. activated via [ActivateImage](#ActivateImage)).
+
+An image UUID is create by the server on the [ActivateImage](#ActivateImage).
+There are two exceptions: (1) The [MigrateImage](#MigrateImage) endpoint will
+copy an image between two datacenters in the same cloud and persist the
+`published_at`. (2) SDC operators can use the
+[AdminImportImage](#AdminImportImage) to add an image with a specified uuid
+and `published_at`. A common case for the latter is importing "core"
+Joyent-provided images from <https://images.joyent.com>.
 
 
 ## Manifest: type
@@ -194,7 +305,7 @@ The type of the image file. Must be one of:
 
 The operating system of the image file. Must be one of:
 
-||**OS**||**NOTES**||
+||**OS**||**DESCRIPTION**||
 ||smartos||SmartOS||
 ||linux||Linux, e.g. CentOS, Ubuntu, etc.||
 ||windows||A Microsoft Windows OS image||
@@ -202,19 +313,54 @@ The operating system of the image file. Must be one of:
 
 
 ## Manifest: files
-TODO: doc files: size, sha1, compression
+
+The array of image files that make up this image. Currently only a single
+file is supported. An image cannot be activated until it has one file
+uploaded. A "file" entry has the following fields:
+
+||**OS**||**DESCRIPTION**||
+||sha1||SHA-1 hex digest of the file content. Used for upload/download corruption checking.||
+||size||number of bytes||
+||compression||The type of file compression used by the file. One of 'bzip2', 'gzip', 'none'.||
+
+Example:
+
+    {
+        ...
+        "files": [{
+            "sha1": "97f20b32c2016782257176fb58a35e5044f05840",
+            "size": 46271847,
+            "compression": "bzip2"
+        }],
+        ...
+    }
+
+**Backward compatibility notes:** In the DSAPI (Dataset API) from SDC 6.5
+that preceded this there were two more fields:
+
+- `files.*.path`: **Obsolete.** This field is no longer provided. It served
+  no safe purpose. There was no guarantee that that "path" value was unique
+  across images, hence it should not be used client-side.
+- `files.*.url`: **Obsolete.** This field is no longer provided. The download
+  URL for the image file is
+  [`GET /images/:uuid/file` GetImageFile](#GetImageFile).
+
 
 ## Manifest: acl
-TODO: doc acl
+
+An array of user/account UUIDs to which to give read access to a private
+image. I.e. this is only relevant for images with `public === false`.
+
 
 ## Manifest: requirements
 
 A grouping of various requirements for provisioning a VM with this image.
 
+
 ## Manifest: requirements.networks
 
 Optional. An array describing the minimum number of network interfaces. This
-example shows a dataset that requires one VNIC:
+example shows an image that requires one VNIC:
 
     {
         ...
@@ -227,7 +373,7 @@ example shows a dataset that requires one VNIC:
 
 ## Manifest: requirements.ssh_key
 
-Optional. A boolean indicating that provisioning with this dataset requires
+Optional. A boolean indicating that provisioning with this image requires
 that an SSH public key be provided. For example, provisioning a Linux VM
 requires an SSH key for initial SSH access. If not defined, it is presumed to
 be false.
@@ -258,19 +404,43 @@ passwords for the users in the "users" field. If not present, the default
 value is true.
 
 ## Manifest: inherited_directories
-TODO:doc
+
+Optional. `inherited_directories` is a list of inherited directories (other
+than the defaults for the brand). This can be left out or the empty list if
+the dataset need not inherit directories. This field only makes sense for
+datasets of type "zone-dataset". Example:
+
+    {
+        ...
+        "inherited_directories": ["/opt/support"],
+        ...
+    }
+
 
 ## Manifest: nic_driver
-TODO:doc
+
+The NIC driver used by this VM image. Examples are 'virtio', 'ne2k_pci',
+'rtl8139', 'e1000', 'pcnet'.
+This is a required field for `type === "zvol"` images.
+
 
 ## Manifest: disk_driver
-TODO:doc
+
+The disk driver used by this VM image. Examples are 'virtio', 'ide', 'scsi'.
+This is a required field for `type === "zvol"` images.
+
 
 ## Manifest: cpu_type
-TODO:doc
+
+The QEMU CPU model to use for this VM. Examples are: "qemu64", "host".
+This is a required field for `type === "zvol"` images.
+
 
 ## Manifest: image_size
-TODO:doc
+
+The size (in MiB) of the VM's disk, and hence the required size of allocated
+disk for provisioning.
+This is a required field for `type === "zvol"` images.
 
 
 
@@ -280,47 +450,89 @@ Here we look at some SDC use cases that touch on IMGAPI, and hence drive
 its design.
 
 
-## Use Case: Headnode setup installs core zones' images
+## Use Case 1: Bootstrap SDC core zones' images on headnode setup
 
-"headnode.sh" (see "/var/svc/log/system-smartdc-init:default.log") calls
-this:
+**Status**: complete.
 
-    imgadm install -m ${ds_manifest} -f ${ds_filename}
+[headnode.sh](https://mo.joyent.com/usb-headnode/blob/master/scripts/headnode.sh)
+(see "/var/svc/log/system-smartdc-init:default.log") calls this:
 
-This will never directly touch IMGAPI, because IMGAPI itself is created
-by this headnode setup. However this bootstraping is relevant for context.
-In this case, the image file and manifest are locally provided on the USB
-key.
+    /opt/smartdc/bin/sdc-imgadm import -m $manifest -f $file
 
-TODO: As part of the 'imgapi' zone setup, these core images should be
-added. They use local disk storage (actually assets mounted from
-"/usbkey/imgapi").
+for all images used to provision SDC core zones.
 
 
+## Use Case 2: Operator adds new images.joyent.com image to the DC
 
-## Use Case: Operator adds new public image via operator portal
+**Status**: incomplete (HEAD-1380 for CLI, talk to Kevin for adminui)
 
-Operator uses operator portal (adminui) to import a new image from
-https://images.joyent.com.
+This can be done on the command-line via the following in the headnode GZ:
+
+    cd /var/tmp
+    joyent-imgadm list  # find the wanted image UUID
+    joyent-imgadm get $uuid > manifest
+    joyent-imgadm getfile $uuid > file
+    sdc-imgadm import -m manifest -f file
+
+The reason there isn't a command to have this DC's IMGAPI import
+directory from <https://images.joyent.com> is that the IMGAPI doesn't
+necessarily have access to the internet.
+
+Via the Operator Portal (adminui): TODO
+
+
+## Use Case 3: Operator adds a new image just for this cloud
+
+**Status**: CLI incomplete (TODO: MigrateImage), adminui incomplete (talk to
+kevin).
+
+How to add an image to a DC via the command-line:
+
+1. `scp` the image manifest and file to the headnode GZ.
+2. ssh to the headnode GZ and run:
+
+        sdc-imgadm import -m MANIFEST -f FILE
+
+To add the same image to other DCs in the same cloud: Either repeat the
+above steps for each DC or (TODO) use [MigrateImage](#MigrateImage).
+
+How to add an image to a DC via the Operator Portal (adminui): TODO
+
+
+## Use Case 4: User provisions with an image
+
+**Status**: Incomplete. imgadm v2 is needed in the platform (IMGAPI-40).
+Provisioner integration (AGENT-???). As well, VMAPI integration for
+validation should also be turned on. Currently the latter is turned off to
+not break manta-beta (MANTA-815).
+
+This is via a normal
+[cloudapi#CreateMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateMachine)
+call. CloudAPI could use [GetImage](#GetImage) on behalf of the calling user
+to valid access to the `image_uuid`. VMAPI validates the `image_uuid`.
+The provisioner agent uses the local `imgadm` to lazily install the image
+if necessary (imgadm v2 will be configured to talk to the DC's local IMGAPI).
+
+
+## Use Case 5: User creates a custom image
+
+**Status**: Incomplete. Need to go through the DATASET-??? workflow for this
+again.
 
 TODO: fill this in
 
 
-## Use Case: Operator adds a new image just for this cloud
+## Use Case 6: User modifies an image they own
 
-Operator uses operator portal (adminui) to add a new image to this DC.
-
-
-## Use Case: User provisions with a public image
+**Status**: incomplete. UpdateImage (IMGAPI-58) required, then exposing that
+via cloudapi (PUBAPI-???)
 
 TODO: fill this in
 
 
-## Use Case: User adds an custom image and provisions with it
+## Use Case 7: User easily gets custom image from an Ubuntu ISO
 
-TODO: fill this in
-
-## Use Case: User easily gets custom image from an Ubuntu ISO
+**Status**: incomplete (need to discuss how that can work)
 
 Mark:
 
@@ -332,8 +544,20 @@ Mark:
 Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO?
 
 
+## Use Case 8: Configure IMGAPI to use a newly setup Manta
 
-## Image file storage
+**Status**: Incomplete. Need a setup plan for this. manta-deploy? SAPI?
+
+Manta is an optional addition to SDC. IMGAPI is intended to work without
+a Manta (using a local directory mount or NFS share, aka DCLS) -- with the
+limitation that only operators can add images. To enable users adding
+their own images, a Manta is required.
+
+TODO: how is this setup? SAPI?
+
+
+
+# Image file storage
 
 There are three possible storage mechanisms for the (large) image files.
 Which are in use depend on the IMGAPI configuration (and availability
@@ -377,22 +601,18 @@ When adding an image file the storage used is determined as follows:
 
 Open questions (TODO):
 
-- Do we need more control than the above storate determination?
+- Do we need more control than the above storage determination?
 - Should 'dcls' usage be limited to a set of users? Or have a config item
   to limit the set of users that can use it. If so, then need an endpoint
   to update that config.
 
 
 
-# Images API
+# Image API
 
-An "image" object is the metadata for an image file.
-In the API, an image contains the following fields:
-
-||**Field**||**Type**||**Description**||
-||uuid||String||The UUID of the image.||
-||name||String||XXX||
-||XXX||String||XXX...||
+An "image" object is the metadata for an image file, also called the manifest.
+See [Image manifest data](#image-manifest-data) above for a summary of all
+fields.
 
 
 ## ListImages (GET /images)
@@ -422,12 +642,83 @@ An array of image objects.
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
+Raw curl (from images.joyent.com):
+
+    $ curl -kisS https://images.joyent.com/images | json
+    HTTP/1.1 200 OK
+    Date: Tue, 08 Jan 2013 01:07:25 GMT
+    Content-Type: application/json
+    Connection: keep-alive
+    Content-Length: 60203
+    Server: IMGAPI/1.0.0
+    x-request-id: c3993970-592f-11e2-8ef6-f7e53a279942
+    x-response-time: 44
+    x-server-name: b908c5b2-ccd9-4f43-b5ff-2997eb6bd682.local
+
+    [
+      {
+        "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
+        "owner": "352971aa-31ba-496c-9ade-a379feaecd52",
+        "name": "smartos",
+        "version": "1.6.3",
+        "state": "active",
+        "disabled": false,
+        "public": true,
+        "published_at": "2012-05-02T15:14:45.805Z",
+        "type": "zone-dataset",
+        "os": "smartos",
+        "files": [
+          {
+            "sha1": "97f20b32c2016782257176fb58a35e5044f05840",
+            "size": 46271847,
+            "compression": "bzip2"
+          }
+        ],
+        "description": "Base template to build other templates on",
+    ...
+
+CLI tool (from images.joyent.com):
+
+    $ joyent-imgadm list
+    UUID                                  NAME           VERSION  OS       STATE   PUBLISHED
+    febaa412-6417-11e0-bc56-535d219f2590  smartos        1.3.12   smartos  active  2011-04-11
+    7456f2b0-67ac-11e0-b5ec-832e6cf079d5  nodejs         1.1.3    smartos  active  2011-04-15
+    ...
+
+    $ joyent-imgadm list name=~base   # filter on substring in name
+    UUID                                  NAME    VERSION  OS       STATE   PUBLISHED
+    8418dccc-c9c6-11e1-91f4-5fb387d839c5  base    1.7.0    smartos  active  2012-07-09
+    d0eebb8e-c9cb-11e1-8762-2f01c4acd80d  base64  1.7.0    smartos  active  2012-07-10
+    ...
+
+In an SDC headnode GZ to talk to that data center's IMGAPI:
+
     $ sdc-imgapi /images
-    TODO: example
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 515
+    Date: Tue, 08 Jan 2013 01:08:19 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: e3b681e0-592f-11e2-b638-4b6ffa4ca56f
+    x-response-time: 1
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    [
+      {
+        "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
+        "owner": "352971aa-31ba-496c-9ade-a379feaecd52",
+        "name": "smartos",
+        "version": "1.6.3",
+    ...
+
+CLI tool (from an SDC's IMGAPI):
+
+    TODO: START HERE
 
 
 ## GetImage (GET /images/:uuid)
@@ -449,12 +740,74 @@ An image object.
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
-    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874
-    TODO: example
+Raw curl (from images.joyent.com):
+
+    $ curl -sS https://images.joyent.com/images/01b2c898-945f-11e1-a523-af1afbe22822
+    {
+      "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
+    ...
+
+CLI tool (from images.joyent.com):
+
+    $ joyent-imgadm get 01b2c898-945f-11e1-a523-af1afbe22822
+    {
+      "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
+    ...
+
+Raw API tool (from an SDC's IMGAPI):
+
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 513
+    Date: Tue, 08 Jan 2013 01:10:06 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: 2383aaf0-5930-11e2-b638-4b6ffa4ca56f
+    x-response-time: 71
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
+      "owner": "352971aa-31ba-496c-9ade-a379feaecd52",
+      "name": "smartos",
+      "version": "1.6.3",
+      "state": "active",
+      "disabled": false,
+      "public": true,
+      "published_at": "2012-05-02T15:14:45.805Z",
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "97f20b32c2016782257176fb58a35e5044f05840",
+          "size": 46271847,
+          "compression": "bzip2"
+        }
+      ],
+      "description": "Base template to build other templates on",
+      "urn": "sdc:sdc:smartos:1.6.3",
+      "requirements": {
+        "networks": [
+          {
+            "name": "net0",
+            "description": "public"
+          }
+        ]
+      }
+    }
+
+CLI tool (from an SDC's IMGAPI):
+
+    $ sdc-imgadm get 01b2c898-945f-11e1-a523-af1afbe22822
+    {
+      "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
+    ...
+
 
 
 ## GetImageFile (GET /images/:uuid/file)
@@ -471,11 +824,30 @@ The (typically large) image file content.
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
-    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -o image.zfs.bz2
+Raw curl (from images.joyent.com):
+
+    $ curl -kIsS https://images.joyent.com/images/01b2c898-945f-11e1-a523-af1afbe22822/file -o file.bz2
+
+CLI tool (from images.joyent.com):
+
+    $ joyent-imgadm getfile 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    100% [=============================]  time 43.4s  eta 0.0s
+    Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
+
+Raw API tool (from an SDC's IMGAPI):
+
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822/file -o file.bz2
+
+CLI tool (from an SDC's IMGAPI):
+
+    $ sdc-imgadm getfile 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    100% [=============================]  time 43.4s  eta 0.0s
+    Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
+
 
 
 ## DeleteImage (DELETE /images/:uuid)
@@ -492,7 +864,7 @@ Responds with HTTP 204 (No Content).
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
@@ -512,7 +884,7 @@ provisioning.
 ||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
 ||[owner](#manifest-owner)||UUID||Yes\*||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
 ||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
-||[version](#manifest-version)||String||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
+||[version](#manifest-version)||String||Yes||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||-||A short description of the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
@@ -522,11 +894,11 @@ provisioning.
 ||[requirements](#manifest-requirements)||Object||No||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
 ||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||-||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
-||[inherited_directories](#manifest-inherited-directories)||Array||No||-||TODO:doc||
-||[nic_driver](#manifest-nic-driver)||String||Yes\*||-||TODO:doc||
-||[disk_driver](#manifest-disk-driver)||String||Yes\*||-||TODO:doc||
-||[cpu_type](#manifest-cpu-type)||String||Yes\*||-||TODO:doc||
-||[image_size](#manifest-image-size)||Number||Yes\*||-||TODO:doc||
+||[inherited_directories](#manifest-inherited-directories)||Array||No||-||A list of inherited directories (other than the defaults for the brand).||
+||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||-||NIC driver used by this VM image.||
+||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||-||Disk driver used by this VM image.||
+||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||-||The QEMU CPU model to use for this VM image.||
+||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||-||The size (in MiB) of this VM image's disk.||
 
 
 ### Returns
@@ -535,7 +907,7 @@ The (unactivated) image object.
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
@@ -570,7 +942,7 @@ The updated image object.
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
@@ -600,7 +972,7 @@ The updated image object.
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
@@ -641,7 +1013,7 @@ The (unactivated) image object.
 
 ### Errors
 
-TODO: errors
+See [Errors](#errors) section above.
 
 ### Example
 
