@@ -1,7 +1,7 @@
 ---
 title: Image API (IMGAPI)
 markdown2extras: wiki-tables, code-friendly, cuddled-lists
-apisections: Miscellaneous API, Images API
+apisections: Miscellaneous API, Image API
 ---
 
 # Image API (IMGAPI)
@@ -718,7 +718,11 @@ In an SDC headnode GZ to talk to that data center's IMGAPI:
 
 CLI tool (from an SDC's IMGAPI):
 
-    TODO: START HERE
+    $ sdc-imgadm list state=all
+    UUID                                  NAME     VERSION  OS       STATE        PUBLISHED
+    e70502b0-705e-498e-a810-53a03980eabf  foo      1.0.0    smartos  unactivated  -
+    01b2c898-945f-11e1-a523-af1afbe22822  smartos  1.6.3    smartos  active       2012-05-02
+    ...
 
 
 ## GetImage (GET /images/:uuid)
@@ -868,7 +872,20 @@ See [Errors](#errors) section above.
 
 ### Example
 
+CLI tool (from images.joyent.com):
+
+    $ joyent-imgadm delete 69d8bd69-db68-a54c-bec5-8c934822cfa9
+    Deleted image 69d8bd69-db68-a54c-bec5-8c934822cfa9
+
+Raw API tool (from an SDC's IMGAPI):
+
     $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -X DELETE
+
+CLI tool (from an SDC's IMGAPI):
+
+    $ sdc-imgadm delete 7a1b1967-6ecf-1e4c-8f09-f49094cc36ad
+    Deleted image 7a1b1967-6ecf-1e4c-8f09-f49094cc36ad
+
 
 
 ## CreateImage (POST /images)
@@ -911,14 +928,52 @@ See [Errors](#errors) section above.
 
 ### Example
 
+Raw API tool (against an SDC's IMGAPI). This creates a new unactivated
+image:
+
     $ sdc-imgapi /images -X POST \
         --data-binary '{
             "name": "foo",
             "version": "1.0.0",
             "type": "zone-dataset",
-            "os": "smartos"
+            "os": "smartos",
+            "owner": "b5c5c13d-ccc0-5a43-9a46-245ff960cd81"
         }'
-    TODO: example
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 236
+    Date: Tue, 08 Jan 2013 20:04:01 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: 8b547800-59ce-11e2-b638-4b6ffa4ca56f
+    x-response-time: 52
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "b5c5c13d-ccc0-5a43-9a46-245ff960cd81",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "unactivated",
+      "disabled": false,
+      "public": false,
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [],
+      "acl": []
+    }
+
+CLI tool (against an SDC's IMGAPI):
+
+    $ echo '{
+        "name": "foo",
+        "version": "1.0.0",
+        "type": "zone-dataset",
+        "os": "smartos",
+        "owner": "b5c5c13d-ccc0-5a43-9a46-245ff960cd81"
+    }' | sdc-imgadm create
+    Imported image 25ab9ddf-96e8-4157-899d-1dc8be7b9810 (foo, 1.0.0, state=unactivated)
+
 
 
 ## AddImageFile (PUT /images/:uuid/file)
@@ -946,12 +1001,48 @@ See [Errors](#errors) section above.
 
 ### Example
 
-This example is using curl's `-T/--upload-file <file>` option, which results
-in a PUT.
+Raw API tool (against an SDC's IMGAPI). This example is using curl's
+`-T/--upload-file <file>` option, which results in a PUT.
 
-    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file?compression=bzip2 \
-        -T image.zfs.bz2
-    ... TODO: example
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf/file?compression=bzip2 \
+        -T image.bz2
+    HTTP/1.1 100 Continue
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 319
+    Date: Tue, 08 Jan 2013 20:17:46 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: 773c5b10-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 106
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "b5c5c13d-ccc0-5a43-9a46-245ff960cd81",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "unactivated",
+      "disabled": false,
+      "public": false,
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 46271847,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": []
+    }
+
+CLI tool:
+
+    $ sdc-imgadm addfile 25ab9ddf-96e8-4157-899d-1dc8be7b9810 -f file.bz2
+    100% [=============================]  time 5.6s  eta 0.0s
+    Added file "file.bz2" to image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
 
 
 ## ActivateImage (POST /images/:uuid?action=activate)
@@ -976,7 +1067,44 @@ See [Errors](#errors) section above.
 
 ### Example
 
-    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874?action=activate -X POST
+Raw API tool:
+
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf?action=activate -X POST
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 356
+    Date: Tue, 08 Jan 2013 20:21:17 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: f5645880-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 110
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "active",
+      "disabled": false,
+      "public": false,
+      "published_at": "2013-01-08T20:21:17.932Z",
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 42,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": []
+    }
+
+CLI tool:
+
+    $ sdc-imgadm activate 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+    Activated image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
 
 
 
@@ -995,7 +1123,6 @@ This creates an unactivated image. The typical process is to subsequently
 call [AddImageFile](#AddImageFile) and then [ActivateImage](#ActivateImage)
 to finish with an image available for provisioning.
 
-
 ### Inputs
 
 The same fields as for [CreateImage](#CreateImage), including the SDC6-era
@@ -1005,7 +1132,6 @@ backward compat fields, with the following additions and changes:
 ||account||UUID||No\*||-||This must NOT be provided. See the discussion above.||
 ||uuid||UUID||Yes||-||The existing image UUID.||
 ||published_at||Date||No||-||The published date/time of the image.||
-
 
 ### Returns
 
@@ -1017,9 +1143,20 @@ See [Errors](#errors) section above.
 
 ### Example
 
+Raw API tool:
+
     $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import \
         -X POST --data-binary @smartos-1.6.3.dsmanifest
-    TODO: example
+    ...
+
+CLI tool. This example uses the '-f FILE' argument, which will handle
+AddImageFile and ActivateImage calls after the AdminImportImage.
+
+    $ sdc-imgadm import -m manifest -f file.bz2
+    Imported image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 (base, 1.8.4, state=unactivated)
+    100% [=============================]  time 0.6s  eta 0.0s
+    Added file "file.bz2" to image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699
+    Activated image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699
 
 
 
@@ -1056,47 +1193,38 @@ and the response body is an JSON object with:
 
     $ sdc-imgapi /ping
     HTTP/1.1 200 OK
-    Connection: close
-    Date: Wed, 02 Nov 2011 04:40:42 GMT
-    Server: IMGAPI/1.0.0
-    X-Api-Version: 1.0.0
-    X-Request-Id: 265a6379-bbf5-4d86-bd11-5e96614035d8
-    X-Response-Time: 2
-    Content-Length: 15
-    Content-MD5: tBwJDpsyo/hcYx2xrziwrw==
     Content-Type: application/json
-    Access-Control-Allow-Origin: *
-    Access-Control-Allow-Methods: OPTIONS, GET
-    Access-Control-Allow-Headers: Accept, Content-Type, Content-Length, Date, X-Api-Version
-    Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+    Content-Length: 45
+    Date: Tue, 08 Jan 2013 19:52:42 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: f6f24850-59cc-11e2-b638-4b6ffa4ca56f
+    x-response-time: 0
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
 
     {
-      "ping": "pong"
-      "pid": 1234,
+      "ping": "pong",
+      "pid": 23097,
       "version": "1.0.0"
     }
 
 Ping can also be used to simulate error responses from the IMGAPI:
 
-    $ sdc-imgapi /ping?error=ResourceNotFound\&message=nada
-    HTTP/1.1 404 Not Found
-    Connection: close
-    Date: Tue, 06 Dec 2011 23:43:03 GMT
-    Server: IMGAPI/1.0.0
-    X-Api-Version: 1.0.0
-    X-Request-Id: 849950cf-e9de-452b-9640-6f4c7da053e2
-    X-Response-Time: 2
-    Content-Length: 44
-    Content-MD5: /vxoedHxPf+L11uaQ8bkJQ==
+    $ sdc-imgapi /ping?error=ValidationFailed
+    HTTP/1.1 422 Unprocessable Entity
     Content-Type: application/json
-    Access-Control-Allow-Origin: *
-    Access-Control-Allow-Methods: OPTIONS, GET
-    Access-Control-Allow-Headers: Accept, Content-Type, Content-Length, Date, X-Api-Version
-    Access-Control-Expose-Headers: X-Api-Version, X-Request-Id, X-Response-Time
+    Content-Length: 56
+    Date: Tue, 08 Jan 2013 19:53:31 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: 143dfa30-59cd-11e2-b638-4b6ffa4ca56f
+    x-response-time: 0
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
 
     {
-      "code": "ResourceNotFound",
-      "message": "nada"
+      "code": "ValidationFailed",
+      "message": "boom",
+      "errors": []
     }
 
 
