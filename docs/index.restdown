@@ -1108,6 +1108,53 @@ CLI tool:
 
 
 
+## UpdateImage (POST /images/:uuid?action=update)
+
+Update some fields in the image manifest. Not all fields can be updated. The
+inputs section lists every image attribute that can be modified. Note that this
+action is a complete replace of the attributes specified in the request and not
+a partial update. Any input is optional but at least one attribute must be
+updated.
+
+**NOTE** Public images residing on a public mode server cannot be made private.
+
+### Inputs
+
+||**Field**||**Type**||**Default**||**Notes**||
+||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[owner](#manifest-owner)||UUID||-||The UUID of the new owner of this image.||
+||[name](#manifest-name)||String||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
+||[version](#manifest-version)||String||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
+||[description](#manifest-description)||String||-||A short description of the image.||
+||[public](#manifest-public)||Boolean||false||Indicates if this image is publicly available.||
+||[type](#manifest-type)||String||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[os](#manifest-os)||String||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+||[requirements](#manifest-requirements)||Object||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
+||[users](#manifest-users)||Array||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[generate_passwords](#manifest-generate-passwords)||Boolean||-||A boolean indicating whether to generate passwords for the users in the "users" field.||
+||[nic_driver](#manifest-nic-driver)||String||-||NIC driver used by this VM image. Required if `type==="zvol"`||
+||[disk_driver](#manifest-disk-driver)||String||-||Disk driver used by this VM image. Required if `type==="zvol"`||
+||[cpu_type](#manifest-cpu-type)||String||-||The QEMU CPU model to use for this VM image. Required if `type==="zvol"`||
+||[image_size](#manifest-image-size)||Number||-||The size (in MiB) of this VM image's disk. Required if `type==="zvol"`||
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874?action=update -X POST
+        --data-binary '{
+            "description": "updated description"
+        }'
+
+
+
 ## AdminImportImage (POST /images/:uuid?action=import)
 
 Import an image (preserving its `uuid` and `published_at` fields). This is
