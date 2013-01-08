@@ -93,6 +93,7 @@ test('401 on modifying endpoints without auth', function (t) {
                            size: 42,
                            compression: 'none'}]],
         ['activateImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']],
+        ['updateImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136', {}]],
         ['deleteImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']]
     ];
     async.forEachSeries(
@@ -125,6 +126,20 @@ test('CreateImage fail for a private image', function (t) {
         type: 'zone-dataset'
     };
     this.authClient.createImage(data, function (err, image, res) {
+        t.ok(err, 'got error: ' + err);
+        if (err) {
+            t.equal(err.body.code, 'NoPrivateImages',
+                'err code: ' + err.body.code);
+        }
+        t.end();
+    });
+});
+
+test('UpdateImage fail for a private image', function (t) {
+    // Public image from the test data
+    var uuid = 'e078a6aa-2547-11e2-8688-03ac37b2b4a0';
+    var data = { 'public': false };
+    this.authClient.updateImage(uuid, data, function (err, image, res) {
         t.ok(err, 'got error: ' + err);
         if (err) {
             t.equal(err.body.code, 'NoPrivateImages',

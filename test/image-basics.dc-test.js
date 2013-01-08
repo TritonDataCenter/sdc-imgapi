@@ -72,6 +72,7 @@ test('GetImage existing', function (t) {
  * - adds an image file
  * - activates it
  * - ensure others (e.g. vader) can see it
+ * - update it
  * ...
  * - clean up: delete it
  */
@@ -155,6 +156,18 @@ test('CreateImage', function (t) {
             next();
         });
     }
+    function update(next) {
+        var mod = { description: 'awesome image'};
+        self.client.updateImage(uuid, mod, luke, function (err, image, res) {
+            console.log(image);
+            console.log(err);
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.description, 'awesome image');
+            aImage = image;
+            next();
+        });
+    }
     function getImage(next) {
         self.client.getImage(uuid, vader, function (err, image, res) {
             t.ifError(err, err);
@@ -202,6 +215,7 @@ test('CreateImage', function (t) {
             getMd5,
             addFile,
             activate,
+            update,
             getImage,
             getFile,
             deleteImage
