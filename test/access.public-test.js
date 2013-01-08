@@ -128,7 +128,7 @@ test('CreateImage fail for a private image', function (t) {
     this.authClient.createImage(data, function (err, image, res) {
         t.ok(err, 'got error: ' + err);
         if (err) {
-            t.equal(err.body.code, 'NoPrivateImages',
+            t.equal(err.body.code, 'ValidationFailed',
                 'err code: ' + err.body.code);
         }
         t.end();
@@ -136,16 +136,21 @@ test('CreateImage fail for a private image', function (t) {
 });
 
 test('UpdateImage fail for a private image', function (t) {
-    // Public image from the test data
-    var uuid = 'e078a6aa-2547-11e2-8688-03ac37b2b4a0';
-    var data = { 'public': false };
-    this.authClient.updateImage(uuid, data, function (err, image, res) {
-        t.ok(err, 'got error: ' + err);
-        if (err) {
-            t.equal(err.body.code, 'NoPrivateImages',
-                'err code: ' + err.body.code);
-        }
-        t.end();
+    var self = this;
+    // Find an image to test with (this is playing fast and loose).
+    self.authClient.listImages(function (listErr, images, res) {
+        var uuid = images[0].uuid;
+        var data = { 'public': false };
+        self.authClient.updateImage(uuid, data, function (err, image, res) {
+            t.ok(err, 'got error: ' + err);
+            if (err) {
+                t.equal(err.body.code, 'ValidationFailed',
+                    'err code: ' + err.body.code);
+                t.ok(err.message.indexOf('public') !== -1,
+                    'error in validating "public" field');
+            }
+            t.end();
+        });
     });
 });
 
