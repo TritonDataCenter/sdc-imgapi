@@ -17,6 +17,7 @@ JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 SMF_MANIFESTS_IN = smf/manifests/imgapi.xml.in
 NODEUNIT	:= ./node_modules/.bin/nodeunit
+CLEAN_FILES += ./node_modules
 
 # The prebuilt sdcnode version we want. See
 # "tools/mk/Makefile.node_prebuilt.targ" for details.
