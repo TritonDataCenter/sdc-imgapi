@@ -150,32 +150,38 @@ Generally this is represented as a JSON object. For example:
 
 A summary of fields (details are provided below):
 
-||**Field**||**Type**||**Always Present?**||**Notes**||
-||[uuid](#manifest-uuid)||UUID||Yes||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
-||[owner](#manifest-owner)||UUID||Yes||The UUID of the owner of this image (the account that created it).||
-||[name](#manifest-name)||String||Yes||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
-||[version](#manifest-version)||String||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
-||[description](#manifest-description)||String||No||A short description of the image.||
-||[state](#manifest-state)||String||Yes||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
-||[disabled](#manifest-disabled)||Boolean||Yes||Indicates if this image is available for provisioning.||
-||[public](#manifest-public)||Boolean||Yes||Indicates if this image is publicly available.||
-||[published_at](#manifest-published_at)||Date||Yes (if activated)||The date at which the image is activated). Set by the IMGAPI server.||
-||[type](#manifest-type)||String||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
-||[os](#manifest-os)||String||Yes||The OS family this image provides. One of "smartos", "windows", "linux" or "other".||
-||[files](#manifest-files)||Array||Yes (if activated)||An array with a single object describing the image file.||
-||[acl](#manifest-acl)||Array||No||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
-||[requirements](#manifest-requirements)||Object||No||A set of named requirements for provisioning a VM with this image||
-||[requirements.networks](#manifest-requirements-networks)||Array||No||Defines the minimum number of network interfaces required by this image.||
-||[requirements.ssh_key](#manifest-requirements-ssh-key)||Boolean||No||Indicates that provisioning with this image requires that an SSH public key be provided.||
-||[requirements.min_ram](#manifest-requirements-min-ram)||Integer||No||Minimum RAM (in MiB) required to provision this image.||
-||[requirements.max_ram](#manifest-requirements-max-ram)||Integer||No||Maximum RAM (in MiB) this image may be provisioned with.||
-||[users](#manifest-users)||Array||No||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
-||[generate_passwords](#manifest-generate-passwords)||Boolean||No||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
-||[inherited_directories](#manifest-inherited-directories)||Array||No||A list of inherited directories (other than the defaults for the brand).||
-||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||NIC driver used by this VM image.||
-||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||Disk driver used by this VM image.||
-||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||The QEMU CPU model to use for this VM image.||
-||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||The size (in MiB) of this VM image's disk.||
+||**Field**||**Type**||**Always Present?**||**Mutable?**||**Notes**||
+||[uuid](#manifest-uuid)||UUID||Yes||No||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
+||[owner](#manifest-owner)||UUID||Yes||No||The UUID of the owner of this image (the account that created it).||
+||[name](#manifest-name)||String||Yes||Yes||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
+||[version](#manifest-version)||String||Yes||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
+||[description](#manifest-description)||String||No||Yes||A short description of the image.||
+||[state](#manifest-state)||String||Yes||No||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
+||[disabled](#manifest-disabled)||Boolean||Yes||No (\*)||Indicates if this image is available for provisioning.||
+||[public](#manifest-public)||Boolean||Yes||Yes (\*)||Indicates if this image is publicly available.||
+||[published_at](#manifest-published_at)||Date||Yes (if activated)||No||The date at which the image is activated). Set by the IMGAPI server.||
+||[type](#manifest-type)||String||Yes||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[os](#manifest-os)||String||Yes||Yes||The OS family this image provides. One of "smartos", "windows", "linux" or "other".||
+||[files](#manifest-files)||Array||Yes (if activated)||No||An array with a single object describing the image file.||
+||[acl](#manifest-acl)||Array||No||Yes||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+||[requirements](#manifest-requirements)||Object||No||Yes||A set of named requirements for provisioning a VM with this image||
+||[requirements.networks](#manifest-requirements-networks)||Array||No||Yes||Defines the minimum number of network interfaces required by this image.||
+||[requirements.ssh_key](#manifest-requirements-ssh-key)||Boolean||No||Yes||Indicates that provisioning with this image requires that an SSH public key be provided.||
+||[requirements.min_ram](#manifest-requirements-min-ram)||Integer||No||Yes||Minimum RAM (in MiB) required to provision this image.||
+||[requirements.max_ram](#manifest-requirements-max-ram)||Integer||No||Yes||Maximum RAM (in MiB) this image may be provisioned with.||
+||[users](#manifest-users)||Array||No||Yes||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[generate_passwords](#manifest-generate-passwords)||Boolean||No||Yes||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
+||[inherited_directories](#manifest-inherited-directories)||Array||No||Yes||A list of inherited directories (other than the defaults for the brand).||
+||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||Yes||NIC driver used by this VM image.||
+||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||Yes||Disk driver used by this VM image.||
+||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||Yes||The QEMU CPU model to use for this VM image.||
+||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||Yes||The size (in MiB) of this VM image's disk.||
+
+"Mutable?" refers to whether this field can be edited via
+[UpdateImage](#UpdateImage). `disabled` can be modified via the
+[DisableImage](#DisableImage) and [EnableImage](#EnableImage) endpoints.
+`public` cannot be set false for an image on the "public mode" IMGAPI,
+e.g. <https://images.joyent.com>.
 
 
 
