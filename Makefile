@@ -117,7 +117,7 @@ deploy-images.joyent.com:
 		&& cd /root/services/imgapi \
 		&& git fetch origin \
 		&& git pull --rebase origin master \
-		&& /opt/local/gnu/bin/make clean all \
+		&& PATH=/opt/local/gnu/bin:$$PATH make clean all \
 		&& svcadm restart imgapi \
 		&& tail -f `svcs -L imgapi` | bunyan -o short'
 

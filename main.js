@@ -93,6 +93,7 @@ function loadConfigSync(configPath) {
         config.mode = 'public';
     }
     assert.string(config.mode, 'config.mode');
+    assert.optionalString(config.serverName, 'config.serverName');
     assert.ok(['public', 'dc'].indexOf(config.mode) !== -1,
         'invalid config.mode');
     assert.object(config.storage, 'config.storage');
