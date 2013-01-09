@@ -20,6 +20,9 @@ echo "IMGAPI_ZONE: $IMGAPI_ZONE"
 extraOpts=
 if [[ $(uname -s) != "SunOS" ]]; then
     extraOpts="--exclude *.node --exclude build"
+else
+    # Clean node_modules everytime.
+    ssh $NODE rm -rf /zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/node_modules
 fi
 
 rsync -av ${TOP}/ \
