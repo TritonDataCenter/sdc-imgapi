@@ -1113,6 +1113,125 @@ CLI tool:
     Activated image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
 
 
+## DisableImage (POST /images/:uuid?action=disable)
+
+Disables the image. This makes the image unavailable for provisioning -- the
+`state` field will become "disabled". The image must already have been activated
+before disabing it.
+
+### Inputs
+
+None.
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool:
+
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf?action=disable -X POST
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 356
+    Date: Tue, 08 Jan 2013 20:21:17 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: f5645880-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 110
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "disabled",
+      "disabled": true,
+      "public": false,
+      "published_at": "2013-01-08T20:21:17.932Z",
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 42,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": []
+    }
+
+CLI tool:
+
+    $ sdc-imgadm disable 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+    Disabled image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+
+
+## EnableImage (POST /images/:uuid?action=enable)
+
+Enables the image. This makes the image available for provisioning once again --
+the `state` field will become "active". The image must already have been activated
+before enabling it.
+
+### Inputs
+
+None.
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool:
+
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf?action=enable -X POST
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 356
+    Date: Tue, 08 Jan 2013 20:21:17 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: f5645880-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 110
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "active",
+      "disabled": false,
+      "public": false,
+      "published_at": "2013-01-08T20:21:17.932Z",
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 42,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": []
+    }
+
+CLI tool:
+
+    $ sdc-imgadm enable 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+    Enabled image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+
 
 ## UpdateImage (POST /images/:uuid?action=update)
 
@@ -1154,11 +1273,18 @@ See [Errors](#errors) section above.
 
 ### Example
 
+Raw API tool:
+
     $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874?action=update -X POST
         --data-binary '{
             "description": "updated description"
         }'
 
+CLI tool:
+
+    $ sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874 -F data.json
+    $ sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874 description='new description'
+    $ cat data.json | sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874
 
 
 ## AdminImportImage (POST /images/:uuid?action=import)

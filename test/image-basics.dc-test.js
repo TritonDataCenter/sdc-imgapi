@@ -156,6 +156,24 @@ test('CreateImage', function (t) {
             next();
         });
     }
+    function disable(next) {
+        self.client.disableImage(uuid, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.disabled, true);
+            aImage = image;
+            next();
+        });
+    }
+    function enable(next) {
+        self.client.enableImage(uuid, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.disabled, false);
+            aImage = image;
+            next();
+        });
+    }
     function update(next) {
         var mod = { description: 'awesome image'};
         self.client.updateImage(uuid, mod, luke, function (err, image, res) {
@@ -215,6 +233,8 @@ test('CreateImage', function (t) {
             getMd5,
             addFile,
             activate,
+            disable,
+            enable,
             update,
             getImage,
             getFile,
