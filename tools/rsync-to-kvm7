@@ -28,11 +28,11 @@ rsync -av ${TOP}/ \
     --include "test/*.zfs.bz2" \
     --exclude "*.zfs.bz2" \
     --exclude .git/ \
-    --exclude etc/imgapi.config.json \
-    --exclude deps/ \
-    --exclude doc/ \
-    --exclude tools/ \
-    --exclude tmp/
+    --exclude /etc/imgapi.config.json \
+    --exclude /deps/ \
+    --exclude /doc/ \
+    --exclude /tools/ \
+    --exclude /tmp/
 
 state=$(ssh ${NODE} svcs -z ${IMGAPI_ZONE} -H -o state imgapi)
 if [[ "$state" == "maintenance" ]]; then
