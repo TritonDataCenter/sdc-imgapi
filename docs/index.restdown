@@ -1128,7 +1128,6 @@ updated.
 
 ||**Field**||**Type**||**Default**||**Notes**||
 ||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[owner](#manifest-owner)||UUID||-||The UUID of the new owner of this image.||
 ||[name](#manifest-name)||String||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
 ||[version](#manifest-version)||String||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||-||A short description of the image.||
@@ -1138,6 +1137,7 @@ updated.
 ||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
 ||[users](#manifest-users)||Array||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[inherited_directories](#manifest-inherited-directories)||Array||-||A list of inherited directories (other than the defaults for the brand).||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||-||A boolean indicating whether to generate passwords for the users in the "users" field.||
 ||[nic_driver](#manifest-nic-driver)||String||-||NIC driver used by this VM image. Required if `type==="zvol"`||
 ||[disk_driver](#manifest-disk-driver)||String||-||Disk driver used by this VM image. Required if `type==="zvol"`||
