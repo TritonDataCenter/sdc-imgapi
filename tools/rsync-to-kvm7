@@ -4,8 +4,9 @@
 # GZ.
 #
 
-#set -x
-set -e
+#set -o xtrace
+set -o errexit
+
 TOP=$(cd $(dirname $0)/../; pwd)
 NODE=root@10.2.207.2
 
@@ -16,9 +17,14 @@ if [[ -z "$IMGAPI_ZONE" ]]; then
 fi
 echo "IMGAPI_ZONE: $IMGAPI_ZONE"
 
+extraOpts=
+if [[ $(uname -s) != "SunOS" ]]; then
+    extraOpts="--exclude *.node --exclude build"
+fi
+
 rsync -av ${TOP}/ \
     $NODE:/zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/ \
-    --exclude "*.node" \
+    $extraOpts \
     --include "test/*.zfs.bz2" \
     --exclude "*.zfs.bz2" \
     --exclude .git/ \
@@ -26,8 +32,7 @@ rsync -av ${TOP}/ \
     --exclude deps/ \
     --exclude doc/ \
     --exclude tools/ \
-    --exclude tmp/ \
-    --exclude build/
+    --exclude tmp/
 
 state=$(ssh ${NODE} svcs -z ${IMGAPI_ZONE} -H -o state imgapi)
 if [[ "$state" == "maintenance" ]]; then
