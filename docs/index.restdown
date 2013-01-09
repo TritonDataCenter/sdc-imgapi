@@ -1116,8 +1116,7 @@ CLI tool:
 ## DisableImage (POST /images/:uuid?action=disable)
 
 Disables the image. This makes the image unavailable for provisioning -- the
-`state` field will become "disabled". The image must already have been activated
-before disabing it.
+`state` field will be "disabled".
 
 ### Inputs
 
@@ -1176,8 +1175,7 @@ CLI tool:
 ## EnableImage (POST /images/:uuid?action=enable)
 
 Enables the image. This makes the image available for provisioning once again --
-the `state` field will become "active". The image must already have been activated
-before enabling it.
+the `state` field will be "active".
 
 ### Inputs
 
