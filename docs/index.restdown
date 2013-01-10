@@ -1046,7 +1046,7 @@ Raw API tool (against an SDC's IMGAPI). This example is using curl's
 
 CLI tool:
 
-    $ sdc-imgadm addfile 25ab9ddf-96e8-4157-899d-1dc8be7b9810 -f file.bz2
+    $ sdc-imgadm add-file 25ab9ddf-96e8-4157-899d-1dc8be7b9810 -f file.bz2
     100% [=============================]  time 5.6s  eta 0.0s
     Added file "file.bz2" to image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
 
