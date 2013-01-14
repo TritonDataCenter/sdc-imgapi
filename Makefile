@@ -93,6 +93,11 @@ release: all
 		$(TOP)/smf \
 		$(TOP)/test \
 		$(TMPDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(TMPDIR)/root/var/svc
+	cp -r \
+		$(TOP)/sdc/setup \
+		$(TOP)/sdc/configure \
+		$(TMPDIR)/root/var/svc
 	(cd $(TMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(TMPDIR)
 
