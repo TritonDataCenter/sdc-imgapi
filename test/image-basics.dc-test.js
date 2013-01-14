@@ -177,11 +177,29 @@ test('CreateImage', function (t) {
     function update(next) {
         var mod = { description: 'awesome image'};
         self.client.updateImage(uuid, mod, luke, function (err, image, res) {
-            console.log(image);
-            console.log(err);
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.description, 'awesome image');
+            aImage = image;
+            next();
+        });
+    }
+    function addAcl(next) {
+        var acl = ['91ba0e64-2547-11e2-a972-df579e5fddb3'];
+        self.client.addImageAcl(uuid, acl, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.acl[0], acl[0]);
+            aImage = image;
+            next();
+        });
+    }
+    function removeAcl(next) {
+        var acl = ['91ba0e64-2547-11e2-a972-df579e5fddb3'];
+        self.client.removeImageAcl(uuid, acl, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.ok(!image.acl);
             aImage = image;
             next();
         });

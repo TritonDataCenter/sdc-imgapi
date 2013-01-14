@@ -97,9 +97,11 @@ used.
 ||[CreateImage](#CreateImage)||POST /images||Create a new (unactivated) image from a manifest.||
 ||[AddImageFile](#AddImageFile)||PUT /images/:uuid/file||Upload the image file.||
 ||[ActivateImage](#ActivateImage)||POST /images/:uuid?action=activate||Activate the image.||
-||[UpdateImage](#UpdateImage)||POST /images/:uuid?action=update||**NYI** Update image manifest fields. This is limited. Some fields are immutable.||
-||[DisableImage](#DisableImage)||POST /images/:uuid?action=disable||**NYI** Disable the image.||
-||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||**NYI** Enable the image.||
+||[UpdateImage](#UpdateImage)||POST /images/:uuid?action=update||Update image manifest fields. This is limited. Some fields are immutable.||
+||[DisableImage](#DisableImage)||POST /images/:uuid?action=disable||Disable the image.||
+||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||Enable the image.||
+||[AddImageAcl](#AddImageAcl)||POST /images/:uuid/acl?action=add||Add account UUIDs to the image ACL.||
+||[RemoveImageAcl](#RemoveImageAcl)||POST /images/:uuid/acl?action=remove||Remove account UUIDs from the image ACL.||
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
 
@@ -1229,6 +1231,139 @@ CLI tool:
 
     $ sdc-imgadm enable 25ab9ddf-96e8-4157-899d-1dc8be7b9810
     Enabled image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+
+
+## AddImageAcl (POST /images/:uuid/acl?action=add)
+
+Adds more UUIDs to the Image ACL. If any of the account UUIDs is already in the
+image ACL it gets ignored. For convenience, when the action parameter is not present
+it will default to action=add. This means that the **AddImageAcl** action is
+valid in either of the two following forms:
+
+    POST /images/:uuid/acl
+    POST /images/:uuid/acl?action=add
+
+### Inputs
+
+||**Field**||**Type**||**Default**||**Notes**||
+||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs to give access to a private image. The field is only relevant to private images.||
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool:
+
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf/acl -X POST
+        -d '[ "669a0e24-5e8a-11e2-8c11-7c6d6290281a" ]'
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 356
+    Date: Tue, 08 Jan 2013 20:21:17 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: f5645880-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 110
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "active",
+      "disabled": false,
+      "public": false,
+      "published_at": "2013-01-08T20:21:17.932Z",
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 42,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": [
+        "669a0e24-5e8a-11e2-8c11-7c6d6290281a"
+      ]
+    }
+
+CLI tool:
+
+    $ sdc-imgadm add-acl 25ab9ddf-96e8-4157-899d-1dc8be7b9810 669a0e24-5e8a-11e2-8c11-7c6d6290281a
+    Updated ACL for image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+
+
+## RemoveImageAcl (POST /images/:uuid/acl?action=remove)
+
+Removes UUIDs from the Image ACL. Any of the account UUIDs that is not in the
+image ACL gets ignored. In contrast to [AddImageAcl](#AddImageAcl), RemoveImageAcl
+requires the action parameter to be present and to be equal to 'remove'.
+
+### Inputs
+
+||**Field**||**Type**||**Default**||**Notes**||
+||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs to remove access to a private image. The field is only relevant to private images.||
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool:
+
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf/acl?action=remove -X POST
+        -d '[ "669a0e24-5e8a-11e2-8c11-7c6d6290281a" ]'
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 356
+    Date: Tue, 08 Jan 2013 20:21:17 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: f5645880-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 110
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "00000000-0000-0000-0000-000000000000",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "active",
+      "disabled": false,
+      "public": false,
+      "published_at": "2013-01-08T20:21:17.932Z",
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 42,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": [
+      ]
+    }
+
+CLI tool:
+
+    $ sdc-imgadm remove-acl 25ab9ddf-96e8-4157-899d-1dc8be7b9810 669a0e24-5e8a-11e2-8c11-7c6d6290281a
+    Updated ACL for image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
 
 
 ## UpdateImage (POST /images/:uuid?action=update)

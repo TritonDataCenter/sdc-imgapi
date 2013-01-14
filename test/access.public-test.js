@@ -96,6 +96,8 @@ test('401 on modifying endpoints without auth', function (t) {
         ['disableImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']],
         ['enableImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']],
         ['updateImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136', {}]],
+        ['addImageAcl', ['900850d9-4bc2-da4b-84be-7e7cd50fe136', []]],
+        ['removeImageAcl', ['900850d9-4bc2-da4b-84be-7e7cd50fe136', []]],
         ['deleteImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']]
     ];
     async.forEachSeries(
