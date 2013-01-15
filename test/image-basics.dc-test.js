@@ -88,7 +88,8 @@ test('CreateImage', function (t) {
         description: 'Describing the Millenium Falcon.',
         os: 'smartos',
         type: 'zone-dataset',
-        public: true
+        public: true,
+        requirements: { min_platform: [['7.0', '2012-12-24']] }
     };
 
     var self = this;

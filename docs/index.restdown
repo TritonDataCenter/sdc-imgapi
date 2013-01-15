@@ -171,6 +171,8 @@ A summary of fields (details are provided below):
 ||[requirements.ssh_key](#manifest-requirements-ssh-key)||Boolean||No||Yes||Indicates that provisioning with this image requires that an SSH public key be provided.||
 ||[requirements.min_ram](#manifest-requirements-min-ram)||Integer||No||Yes||Minimum RAM (in MiB) required to provision this image.||
 ||[requirements.max_ram](#manifest-requirements-max-ram)||Integer||No||Yes||Maximum RAM (in MiB) this image may be provisioned with.||
+||[requirements.min_platform](#manifest-requirements-min-platform)||Array||No||Yes||Minimum platform requirement for provisioning with this image.||
+||[requirements.max_platform](#manifest-requirements-max-platform)||Array||No||Yes||Maximum platform requirement for provisioning with this image.||
 ||[users](#manifest-users)||Array||No||Yes||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||Yes||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||No||Yes||A list of inherited directories (other than the defaults for the brand).||
@@ -397,6 +399,28 @@ required to provision this image. If `max_ram` is also specified, then
 Optional. `max_ram` is an integer number of MiB specifying the maximum RAM
 this image may provisioned with. If `min_ram` is also specified, then
 `min_ram <= max_ram` must be true.
+
+## Manifest: requirements.min_platform
+
+Optional. `min_platform` is an array of pairs of strings that indicates what is
+the minimum required platform for this image to be used for provisioning. The
+pair of strings is a tuple that describes a platform version with the
+[semver, date] format. If `min_platform` has more than one pair it means that
+there is more than one minimum requirement across major versions of platforms.
+Example:
+
+    "min_platform": [ ["6.5", "2012-12-24"], ["7.0", "2012-12-31"]]
+
+## Manifest: requirements.max_platform
+
+Optional. `max_platform` is an array of pairs of strings that indicates what is
+the maximum allowed platform for this image to be used for provisioning. The
+pair of strings is a tuple that describes a platform version with the
+[semver, date] format. If `max_platform` has more than one pair it means that
+there is more than one maximum requirement across major versions of platforms.
+Example:
+
+    "max_platform": [ ["6.5", "2012-12-24"], ["7.0", "2012-12-31"]]
 
 ## Manifest: users
 
