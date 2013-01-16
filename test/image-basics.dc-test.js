@@ -89,7 +89,8 @@ test('CreateImage', function (t) {
         os: 'smartos',
         type: 'zone-dataset',
         public: true,
-        requirements: { min_platform: [['7.0', '2012-12-24']] }
+        requirements: { min_platform: [['7.0', '2012-12-24']] },
+        billing_tags: ['oracle']
     };
 
     var self = this;

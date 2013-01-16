@@ -77,8 +77,7 @@ used.
 
 - Bad: A number of manifest fields remain to be added: `traits` for
   DAPI/server role handling (IMGAPI-43), `tags` for portal usage, `homepage`
-  for reference to external info (e.g. a changelog) on a given image,
-  `billing_tags` (IMGAPI-70), etc.
+  for reference to external info (e.g. a changelog) on a given image, etc.
 
 - Bad: don't yet support manta as a storage backend (though the framework
   is there for it).
@@ -174,6 +173,7 @@ A summary of fields (details are provided below):
 ||[requirements.min_platform](#manifest-requirements-min-platform)||Array||No||Yes||Minimum platform requirement for provisioning with this image.||
 ||[requirements.max_platform](#manifest-requirements-max-platform)||Array||No||Yes||Maximum platform requirement for provisioning with this image.||
 ||[users](#manifest-users)||Array||No||Yes||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[billing_tags](#manifest-billing-tags)||Array||No||Yes||A list of tags that can be used by operators for additional billing processing.||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||Yes||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||No||Yes||A list of inherited directories (other than the defaults for the brand).||
 ||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||Yes||NIC driver used by this VM image.||
@@ -428,6 +428,15 @@ Optional. `users` is a list of users for which passwords should be generated
 for provisioning. This may only make sense for some datasets. Example:
 
     "users": [{"name": "root"}, {"name": "admin"}]
+
+## Manifest: billing_tags
+
+Optional. A list of tags that can be used by operators for additional billing
+processing. This attribute can be useful for derivative images when the child
+image object needs to be related to the parent image for billing or licensing
+purposes. Example:
+
+    "billing_tags": ["oracle", "rhel"]
 
 ## Manifest: generate_passwords
 
