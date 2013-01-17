@@ -75,9 +75,8 @@ used.
 
 - Bad: The full process for a user creating a custom image
 
-- Bad: A number of manifest fields remain to be added: `traits` for
-  DAPI/server role handling (IMGAPI-43), `tags` for portal usage, `homepage`
-  for reference to external info (e.g. a changelog) on a given image, etc.
+- Bad: A number of manifest fields remain to be added: `tags` for portal usage,
+`homepage` for reference to external info (e.g. a changelog) on a given image, etc.
 
 - Bad: don't yet support manta as a storage backend (though the framework
   is there for it).
@@ -174,6 +173,7 @@ A summary of fields (details are provided below):
 ||[requirements.max_platform](#manifest-requirements-max-platform)||Array||No||Yes||Maximum platform requirement for provisioning with this image.||
 ||[users](#manifest-users)||Array||No||Yes||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[billing_tags](#manifest-billing-tags)||Array||No||Yes||A list of tags that can be used by operators for additional billing processing.||
+||[traits](#manifest-traits)||Object||No||Yes||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||Yes||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||No||Yes||A list of inherited directories (other than the defaults for the brand).||
 ||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||Yes||NIC driver used by this VM image.||
@@ -437,6 +437,20 @@ image object needs to be related to the parent image for billing or licensing
 purposes. Example:
 
     "billing_tags": ["oracle", "rhel"]
+
+## Manifest: traits
+
+Optional. An object that defines a collection of properties that is used by
+other APIs to evaluate where should customer VMs be placed. The keys allowed in
+this object are application specific, but only strings, booleans or arrays of
+strings are allowed for their values. Example:
+
+    "traits": {
+        "manta": true,
+        "users": ["ef5d70c0-5281-154a-9f05-fad0ff43181e],
+        "hw": ["richmond-a"],
+        "over-provision-ram": "2.5"
+    }
 
 ## Manifest: generate_passwords
 
@@ -951,6 +965,8 @@ provisioning.
 ||[acl](#manifest-acl)||Array||No||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||No||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
 ||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[billing_tags](#manifest-billing-tags)||Array||No||-||A list of tags that can be used by operators for additional billing processing.||
+||[traits](#manifest-traits)||Object||No||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||-||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||No||-||A list of inherited directories (other than the defaults for the brand).||
 ||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||-||NIC driver used by this VM image.||
@@ -1423,6 +1439,7 @@ updated.
 ||[requirements](#manifest-requirements)||Object||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
 ||[users](#manifest-users)||Array||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[billing_tags](#manifest-billing-tags)||Array||-||A list of tags that can be used by operators for additional billing processing.||
+||[traits](#manifest-traits)||Object||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||-||A list of inherited directories (other than the defaults for the brand).||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||-||A boolean indicating whether to generate passwords for the users in the "users" field.||
 ||[nic_driver](#manifest-nic-driver)||String||-||NIC driver used by this VM image. Required if `type==="zvol"`||

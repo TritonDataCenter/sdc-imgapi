@@ -90,7 +90,8 @@ test('CreateImage', function (t) {
         type: 'zone-dataset',
         public: true,
         requirements: { min_platform: [['7.0', '2012-12-24']] },
-        billing_tags: ['oracle']
+        billing_tags: ['oracle'],
+        traits: { foo: "bar", ssd: true }
     };
 
     var self = this;
