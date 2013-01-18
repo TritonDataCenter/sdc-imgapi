@@ -91,7 +91,9 @@ test('CreateImage', function (t) {
         public: true,
         requirements: { min_platform: [['7.0', '2012-12-24']] },
         billing_tags: ['oracle'],
-        traits: { foo: "bar", ssd: true }
+        traits: { foo: "bar", ssd: true },
+        homepage: 'http://images.com/v1.html',
+        icon: 'http://images.com/v1-icon.png'
     };
 
     var self = this;

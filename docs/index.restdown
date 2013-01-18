@@ -75,8 +75,7 @@ used.
 
 - Bad: The full process for a user creating a custom image
 
-- Bad: A number of manifest fields remain to be added: `tags` for portal usage,
-`homepage` for reference to external info (e.g. a changelog) on a given image, etc.
+- Bad: A number of manifest fields remain to be added: `tags` for portal usage
 
 - Bad: don't yet support manta as a storage backend (though the framework
   is there for it).
@@ -156,6 +155,8 @@ A summary of fields (details are provided below):
 ||[name](#manifest-name)||String||Yes||Yes||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
 ||[version](#manifest-version)||String||Yes||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||Yes||A short description of the image.||
+||[homepage](#manifest-homepage)||URL||No||Yes||Homepage URL where users can find more information about the image.||
+||[icon](#manifest-icon)||URL||No||Yes||URL to a web viewable icon for the image.||
 ||[state](#manifest-state)||String||Yes||No||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
 ||[disabled](#manifest-disabled)||Boolean||Yes||No (\*)||Indicates if this image is available for provisioning.||
 ||[public](#manifest-public)||Boolean||Yes||Yes (\*)||Indicates if this image is publicly available.||
@@ -250,6 +251,18 @@ for an image.
 ## Manifest: description
 
 A short prose description of this image. Maximum 512 characters.
+
+
+## Manifest: homepage
+
+Homepage URL where users can find more information about the image. Maximum 128
+characters.
+
+## Manifest: icon
+
+URL to a web viewable icon for the image. Although not enforced, icons should
+have a maximum recomended size of 256x256 pixels and be in one of the following
+formats: PNG, GIF or JPG. Maximum URL length is 128 characters.
 
 
 ## Manifest: state
@@ -958,6 +971,8 @@ provisioning.
 ||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
 ||[version](#manifest-version)||String||Yes||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||-||A short description of the image.||
+||[homepage](#manifest-homepage)||URL||No||-||Homepage URL where users can find more information about the image.||
+||[icon](#manifest-icon)||URL||No||-||URL to a web viewable icon for the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
@@ -1432,6 +1447,8 @@ updated.
 ||[name](#manifest-name)||String||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
 ||[version](#manifest-version)||String||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||-||A short description of the image.||
+||[homepage](#manifest-homepage)||URL||-||Homepage URL where users can find more information about the image.||
+||[icon](#manifest-icon)||URL||-||URL to a web viewable icon for the image.||
 ||[public](#manifest-public)||Boolean||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
