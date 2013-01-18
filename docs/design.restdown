@@ -317,22 +317,13 @@ Anyway, we'll cross the "multiple files" bridge if/when we come to it.
 # Image manifest fields (12-Sep-2012)
 
 Additional or clarified manifest fields from multiple discussions here
-and there.
+and there. Note: This list is being culled as fields are implemented or
+dropped.
 
-- josh: console_type
-- type="zvol"  (TODO: learn more about the requirement here)
-- homepage: basically want a changelog... just make this a homepage URL
-  and leave changelog details/display/update/pitch up to the owner
-- icon(s): also see Trevor's notes on that below
-- deprecated/obsoleted?
-    - Q: auto-updating of deprecated/obsoleted? I.e. how do we notify operators
-      of deprecated version of an image?
-    - A: Nah. Just don't have these fields. Not worth it. Can be handled out
-      of band.
-- files: limit to 1 explicitly, say it is a array to support adding multiple
-  files (e.g. mounted disks) in the future possibly
-- deprecate files.N.path? Might still need it for 6.5 CNs.
-- tags: requests by Drew for portal usage (IMGAPI-2)
+- josh: console_type.
+  This was whether the image is setup for console to be on serial or vga.
+  Josh: "I think we'll want it eventually, but it's probably something that
+  can wait some more." -- Jan 2013
 
 
 # Multi-DC images and the Portal (18-Jun-2012)
