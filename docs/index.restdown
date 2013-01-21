@@ -539,7 +539,7 @@ This can be done on the command-line via the following in the headnode GZ:
     cd /var/tmp
     joyent-imgadm list  # find the wanted image UUID
     joyent-imgadm get $uuid > manifest
-    joyent-imgadm getfile $uuid > file
+    joyent-imgadm get-file $uuid > file
     sdc-imgadm import -m manifest -f file
 
 The reason there isn't a command to have this DC's IMGAPI import
@@ -906,7 +906,7 @@ Raw curl (from images.joyent.com):
 
 CLI tool (from images.joyent.com):
 
-    $ joyent-imgadm getfile 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    $ joyent-imgadm get-file 01b2c898-945f-11e1-a523-af1afbe22822 -O
     100% [=============================]  time 43.4s  eta 0.0s
     Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
 
@@ -916,7 +916,7 @@ Raw API tool (from an SDC's IMGAPI):
 
 CLI tool (from an SDC's IMGAPI):
 
-    $ sdc-imgadm getfile 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    $ sdc-imgadm get-file 01b2c898-945f-11e1-a523-af1afbe22822 -O
     100% [=============================]  time 43.4s  eta 0.0s
     Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
 
