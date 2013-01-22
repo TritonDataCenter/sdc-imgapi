@@ -8,7 +8,6 @@
 - get storage (local and manta) working:
     - local needs to have a formal separate delegated dataset ... which
       only works for HN. What's the HA plan? We doing DCLS or no?
-- fill in all missing attributes for zvols and add those to images.joyent.com
 - test cloudapi compat
 - Compat with SDC6 cloudapi dataset endpoints.
 - SDC 6.5 provisioner changes for SDC7 headnode: AGENT-534
