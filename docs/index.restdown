@@ -33,7 +33,7 @@ public -- no read auth, no private images. SmartOS' `imgadm` version 2
 image repository by default. SDC's operator portal (a.k.a. adminui) is
 configured by default to list this repository from which to import images.
 Administration of the https://images.joyent.com is via the `joyent-imgadm`
-tool (currently available in <git@git.joyent.com:imgapi-cli.git>).
+tool (currently available in `git@git.joyent.com:imgapi-cli.git`).
 
 There is an IMGAPI in each SDC datacenter that manages images available in
 that datacenter. "IMGAPI" without scoping typically refers to this IMGAPI
