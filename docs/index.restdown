@@ -33,7 +33,7 @@ public -- no read auth, no private images. SmartOS' `imgadm` version 2
 image repository by default. SDC's operator portal (a.k.a. adminui) is
 configured by default to list this repository from which to import images.
 Administration of the https://images.joyent.com is via the `joyent-imgadm`
-tool (currently available in <git@git.joyent.com:imgapi-cli.git>).
+tool (currently available in `git@git.joyent.com:imgapi-cli.git`).
 
 There is an IMGAPI in each SDC datacenter that manages images available in
 that datacenter. "IMGAPI" without scoping typically refers to this IMGAPI
@@ -537,8 +537,8 @@ This can be done on the command-line via the following in the headnode GZ:
     cd /var/tmp
     joyent-imgadm list  # find the wanted image UUID
     joyent-imgadm get $uuid > manifest
-    joyent-imgadm getfile $uuid > file
-    sdc-imgadm import -m manifest -f file
+    joyent-imgadm get-file -O $uuid     # creates $uuid-file.$ext
+    sdc-imgadm import -m manifest -f $uuid-file*
 
 The reason there isn't a command to have this DC's IMGAPI import
 directory from <https://images.joyent.com> is that the IMGAPI doesn't
