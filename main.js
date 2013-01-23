@@ -160,7 +160,11 @@ function handleArgv() {
             logSrc = true;
     }
     var serializers = objCopy(restify.bunyan.serializers);
-    serializers.image = function (image) { return image.serialize(); };
+    serializers.image = function (image) {
+        // 'config.mode' isn't know yet, but that doesn't matter for internal
+        // logging.
+        return image.serialize('dc');
+    };
     log = bunyan.createLogger({  // `log` is intentionally global.
         name: NAME,
         level: logLevel,

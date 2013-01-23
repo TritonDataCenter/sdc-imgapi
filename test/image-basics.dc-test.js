@@ -73,6 +73,7 @@ test('GetImage existing', function (t) {
  * - activates it
  * - ensure others (e.g. vader) can see it
  * - update it
+ * - adds an icon
  * ...
  * - clean up: delete it
  */
@@ -92,17 +93,17 @@ test('CreateImage', function (t) {
         requirements: { min_platform: [['7.0', '2012-12-24']] },
         billing_tags: ['oracle'],
         traits: { foo: "bar", ssd: true },
-        homepage: 'http://images.com/v1.html',
-        icon: 'http://images.com/v1-icon.png'
+        homepage: 'http://images.com/v1.html'
     };
 
     var self = this;
     var filePath = __dirname + '/what_a_piece_of_junk.zfs.bz2';
+    var iconPath = __dirname + '/icon.jpg';
     var fileCompression = 'bzip2';
     var uuid;
-    var size;
-    var sha1;
-    var md5;
+    var size, iconSize;
+    var sha1, iconSha1;
+    var md5, iconMd5;
     var aImage;
 
     function create(next) {
@@ -209,6 +210,46 @@ test('CreateImage', function (t) {
             next();
         });
     }
+    function getIconSize(next) {
+        fs.stat(iconPath, function (err, stats) {
+            if (err)
+                return next(err);
+            iconSize = stats.size;
+            next();
+        });
+    }
+    function getIconSha1(next) {
+        var hash = crypto.createHash('sha1');
+        var s = fs.createReadStream(iconPath);
+        s.on('data', function (d) { hash.update(d); });
+        s.on('end', function () {
+            iconSha1 = hash.digest('hex');
+            // console.log(iconSha1);
+            // process.exit(0);
+            next();
+        });
+    }
+    function getIconMd5(next) {
+        var hash = crypto.createHash('md5');
+        var s = fs.createReadStream(iconPath);
+        s.on('data', function (d) { hash.update(d); });
+        s.on('end', function () {
+            iconMd5 = hash.digest('base64');
+            next();
+        });
+    }
+    function addIcon(next) {
+        var fopts = {
+            uuid: uuid, file: iconPath, contentType: 'image/jpeg'
+        };
+        self.client.addImageIcon(fopts, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.ok(image.icon);
+            aImage = image;
+            next(err);
+        });
+    }
     function getImage(next) {
         self.client.getImage(uuid, vader, function (err, image, res) {
             t.ifError(err, err);
@@ -237,6 +278,27 @@ test('CreateImage', function (t) {
             });
         });
     }
+    function getIcon(next) {
+        var tmpFilePath = format('/var/tmp/imgapi-test-icon-%s.jpg',
+            process.pid);
+        self.client.getImageIcon(uuid, tmpFilePath, vader, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            console.log('wants md5 ' + iconMd5);
+            console.log('wants sha1 ' + iconSha1);
+            t.equal(iconMd5, res.headers['content-md5'], 'md5');
+            var hash = crypto.createHash('sha1');
+            var s = fs.createReadStream(tmpFilePath);
+            s.on('data', function (d) { hash.update(d); });
+            s.on('end', function () {
+                var actual_sha1 = hash.digest('hex');
+                t.equal(iconSha1, actual_sha1, 'sha1 matches icon upload');
+                next();
+            });
+        });
+    }
     function deleteImage(next) {
         self.client.deleteImage(uuid, luke, function (err, res) {
             t.ifError(err, err);
@@ -259,8 +321,15 @@ test('CreateImage', function (t) {
             disable,
             enable,
             update,
+            addAcl,
+            removeAcl,
+            getIconSize,
+            getIconSha1,
+            getIconMd5,
+            addIcon,
             getImage,
             getFile,
+            getIcon,
             deleteImage
         ],
         function (err) {

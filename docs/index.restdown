@@ -156,7 +156,7 @@ A summary of fields (details are provided below):
 ||[version](#manifest-version)||String||Yes||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||Yes||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||No||Yes||Homepage URL where users can find more information about the image.||
-||[icon](#manifest-icon)||URL||No||Yes||URL to a web viewable icon for the image.||
+||[icon](#manifest-icon)||Boolean||No||Yes||Indicates if the image has an icon file.||
 ||[state](#manifest-state)||String||Yes||No||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
 ||[disabled](#manifest-disabled)||Boolean||Yes||No (\*)||Indicates if this image is available for provisioning.||
 ||[public](#manifest-public)||Boolean||Yes||Yes (\*)||Indicates if this image is publicly available.||
@@ -260,10 +260,8 @@ characters.
 
 ## Manifest: icon
 
-URL to a web viewable icon for the image. Although not enforced, icons should
-have a maximum recomended size of 256x256 pixels and be in one of the following
-formats: PNG, GIF or JPG. Maximum URL length is 128 characters.
-
+Indicates if the image has an icon file. If this field is not present then the
+image does not have an icon.
 
 ## Manifest: state
 
@@ -906,7 +904,7 @@ Raw curl (from images.joyent.com):
 
 CLI tool (from images.joyent.com):
 
-    $ joyent-imgadm getfile 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    $ joyent-imgadm get-file 01b2c898-945f-11e1-a523-af1afbe22822 -O
     100% [=============================]  time 43.4s  eta 0.0s
     Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
 
@@ -916,10 +914,49 @@ Raw API tool (from an SDC's IMGAPI):
 
 CLI tool (from an SDC's IMGAPI):
 
-    $ sdc-imgadm getfile 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    $ sdc-imgadm get-file 01b2c898-945f-11e1-a523-af1afbe22822 -O
     100% [=============================]  time 43.4s  eta 0.0s
     Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
 
+
+
+## GetImageIcon (GET /images/:uuid/icon)
+
+Get the image icon file.
+
+### Inputs
+
+None.
+
+### Returns
+
+The image icon file content.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw curl:
+
+    $ curl -kIsS https://localhost/images/01b2c898-945f-11e1-a523-af1afbe22822/icon -o icon.png
+
+CLI tool:
+
+    $ joyent-imgadm get-icon 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    100% [=============================]  time 0.4s  eta 0.0s
+    Saved "01b2c898-945f-11e1-a523-af1afbe22822.png".
+
+Raw API tool:
+
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822/icon -o icon.png
+
+CLI tool:
+
+    $ sdc-imgadm get-icon 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    100% [=============================]  time 0.4s  eta 0.0s
+    Saved "01b2c898-945f-11e1-a523-af1afbe22822.png".
 
 
 ## DeleteImage (DELETE /images/:uuid)
@@ -972,7 +1009,6 @@ provisioning.
 ||[version](#manifest-version)||String||Yes||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||-||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||No||-||Homepage URL where users can find more information about the image.||
-||[icon](#manifest-icon)||URL||No||-||URL to a web viewable icon for the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
@@ -1115,6 +1151,79 @@ CLI tool:
     $ sdc-imgadm add-file 25ab9ddf-96e8-4157-899d-1dc8be7b9810 -f file.bz2
     100% [=============================]  time 5.6s  eta 0.0s
     Added file "file.bz2" to image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+
+
+## AddImageIcon (PUT /images/:uuid/icon)
+
+Add the image icon. If the image already has an icon file, it will be overwritten.
+Icons must have a maximum file size of 128Kb pixels and be in one of the following
+formats: PNG, GIF or JPG.
+
+### Inputs
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||account||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||(file content in the body)||binary||Yes||-||The icon file content.||
+
+### HTTP Request Headers
+
+||**Header Name**||**Required?**||**Notes**||
+||Content-Type||Yes||Content type of the icon file. One of 'image/jpeg', 'image/png' or 'image/gif'.||
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool (against an SDC's IMGAPI). This example is using curl's
+`-T/--upload-file <file>` option, which results in a PUT.
+
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf/icon \
+        -H 'content-type: image/png'
+        -T icon.png
+    HTTP/1.1 100 Continue
+
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 319
+    Date: Tue, 08 Jan 2013 20:17:46 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: 773c5b10-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 106
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "b5c5c13d-ccc0-5a43-9a46-245ff960cd81",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "unactivated",
+      "disabled": false,
+      "public": false,
+      "type": "zone-dataset",
+      "os": "smartos",
+      "icon": true,
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 46271847,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": []
+    }
+
+CLI tool:
+
+    $ sdc-imgadm add-icon 25ab9ddf-96e8-4157-899d-1dc8be7b9810 -f icon.png
+    100% [=============================]  time 0.4s  eta 0.0s
+    Added file "icon.png" to image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
 
 
 ## ActivateImage (POST /images/:uuid?action=activate)
@@ -1448,7 +1557,6 @@ updated.
 ||[version](#manifest-version)||String||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||-||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||-||Homepage URL where users can find more information about the image.||
-||[icon](#manifest-icon)||URL||-||URL to a web viewable icon for the image.||
 ||[public](#manifest-public)||Boolean||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
