@@ -137,6 +137,22 @@ deploy-images.joyent.com:
 		&& svcadm restart imgapi \
 		&& tail -f `svcs -L imgapi` | bunyan -o short'
 
+.PHONY: deploy-updates.joyent.us
+deploy-updates.joyent.us:
+	@echo '# Deploy to updates.joyent.us. This is a *production* server.'
+	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
+	@read
+	ssh root@updates.joyent.us ' \
+		set -x \
+		&& cd /root/services \
+		&& cp -PR imgapi imgapi.`date "+%Y%m%dT%H%M%SZ"` \
+		&& cd /root/services/imgapi \
+		&& git fetch origin \
+		&& git pull --rebase origin master \
+		&& PATH=/opt/local/gnu/bin:$$PATH make clean all \
+		&& svcadm restart imgapi \
+		&& tail -f `svcs -L imgapi` | bunyan -o short'
+
 .PHONY: devrun
 devrun:
 	node-dev main.js -f tools/imgapi.config.local-signature-auth.json | bunyan -o short
