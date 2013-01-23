@@ -39,7 +39,6 @@
 - smartos-live/issues for imgadm and dsadm
 - error restdown table generation (TOOLS-204)
 - error response audit log body fix (restify#225)
-- npm shrinkwrap
 - convert dsapi test suite to a "bwcompat" test suite for
 - update imgadm man page
 - manifest "files" field: only allow one (because the tool chain only ever
