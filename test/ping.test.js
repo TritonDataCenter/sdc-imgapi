@@ -50,7 +50,7 @@ test('ping', function (t) {
         t.ok(pong.pid, 'pong.pid');
         t.ok(pong.version, 'pong.version');
         t.end();
-    })
+    });
 });
 
 test('ping error', function (t) {
@@ -64,5 +64,5 @@ test('ping error', function (t) {
         t.equal(res.headers.server.slice(0, 6), 'IMGAPI',
             'IMGAPI server header');
         t.end();
-    })
+    });
 });

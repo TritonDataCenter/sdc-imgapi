@@ -16,7 +16,8 @@
     "generic-pool": "1.0.10",
     "assert-plus": "0.1.2",
     "mkdirp": "0.3.4",
-    "rimraf": "2.0.2"
+    "rimraf": "2.0.2",
+    "manta": "git+ssh://git@github.com:joyent/node-manta.git#master"
   },
   "optionalDependencies": {
     "http-signature": "0.9.9",

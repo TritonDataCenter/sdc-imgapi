@@ -5,7 +5,7 @@
  */
 
 var format = require('util').format;
-var exec = require('child_process').exec
+var exec = require('child_process').exec;
 var crypto = require('crypto');
 var fs = require('fs');
 var https = require('https');
@@ -23,7 +23,7 @@ var tap4nodeunit = require('./tap4nodeunit.js');
 var after = tap4nodeunit.after;
 var before = tap4nodeunit.before;
 var test = tap4nodeunit.test;
-function skiptest() {}; // quick hack to comment out a test
+function skiptest() {} // quick hack to comment out a test
 
 
 
@@ -65,8 +65,8 @@ test('AdminImportImage should fail if called for a user', function (t) {
     // Use a raw restify client. The IMGAPI client doesn't allow this
     // erroneous call.
     var client = restify.createJsonClient({url: process.env.IMGAPI_URL});
-    var path = '/images/2e8a7f4d-4a38-0844-a489-3cd1ae25a5c8'
-        + '?action=import&account=8d89dfe9-5cc7-6648-8ff7-50fa8bba1352';
+    var path = '/images/2e8a7f4d-4a38-0844-a489-3cd1ae25a5c8' +
+        '?action=import&account=8d89dfe9-5cc7-6648-8ff7-50fa8bba1352';
     var data = {};
     client.post(path, data, function (err, req, res, body) {
         t.ok(err, 'got an error');
@@ -569,7 +569,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
             t.ok(image);
             manifest = image;
             next();
-        })
+        });
     }
     function getFileFromImagesJo(next) {
         imagesClient.getImageFile(uuid, filePath, function (err, res) {
@@ -718,7 +718,7 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
             t.ok(dataset);
             manifest = dataset;
             next();
-        })
+        });
     }
     function getFileFromDatasetsJo(next) {
         var url = manifest.files[0].url;

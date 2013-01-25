@@ -101,7 +101,8 @@ function loadConfigSync(configPath) {
         var manta = config.storage.manta;
         assert.string(manta.url, 'config.storage.manta.url');
         assert.string(manta.user, 'config.storage.manta.user');
-        assert.string(manta.password, 'config.storage.manta.password');
+        assert.string(manta.key, 'config.storage.manta.key');
+        assert.string(manta.keyId, 'config.storage.manta.keyId');
     }
     if (config.storage.dcls) {
         var dcls = config.storage.dcls;
