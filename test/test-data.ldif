@@ -30,7 +30,7 @@ dn: uuid=86055c40-2547-11e2-8a6b-4bb37edc84ba, ou=users, o=smartdc
 changetype: add
 login: imgapitestvader
 uuid: 86055c40-2547-11e2-8a6b-4bb37edc84ba
-userpassword: 123123
+userpassword: imgadmisawesome123
 email: nobody+vader@joyent.com
 cn: Darth
 sn: IMGAPI Vader
@@ -40,7 +40,7 @@ dn: uuid=91ba0e64-2547-11e2-a972-df579e5fddb3, ou=users, o=smartdc
 changetype: add
 login: imgapitestluke
 uuid: 91ba0e64-2547-11e2-a972-df579e5fddb3
-userpassword: 123123
+userpassword: imgadmisawesome123
 email: nobody+luke@joyent.com
 cn: Luke
 sn: IMGAPI Skywalker
@@ -50,7 +50,7 @@ dn: uuid=a0b6b534-2547-11e2-b758-63a2afd747d1, ou=users, o=smartdc
 changetype: add
 login: imgapitestemperor
 uuid: a0b6b534-2547-11e2-b758-63a2afd747d1
-userpassword: 123123
+userpassword: imgadmisawesome123
 email: nobody+emperor@joyent.com
 cn: Emperor
 sn: IMGAPI Palpatine
@@ -60,7 +60,7 @@ dn: uuid=ba28f844-8cb4-f141-882d-46d6251e6a9f, ou=users, o=smartdc
 changetype: add
 login: imgapitestsdc
 uuid: ba28f844-8cb4-f141-882d-46d6251e6a9f
-userpassword: 123123
+userpassword: imgadmisawesome123
 email: nobody+sdc@joyent.com
 cn: sdc
 sn: IMGAPI sdc

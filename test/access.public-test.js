@@ -60,11 +60,22 @@ test('ping: auth', function (t) {
     })
 });
 
+test('ping: no auth', function (t) {
+    this.authClient.ping(function (err, pong) {
+        t.ifError(err, 'ping err: ', err);
+        t.ok(pong, 'pong');
+        t.equal(pong.ping, 'pong', 'expected pong');
+        t.ok(pong.version, 'pong.version');
+        // No 'pid' given on unauthed '/ping' to 'public' mode IMGAPI server.
+        t.ok(pong.pid, undefined);
+        t.end();
+    })
+});
+
 
 test('401 on misc endpoints without auth', function (t) {
     var self = this;
     var endpoints = [
-        'ping',
         //'adminUpdateState',
         'adminGetState'
     ];
@@ -111,6 +122,7 @@ test('401 on modifying endpoints without auth', function (t) {
                 next();
             }
             args.push(theCallback);
+          console.log("XXX name", name, self.noAuthClient[name])
             self.noAuthClient[name].apply(self.noAuthClient, args);
         },
         function (err) {
