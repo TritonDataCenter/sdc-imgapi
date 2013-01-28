@@ -299,6 +299,13 @@ test('CreateImage', function (t) {
             });
         });
     }
+    function deleteIcon(next) {
+        self.client.deleteImageIcon(uuid, vader, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(!(image.icon), 'no icon');
+            next();
+        });
+    }
     function deleteImage(next) {
         self.client.deleteImage(uuid, luke, function (err, res) {
             t.ifError(err, err);
@@ -330,6 +337,7 @@ test('CreateImage', function (t) {
             getImage,
             getFile,
             getIcon,
+            deleteIcon,
             deleteImage
         ],
         function (err) {

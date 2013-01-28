@@ -99,6 +99,9 @@ used.
 ||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||Enable the image.||
 ||[AddImageAcl](#AddImageAcl)||POST /images/:uuid/acl?action=add||Add account UUIDs to the image ACL.||
 ||[RemoveImageAcl](#RemoveImageAcl)||POST /images/:uuid/acl?action=remove||Remove account UUIDs from the image ACL.||
+||[AddImageIcon](#AddImageIcon)||POST /images/:uuid/icon||Add the image icon.||
+||[GetImageIcon](#GetImageIcon)||GET /images/:uuid/icon||Get the image icon file.||
+||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
 
@@ -922,7 +925,6 @@ CLI tool (from an SDC's IMGAPI):
     Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
 
 
-
 ## GetImageIcon (GET /images/:uuid/icon)
 
 Get the image icon file.
@@ -955,11 +957,33 @@ Raw API tool:
 
     $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822/icon -o icon.png
 
+
+## DeleteImageIcon (Delete /images/:uuid/icon)
+
+Delete the image icon file.
+
+### Inputs
+
+None.
+
+### Returns
+
+The image icon file content.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
 CLI tool:
 
-    $ sdc-imgadm get-icon 01b2c898-945f-11e1-a523-af1afbe22822 -O
-    100% [=============================]  time 0.4s  eta 0.0s
-    Saved "01b2c898-945f-11e1-a523-af1afbe22822.png".
+    $ joyent-imgadm delete-icon 01b2c898-945f-11e1-a523-af1afbe22822
+    Delete icon from image 01b2c898-945f-11e1-a523-af1afbe22822
+
+Raw API tool:
+
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822/icon -X DELETE
 
 
 ## DeleteImage (DELETE /images/:uuid)
