@@ -1133,6 +1133,7 @@ for provisioning, `state == "active"`.
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
 ||account||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||storage||String||No||-||The type of storage preferred for this image file. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
 ||[compression](#manifest-files)||UUID||Yes||-||The type of compression used for the file content. One of 'none', 'gzip' or 'bzip2'.||
 ||(file content in the body)||binary||Yes||-||The image file content.||
 
@@ -1200,6 +1201,7 @@ formats: PNG, GIF or JPG.
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
 ||account||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||storage||String||No||-||The type of storage preferred for the image icon. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
 ||(file content in the body)||binary||Yes||-||The icon file content.||
 
 ### HTTP Request Headers
