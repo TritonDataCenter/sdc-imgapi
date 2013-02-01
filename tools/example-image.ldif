@@ -1,5 +1,6 @@
 dn: uuid=8acc2271-ab7a-3843-9bcb-776947d7fac8, ou=images, o=smartdc
 changetype: add
+v: 2
 uuid: 8acc2271-ab7a-3843-9bcb-776947d7fac8
 name: foo
 published_at: 2012-05-02T15:14:45.805Z

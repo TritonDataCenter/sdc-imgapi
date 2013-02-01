@@ -100,8 +100,12 @@ test('AdminImportImage should error on UUID mismatch', function (t) {
 test('AdminImportImage should fail if UUID already exists', function (t) {
     var data = {
         uuid: 'c58161c0-2547-11e2-a75e-9fdca1940570', // from test-data.ldif
-        published_at: (new Date()).toISOString()
-        //...
+        published_at: (new Date()).toISOString(),
+        name: 'base',
+        version: '1.8.1',
+        type: 'zone-dataset',
+        os: 'smartos',
+        owner: 'ba28f844-8cb4-f141-882d-46d6251e6a9f'
     };
     this.client.adminImportImage(data, function (err, image, res) {
         t.ok(err, 'got an error: ' + err);
