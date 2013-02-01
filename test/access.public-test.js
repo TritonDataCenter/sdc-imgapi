@@ -122,7 +122,6 @@ test('401 on modifying endpoints without auth', function (t) {
                 next();
             }
             args.push(theCallback);
-          console.log("XXX name", name, self.noAuthClient[name])
             self.noAuthClient[name].apply(self.noAuthClient, args);
         },
         function (err) {
