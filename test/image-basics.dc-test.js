@@ -84,6 +84,7 @@ var sdc = 'ba28f844-8cb4-f141-882d-46d6251e6a9f';
 var what_a_piece_of_junk;
 test('CreateImage', function (t) {
     var data = {
+        v: 2,
         name: 'what-a-piece-of-junk',
         version: '1.0.0',
         description: 'Describing the Millenium Falcon.',
