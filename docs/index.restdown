@@ -115,7 +115,7 @@ The full list of errors returned by the IMGAPI are described in
 TODO: generate a nice table here.
 
 
-# Image manifest data
+# Image manifests
 
 An image manifest is all the data about an image except the image file itself.
 Generally this is represented as a JSON object. For example:
@@ -153,6 +153,7 @@ Generally this is represented as a JSON object. For example:
 A summary of fields (details are provided below):
 
 ||**Field**||**Type**||**Always Present?**||**Mutable?**||**Notes**||
+||[v](#manifest-v)||Integer||Yes||No||Version of the manifest format/spec. The current value is **2**.||
 ||[uuid](#manifest-uuid)||UUID||Yes||No||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
 ||[owner](#manifest-owner)||UUID||Yes||No||The UUID of the owner of this image (the account that created it).||
 ||[name](#manifest-name)||String||Yes||Yes||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
@@ -169,12 +170,12 @@ A summary of fields (details are provided below):
 ||[files](#manifest-files)||Array||Yes (if activated)||No||An array with a single object describing the image file.||
 ||[acl](#manifest-acl)||Array||No||Yes||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||No||Yes||A set of named requirements for provisioning a VM with this image||
-||[requirements.networks](#manifest-requirements-networks)||Array||No||Yes||Defines the minimum number of network interfaces required by this image.||
-||[requirements.ssh_key](#manifest-requirements-ssh-key)||Boolean||No||Yes||Indicates that provisioning with this image requires that an SSH public key be provided.||
-||[requirements.min_ram](#manifest-requirements-min-ram)||Integer||No||Yes||Minimum RAM (in MiB) required to provision this image.||
-||[requirements.max_ram](#manifest-requirements-max-ram)||Integer||No||Yes||Maximum RAM (in MiB) this image may be provisioned with.||
-||[requirements.min_platform](#manifest-requirements-min-platform)||Array||No||Yes||Minimum platform requirement for provisioning with this image.||
-||[requirements.max_platform](#manifest-requirements-max-platform)||Array||No||Yes||Maximum platform requirement for provisioning with this image.||
+||[requirements.networks](#manifest-requirementsnetworks)||Array||No||Yes||Defines the minimum number of network interfaces required by this image.||
+||[requirements.ssh_key](#manifest-requirementsssh_key)||Boolean||No||Yes||Indicates that provisioning with this image requires that an SSH public key be provided.||
+||[requirements.min_ram](#manifest-requirementsmin_ram)||Integer||No||Yes||Minimum RAM (in MiB) required to provision this image.||
+||[requirements.max_ram](#manifest-requirementsmax_ram)||Integer||No||Yes||Maximum RAM (in MiB) this image may be provisioned with.||
+||[requirements.min_platform](#manifest-requirementsmin_platform)||Array||No||Yes||Minimum platform requirement for provisioning with this image.||
+||[requirements.max_platform](#manifest-requirementsmax_platform)||Array||No||Yes||Maximum platform requirement for provisioning with this image.||
 ||[users](#manifest-users)||Array||No||Yes||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[billing_tags](#manifest-billing-tags)||Array||No||Yes||A list of tags that can be used by operators for additional billing processing.||
 ||[traits](#manifest-traits)||Object||No||Yes||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
@@ -192,6 +193,15 @@ endpoints. `disabled` can be modified via the [DisableImage](#DisableImage)
 and [EnableImage](#EnableImage) endpoints. `public` cannot be set false for
 an image on the "public mode" IMGAPI, e.g. <https://images.joyent.com>.
 
+
+## Manifest: v
+
+A single positive integer indicating the spec version of the image
+manifest. The current version is **2**. Version history:
+
+||**v**||**Date**||**Notes**||
+||undefined||-||All dataset manifests (commonly ".dsmanifest" files) before SDC 7 do not have a "v" field. Versioning of the manifest via `v` was added in SDC 7. This is commonly referred to as version "1".||
+||2||2013-Jan-31||Adds many fields. Deprecates `urn`. Removes already deprecated fields (e.g. `platform_type`). See the "imgmanifest" library for full details.||
 
 
 ## Manifest: uuid
