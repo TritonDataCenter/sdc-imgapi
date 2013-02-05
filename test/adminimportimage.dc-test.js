@@ -64,7 +64,10 @@ before(function (next) {
 test('AdminImportImage should fail if called for a user', function (t) {
     // Use a raw restify client. The IMGAPI client doesn't allow this
     // erroneous call.
-    var client = restify.createJsonClient({url: process.env.IMGAPI_URL});
+    var client = restify.createJsonClient({
+        url: process.env.IMGAPI_URL,
+        agent: false
+    });
     var path = '/images/2e8a7f4d-4a38-0844-a489-3cd1ae25a5c8' +
         '?action=import&account=8d89dfe9-5cc7-6648-8ff7-50fa8bba1352';
     var data = {};
@@ -80,7 +83,10 @@ test('AdminImportImage should fail if called for a user', function (t) {
 test('AdminImportImage should error on UUID mismatch', function (t) {
     // Use a raw restify client. The IMGAPI client doesn't allow this
     // erroneous call.
-    var client = restify.createJsonClient({url: process.env.IMGAPI_URL});
+    var client = restify.createJsonClient({
+        url: process.env.IMGAPI_URL,
+        agent: false
+    });
     var uuid = '43302fc6-9595-e94b-9166-039b0acda443';
     var data = {
         uuid: '83379eba-0ab1-4541-b82a-6d1d4701ec6d'
