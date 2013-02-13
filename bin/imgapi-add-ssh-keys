@@ -19,7 +19,7 @@ var ADMIN = 'admin';
 
 
 function addPublicKey(cb) {
-    var key = '/root/.ssh/id_rsa.pub';
+    var key = '/opt/smartdc/imgapi/etc/id_rsa.pub';
 
     fs.readFile(key, 'ascii', function (err, contents) {
         if (err) {
