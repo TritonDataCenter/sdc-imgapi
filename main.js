@@ -125,6 +125,11 @@ function loadConfigSync(configPath) {
     } else if (config.database.type === 'local') {
         assert.string(config.database.dir, 'config.database.dir');
     }
+    if (config.wfapi) {
+        assert.object(config.wfapi, 'config.wfapi');
+        assert.string(config.wfapi.url, 'config.wfapi.url');
+        assert.arrayOfString(config.wfapi.workflows, 'config.wfapi.workflows');
+    }
 
     return config;
 }
