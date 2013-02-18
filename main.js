@@ -203,6 +203,9 @@ function main() {
     theConfig = loadConfigSync(opts.file);
     if (!opts.debug && theConfig.logLevel) {
         log.level(theConfig.logLevel);
+        if (log.level() <= bunyan.TRACE) {
+          log.src = true;
+        }
     }
 
     // Log config (but don't put passwords in the log file).
@@ -218,7 +221,7 @@ function main() {
         setupSignalHandlers
     ], function (err) {
         if (err) {
-            log.error(err);
+            log.error(err, 'error starting up');
             process.exit(2);
         }
         log.info('startup complete');
