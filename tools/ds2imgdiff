@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+#
+# Copyright (c) 2013, Joyent, Inc. All rights reserved.
+#
+
+"""
+Show a diff of datasets.joyent.com images vs. images.joyent.com images.
+
+Usage:
+    ds2imgdiff [<options>]
+
+Options:
+    -h, --help          Print this help and exit.
+"""
+
+import os
+import sys
+import urllib2
+from pprint import pprint
+import difflib
+import json
+
+
+class Error(Exception):
+    pass
+
+
+#---- internal support stuff
+
+def _getUrl(url):
+    f = urllib2.urlopen(url)
+    try:
+        content = f.read()
+    finally:
+        f.close()
+    return content
+
+def _getJsonUrl(url):
+    content = _getUrl(url)
+    return json.loads(content)
+
+def upgrade_image_str(img_str):
+    from subprocess import Popen, PIPE
+    cmd = '''node -e 'var up = require("imgmanifest").upgradeManifest;
+        var m = "";
+        process.stdin.resume();
+        process.stdin.on("data", function (d) { m += d });
+        process.stdin.on("end", function () {
+            var ds = JSON.parse(m);
+            var img = up(ds);
+            process.stdout.write(JSON.stringify(img, null, 2));
+        });'
+        '''
+    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,
+        close_fds=True)
+    p.stdin.write(img_str)
+    p.stdin.close()
+    code = p.wait()
+    if code != 0:
+        raise Error('error upgrading dataset manifest: exitted=%s, stderr=%r'
+            % (code, p.stderr.read()))
+    upgraded_img_str = p.stdout.read()
+    return upgraded_img_str
+
+
+
+#---- main functionality
+
+def ds2imgdiff():
+    datasets = _getJsonUrl('https://datasets.joyent.com/datasets')
+    images = _getJsonUrl('https://images.joyent.com/images')
+    # Key by uuid
+    datasets = dict((d['uuid'], d) for d in datasets)
+    images = dict((i['uuid'], i) for i in images)
+
+    # Find all the diffs in UUID order.
+    ds_uuids = set(datasets.keys())
+    img_uuids = set(images.keys())
+    all_uuids = ds_uuids.union(img_uuids)
+    #pprint(uuids)
+
+    is_diff = False
+    for uuid in sorted(all_uuids):
+        #print "--", uuid
+        if uuid in ds_uuids and uuid not in img_uuids:
+            is_diff = True
+            print "Only in datasets.joyent.com: image %s (%s %s)" % (
+                uuid, datasets[uuid]["name"], datasets[uuid]["version"])
+        elif uuid not in ds_uuids and uuid in img_uuids:
+            is_diff = True
+            print "Only in images.joyent.com: image %s (%s %s)" % (
+                uuid, images[uuid]["name"], images[uuid]["version"])
+        else:
+            #pass
+            #print "--", uuid
+            d_str = json.dumps(datasets[uuid], indent=2, sort_keys=True)
+            i_str = json.dumps(images[uuid], indent=2, sort_keys=True)
+            upgraded_d_str = upgrade_image_str(d_str)
+
+            # Normalize the upgraded_d_str: sorted keys for diffing, some
+            # default field values added by IMGAPI.
+            o = json.loads(upgraded_d_str)
+            if not o.has_key('acl'): o['acl'] = []
+            if not o.has_key('disabled'): o['disabled'] = False
+            if not o.has_key('state'): o['state'] = 'active'
+            upgraded_d_str = json.dumps(o, indent=2, sort_keys=True)
+
+            diff = list(difflib.unified_diff(
+                upgraded_d_str.splitlines(True), i_str.splitlines(True),
+                'https://datasets.joyent.com/datasets/' + uuid,
+                'https://images.joyent.com/images/' + uuid))
+            #pprint(diff)
+            diff_str = ''.join(diff)
+            if diff_str:
+                is_diff = True
+                sys.stdout.write(diff_str)
+    if is_diff:
+        return 1
+    else:
+        return 0
+
+
+#---- mainline
+
+def main(argv):
+    if '-h' in argv or '--help' in argv:
+        sys.stdout.write(__doc__)
+        return
+    ds2imgdiff()
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))

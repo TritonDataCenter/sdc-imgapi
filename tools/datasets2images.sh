@@ -53,25 +53,48 @@ function push2images {
         local restricted_to_uuid=\$(\$JSON restricted_to_uuid < \$manifest)
         local type_=\$(\$JSON type < \$manifest)
         if [[ "\$type_" == "vmimage" ]]; then
-            echo "Skipping import of image \$uuid: vmimage type is invalid."
+#            echo "Skipping import of image \$uuid: vmimage type is invalid."
             continue
         elif [[ -n "\$restricted_to_uuid" ]]; then
-            echo "Skipping import of image \$uuid: private."
+#            echo "Skipping import of image \$uuid: private."
             continue
         fi
         if [[ -z "\$(echo "\$have_uuids" | grep \$uuid)" ]]; then
             local file=\$(ls /shared/dsapi/assets/\$uuid/*)
+            local api_manifest=/var/tmp/\$uuid.dsmanifest
+            curl -sS https://datasets.joyent.com/datasets/\$uuid > \$api_manifest
             echo "Importing image \$uuid \$name-\$version into IMGAPI."
-            echo "  manifest: \$manifest"
+            echo "  manifest: \$api_manifest"
             echo "  file:     \$file"
             [[ -f "\$file" ]] || fatal "Image \$uuid file '\$file' not found."
-            \$JOYENT_IMGADM import -P -m "\$manifest" -f "\$file"
-        else
-            echo "Skipping import of image \$uuid: already in IMGAPI."
+            \$JOYENT_IMGADM import -q -m "\$api_manifest" -f "\$file"
+#        else
+#            echo "Skipping import of image \$uuid: already in IMGAPI."
         fi
     done
 }
 
+# Delete images from images.jo that no longer exist at datasets.jo.
+function delimages {
+    local ds_uuids=\$(ls /shared/dsapi/manifests/*.dsmanifest | cut -d/ -f5 | cut -d. -f1)
+    local img_manifests=\$(\$JOYENT_IMGADM list -a -j)
+
+    local num_manifests=\$(echo "\$img_manifests" | \$JSON length)
+    local index=0
+    while [[ \$index -lt \$num_manifests ]]; do
+        local manifest=\$(echo "\$img_manifests" | \$JSON \$index)
+        local uuid=\$(echo "\$manifest" | \$JSON uuid)
+        if [[ -z "\$(echo "\$ds_uuids" | grep \$uuid)" ]]; then
+            local name=\$(echo "\$manifest" | \$JSON name)
+            local version=\$(echo "\$manifest" | \$JSON version)
+            echo "Delete image \$uuid (\$name \$version): not in DSAPI."
+            \$JOYENT_IMGADM delete \$uuid
+        fi
+        index=\$((\$index + 1))
+    done
+}
+
 push2images
+delimages
 
 SCRIPT
