@@ -61,8 +61,7 @@ test('ping error', function (t) {
         t.ok(err.body.message, 'res body has a message');
         t.notOk(pong, 'no pong');
         t.equal(res.statusCode, 422, '422 statusCode');
-        t.equal(res.headers.server.slice(0, 6), 'IMGAPI',
-            'IMGAPI server header');
+        t.ok(res.headers.server, 'Server header');
         t.end();
     });
 });

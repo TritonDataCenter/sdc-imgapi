@@ -84,7 +84,7 @@ test-kvm7: | $(NODEUNIT)
 	./tools/rsync-to-kvm7
 	./tools/runtests-on-kvm7
 test-images.joyent.com: | $(NODEUNIT)
-	./test/runtests -p
+	./test/runtests -p -r default
 
 .PHONY: release
 release: all
