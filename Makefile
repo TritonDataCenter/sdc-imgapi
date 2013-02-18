@@ -25,6 +25,8 @@ ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_VERSION=v0.8.18
 	NODE_PREBUILT_TAG=zone
 endif
+IMAGES_JOYENT_COM_NODE=/root/opt/node-0.8.20
+UPDATES_JOYENT_COM_NODE=/root/opt/node-0.8.20
 
 
 include ./tools/mk/Makefile.defs
@@ -57,7 +59,7 @@ images.joyent.com-node-hack:
 	if [[ -f "$(HOME)/THIS-IS-IMAGES.JOYENT.COM.txt" ]]; then \
 		if [[ ! -d "$(TOP)/build/node" ]]; then \
 			mkdir -p $(TOP)/build; \
-			(cd $(TOP)/build && ln -s $(HOME)/opt/node-0.8.14 node); \
+			(cd $(TOP)/build && ln -s $(IMAGES_JOYENT_COM_NODE) node); \
 			touch $(NODE_EXEC); \
 			touch $(NPM_EXEC); \
 		fi; \
@@ -67,7 +69,7 @@ updates.joyent.com-node-hack:
 	if [[ -f "$(HOME)/THIS-IS-UPDATES.JOYENT.COM.txt" ]]; then \
 		if [[ ! -d "$(TOP)/build/node" ]]; then \
 			mkdir -p $(TOP)/build; \
-			(cd $(TOP)/build && ln -s /opt/local node); \
+			(cd $(TOP)/build && ln -s $(UPDATES_JOYENT_COM_NODE) node); \
 			touch $(NODE_EXEC); \
 			touch $(NPM_EXEC); \
 		fi; \
@@ -128,12 +130,17 @@ deploy-images.joyent.com:
 	@read
 	ssh root@images.joyent.com ' \
 		set -x \
+		&& export PATH=$(IMAGES_JOYENT_COM_NODE)/bin:$$PATH \
+		&& which node && node --version && npm --version \
+		&& test ! -d /root/services/imgapi.deploying \
 		&& cd /root/services \
-		&& cp -PR imgapi imgapi.`date "+%Y%m%dT%H%M%SZ"` \
-		&& cd /root/services/imgapi \
+		&& cp -PR imgapi imgapi.deploying \
+		&& cd /root/services/imgapi.deploying \
 		&& git fetch origin \
 		&& git pull --rebase origin master \
 		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
+		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
+		&& mv /root/services/imgapi.deploying /root/services/imgapi \
 		&& svcadm restart imgapi \
 		&& tail -f `svcs -L imgapi` | bunyan -o short'
 
