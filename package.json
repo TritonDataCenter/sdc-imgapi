@@ -19,7 +19,7 @@
     "mkdirp": "0.3.4",
     "rimraf": "2.0.2",
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#1c401e2",
-    "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#f91356ce"
+    "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#45dd4db2"
   },
   "optionalDependencies": {
     "http-signature": "0.9.9",
