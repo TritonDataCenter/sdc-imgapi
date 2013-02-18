@@ -1812,6 +1812,21 @@ top-level keys in the factory settings. For example: if providing
 ||storage.local||Object||-||TODO: doc||
 
 
+# Developer Guide
+
+## Repositories
+
+    node-sdc-clients.git    # Includes imgapi.js node library for using IMGAPI.
+    node-imgmanifest.git    # Defines the SmartDataCenter Image manifest spec
+                            #   and support for validation and upgrade.
+    imgapi-cli.git          # `*-imgadm` tools for common IMGAPI servers,
+                            #   e.g. `joyent-imgadm`, `sdc-imgadm`,
+                            #   `updates-imgadm` and a framework for tools
+                            #   for other IMGAPI servers.
+    smartos-live.git        # Holds the SmartOS base `imgadm` tool
+                            #   (in src/img). Currently in "imgadm2.git".
+    imgapi.git              # The IMGAPI server
+
 
 # Operator Guide
 
