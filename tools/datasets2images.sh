@@ -32,7 +32,7 @@ if [[ "$1" != "-f" && "$1" != "--force" ]]; then
     read
 fi
 
-$SSH -A -T $DATASETS_LOGIN <<SCRIPT
+$SSH -T $DATASETS_LOGIN <<SCRIPT
 
 if [ "$TRACE" != "" ]; then
     #export PS4='[\D{%FT%TZ}] \${BASH_SOURCE}:\${LINENO}: \${FUNCNAME[0]:+\${FUNCNAME[0]}(): }'
@@ -41,8 +41,8 @@ fi
 set -o errexit
 set -o pipefail
 
-export JOYENT_IMGADM_IDENTITY=b3:f0:a1:6c:18:3b:47:63:ae:6e:57:22:74:71:d4:bc
-export JOYENT_IMGADM_USER=trentm
+export JOYENT_IMGADM_IDENTITY=\$HOME/.ssh/automation.id_rsa
+export JOYENT_IMGADM_USER=automation
 JOYENT_IMGADM=\$HOME/bin/joyent-imgadm
 JSON=\$HOME/bin/json
 
