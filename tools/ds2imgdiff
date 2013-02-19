@@ -19,7 +19,10 @@ import urllib2
 from pprint import pprint
 import difflib
 import json
+from os.path import realpath, dirname
 
+
+TOP = realpath(dirname(dirname(__file__)))
 
 class Error(Exception):
     pass
@@ -52,7 +55,7 @@ def upgrade_image_str(img_str):
         });'
         '''
     p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,
-        close_fds=True)
+        close_fds=True, cwd=TOP)
     p.stdin.write(img_str)
     p.stdin.close()
     code = p.wait()

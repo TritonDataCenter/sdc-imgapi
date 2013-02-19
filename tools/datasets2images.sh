@@ -15,18 +15,20 @@ set -o pipefail
 
 
 TOP=$(unset CDPATH; cd $(dirname $0)/; pwd)
-SSH_OPTIONS="-q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+SSH_OPTIONS="-q -i $HOME/.ssh/automation.id_rsa -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 SSH="ssh $SSH_OPTIONS"
-DATASETS_LOGIN=root@datasets
+DATASETS_LOGIN=root@datasets.joyent.com
 
 
 
 #---- mainline
 
 echo '# Push datasets.joyent.com datasets to images.joyent.com.'
-echo '# WARNING: images.joyent.com is a *production* server.'
-echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
-read
+if [[ "$1" != "-f" && "$1" != "--force" ]]; then
+    echo '# WARNING: images.joyent.com is a *production* server.'
+    echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
+    read
+fi
 
 $SSH -A -T $DATASETS_LOGIN <<SCRIPT
 
