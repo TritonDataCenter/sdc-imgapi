@@ -43,6 +43,13 @@ function cleanup () {
         subject+=" (error: $ERR)"
     fi
 
+    echo "# err"
+    echo "$ERR"
+    echo "# diff"
+    echo "$DIFF"
+    echo "# update"
+    echo "$UPDATE"
+
     if [[ -n "$DIFF" || -n "$ERR" ]]; then
         mail "$ADMIN_EMAIL" <<EOM
 Subject: $subject
@@ -63,6 +70,7 @@ $UPDATE
 -- the cron job on images.joyent.com
 EOM
     fi
+    echo "Done."
 }
 
 

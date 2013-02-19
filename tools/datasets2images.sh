@@ -23,10 +23,12 @@ DATASETS_LOGIN=root@datasets.joyent.com
 
 #---- mainline
 
-echo '# Push datasets.joyent.com datasets to images.joyent.com.'
+echo 'Push datasets.joyent.com datasets to images.joyent.com.'
 if [[ "$1" != "-f" && "$1" != "--force" ]]; then
-    echo '# WARNING: images.joyent.com is a *production* server.'
-    echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
+    echo '* * *'
+    echo '* WARNING: images.joyent.com is a *production* server.'
+    echo '* Press <Enter> to continue, <Ctrl+C> to cancel.'
+    echo '* * *'
     read
 fi
 
