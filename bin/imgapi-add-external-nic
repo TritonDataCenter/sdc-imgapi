@@ -1,4 +1,4 @@
-#!/usr/bin/env /bin/bash
+#!/bin/bash
 # vi: expandtab sw=4 ts=4
 #
 # Add an external NIC for IMGAPI

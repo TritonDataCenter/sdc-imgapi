@@ -1,0 +1,71 @@
+#!/bin/bash
+# vi: expandtab sw=4 ts=4
+#
+# Add an external NIC for IMGAPI
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='\${BASH_SOURCE}:\${LINENO}: \${FUNCNAME[0]:+\${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+#---- globals, config
+
+res_status=
+res_body=
+MANTA_IP=
+MANTA_KEY=/opt/smartdc/imgapi/etc/id_rsa
+MANTA_KEY_ID=$(ssh-keygen -l -f /opt/smartdc/imgapi/etc/id_rsa.pub | awk '{print $2}' | tr -d '\n')
+
+eval $(cat /opt/smartdc/etc/zoneconfig)
+
+VMAPI_ADMIN_IP=$(echo "${VMAPI_ADMIN_IPS}" | tr ',' ' ')
+
+
+#---- functions
+
+function fatal {
+    echo "$(basename $0): error: $1"
+    exit 1
+}
+
+function vmapi() {
+    local path=$1
+    shift
+    local curl_args="-sS -i -H accept:application/json -H content-type:application/json"
+    local res=$(curl $curl_args --url "$VMAPI_ADMIN_IP$path" "$@")
+    res_status=$(echo "$res" | head -1 | awk '{print $2}')
+    res_body=$(echo "$res" | json -Hq)
+}
+
+function get_manta_ip() {
+    vmapi /vms?tag.manta_role=loadbalancer
+    MANTA_IP=$(echo "$res_body" | json -H 0.nics[0].ip)
+    if [[ ("$res_status" != "200") || -z "$MANTA_IP" ]]; then
+        fatal "Error getting Manta LB IP: $res_status $res_body"
+    fi
+}
+
+get_manta_ip
+
+MANTA_CONFIG=$(cat <<TEXT
+{
+    url: "https://${MANTA_IP}",
+    user: "admin",
+    key: "${MANTA_KEY}",
+    keyId: "${MANTA_KEY_ID}"
+}
+TEXT
+)
+
+INPUT_FILE=/opt/smartdc/imgapi/etc/imgapi.config.json
+OUTPUT_FILE=/var/tmp/imgapi.manta.config.json
+BACKUP_FILE=/var/tmp/imgapi.config.json
+
+json -e "this.storage= { local: this.storage.local, manta: ${MANTA_CONFIG} }" <${INPUT_FILE} >${OUTPUT_FILE}
+
+cp ${INPUT_FILE} ${BACKUP_FILE}
+cp ${OUTPUT_FILE} ${INPUT_FILE}
