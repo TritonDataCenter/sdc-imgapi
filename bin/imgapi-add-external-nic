@@ -1,0 +1,108 @@
+#!/usr/bin/env /bin/bash
+# vi: expandtab sw=4 ts=4
+#
+# Add an external NIC for IMGAPI
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+
+
+#---- globals, config
+
+res_status=
+res_body=
+network_uuid=
+job_uuid=
+JOB_STATUS=
+
+eval $(cat /opt/smartdc/etc/zoneconfig)
+
+NAPI_ADMIN_IP=$(echo "${NAPI_ADMIN_IPS}" | tr ',' ' ')
+VMAPI_ADMIN_IP=$(echo "${VMAPI_ADMIN_IPS}" | tr ',' ' ')
+
+
+#---- functions
+
+function fatal {
+    echo "$(basename $0): error: $1"
+    exit 1
+}
+
+function vmapi() {
+    local path=$1
+    shift
+    local curl_args="-sS -i -H accept:application/json -H content-type:application/json"
+    local res=$(curl $curl_args --url "$VMAPI_ADMIN_IP$path" "$@")
+    res_status=$(echo "$res" | head -1 | awk '{print $2}')
+    res_body=$(echo "$res" | json -Hq)
+}
+
+function napi() {
+    local path=$1
+    shift
+    local curl_args="-sS -i -H accept:application/json -H content-type:application/json"
+    local res=$(curl $curl_args --url "$NAPI_ADMIN_IP$path" "$@")
+    res_status=$(echo "$res" | head -1 | awk '{print $2}')
+    res_body=$(echo "$res" | json -Hq)
+}
+
+function get_job_status() {
+    local job_uuid=$1
+    vmapi /jobs/$job_uuid
+    JOB_STATUS=$(echo "$res_body" | json -H -a execution)
+    if [[ "$res_status" != "200" ]]; then
+        fatal "Error checking for job '$job_uuid' status: $res_status $res_body"
+    fi
+}
+
+function get_network() {
+    local name=$1
+    napi /networks?name=$name
+    network_uuid=$(echo "$res_body" | json -H -a uuid)
+    if [[ "$res_status" != "200" ]]; then
+        fatal "Error looking for '$name' network: $res_status $res_body"
+    fi
+}
+
+function add_nic() {
+    local vm_uuid=$1
+    local network_uuid=$2
+    vmapi /vms/$vm_uuid?action=add_nics -X POST -f -d "{
+      \"networks\": [\"$network_uuid\"]
+    }"
+    job_uuid=$(echo "$res_body" | json -H -a job_uuid)
+    if [[ "$res_status" != "202" ]]; then
+        fatal "Error queuing add-nics job: $res_status $res_body"
+    fi
+}
+
+
+#---- mainline
+
+zonename=$(zonename)
+get_network "external"
+add_nic $zonename $network_uuid
+
+echo "# Waiting for add-nics job to complete"
+for i in {1..60}; do
+    sleep 2
+    if [[ $(($i % 5)) == 0 ]]; then
+        echo ". ($(date))"   # new line ~ every 10 seconds
+    else
+        echo -n '.'
+    fi
+    get_job_status $job_uuid
+    if [[ ("$JOB_STATUS" != "queued") && ("$JOB_STATUS" != "running") ]]; then
+        echo ""
+        break
+    fi
+done
+if [[ "$JOB_STATUS" == "succeeded" ]]; then
+    echo "# NIC added to IMGAPI ($(date))."
+else
+    fatal "Failed adding NIC to IMGAPI (timeout at $(date))."
+fi
