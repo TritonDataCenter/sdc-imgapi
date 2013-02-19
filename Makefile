@@ -151,12 +151,17 @@ deploy-updates.joyent.us:
 	@read
 	ssh root@updates.joyent.us ' \
 		set -x \
+		&& export PATH=$(UPDATES_JOYENT_COM_NODE)/bin:$$PATH \
+		&& which node && node --version && npm --version \
+		&& test ! -d /root/services/imgapi.deploying \
 		&& cd /root/services \
-		&& cp -PR imgapi imgapi.`date "+%Y%m%dT%H%M%SZ"` \
-		&& cd /root/services/imgapi \
+		&& cp -PR imgapi imgapi.deploying \
+		&& cd /root/services/imgapi.deploying \
 		&& git fetch origin \
 		&& git pull --rebase origin master \
 		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
+		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
+		&& mv /root/services/imgapi.deploying /root/services/imgapi \
 		&& svcadm restart imgapi \
 		&& tail -f `svcs -L imgapi` | bunyan -o short'
 
