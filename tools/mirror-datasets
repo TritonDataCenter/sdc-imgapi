@@ -70,7 +70,7 @@ $UPDATE
 -- the cron job on images.joyent.com
 EOM
     fi
-    echo "Done."
+    echo "Done: $(date)"
 }
 
 
