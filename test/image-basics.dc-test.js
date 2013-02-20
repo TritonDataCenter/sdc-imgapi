@@ -91,7 +91,10 @@ test('CreateImage', function (t) {
         os: 'smartos',
         type: 'zone-dataset',
         public: true,
-        requirements: { min_platform: [['7.0', '2012-12-24']] },
+        requirements: {
+            min_platform: [['7.0', '2012-12-24']],
+            brand: 'joyent'
+        },
         billing_tags: ['oracle'],
         traits: { foo: "bar", ssd: true },
         homepage: 'http://images.com/v1.html'

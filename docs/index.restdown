@@ -171,6 +171,7 @@ A summary of fields (details are provided below):
 ||[acl](#manifest-acl)||Array||No||Yes||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||No||Yes||A set of named requirements for provisioning a VM with this image||
 ||[requirements.networks](#manifest-requirementsnetworks)||Array||No||Yes||Defines the minimum number of network interfaces required by this image.||
+||[requirements.brand](#manifest-requirementsbrand)||String||No||Yes||Defines the brand that is required to provision with this image.||
 ||[requirements.ssh_key](#manifest-requirementsssh_key)||Boolean||No||Yes||Indicates that provisioning with this image requires that an SSH public key be provided.||
 ||[requirements.min_ram](#manifest-requirementsmin_ram)||Integer||No||Yes||Minimum RAM (in MiB) required to provision this image.||
 ||[requirements.max_ram](#manifest-requirementsmax_ram)||Integer||No||Yes||Maximum RAM (in MiB) this image may be provisioned with.||
@@ -407,6 +408,13 @@ example shows an image that requires one VNIC:
         },
         ...
     }
+
+## Manifest: requirements.brand
+
+Optional. Defines the brand that is required to provision with this image.
+Brands are related to the type of virtualization used among other factors.
+Currently there are four brands that can be used: 'joyent', 'joyent-minimal',
+'sngl' for OS virtualization and 'kvm' for hardware virtualization.
 
 ## Manifest: requirements.ssh_key
 
