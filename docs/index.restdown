@@ -976,7 +976,7 @@ Raw API tool:
     $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822/icon -o icon.png
 
 
-## DeleteImageIcon (Delete /images/:uuid/icon)
+## DeleteImageIcon (DELETE /images/:uuid/icon)
 
 Delete the image icon file.
 
