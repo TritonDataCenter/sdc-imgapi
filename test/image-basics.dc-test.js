@@ -228,8 +228,6 @@ test('CreateImage', function (t) {
         s.on('data', function (d) { hash.update(d); });
         s.on('end', function () {
             iconSha1 = hash.digest('hex');
-            // console.log(iconSha1);
-            // process.exit(0);
             next();
         });
     }
@@ -290,8 +288,6 @@ test('CreateImage', function (t) {
             if (err) {
                 return next(err);
             }
-            console.log('wants md5 ' + iconMd5);
-            console.log('wants sha1 ' + iconSha1);
             t.equal(iconMd5, res.headers['content-md5'], 'md5');
             var hash = crypto.createHash('sha1');
             var s = fs.createReadStream(tmpFilePath);
@@ -307,6 +303,19 @@ test('CreateImage', function (t) {
         self.client.deleteImageIcon(uuid, vader, function (err, image, res) {
             t.ifError(err, err);
             t.ok(!(image.icon), 'no icon');
+            next();
+        });
+    }
+    function setError(next) {
+        var mod = {
+            state: 'error',
+            error: { message: 'could not publish'}
+        };
+        self.client.updateImage(uuid, mod, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image, 'image setError');
+            t.equal(image.state, 'error');
+            t.equal(image.error.message, 'could not publish');
             next();
         });
     }
@@ -342,6 +351,7 @@ test('CreateImage', function (t) {
             getFile,
             getIcon,
             deleteIcon,
+            setError,
             deleteImage
         ],
         function (err) {
