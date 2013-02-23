@@ -17,22 +17,26 @@ ecosystem.
 An "image" is virtual machine image content (e.g. a zfs dataset for a
 SmartOS zone or a KVM machine image) plus [the metadata for the image (called
 the "manifest")](#image-manifest-data). The following API instances and tools
-are relevant for managing images in SDC and SmartOS.
+are relevant for managing images in SmartOS and SDC.
 
-The old DSAPI (https://datasets.joyent.com) will live until all SDC 6
-instances are done. This provides Joyent-vetted images (a.k.a. datasets) for
-use in SDC 6 standups. In SDC 6, MAPI (the Master API) running inside each
-datacenter manages datasets within that datacenter. MAPI's "/datasets"
-endpoints provide a subset of the DSAPI API.
+<!-- #ifdef PRIVATE -->
+The old Datasets API (DSAPI, e.g. https://datasets.joyent.com) will live
+until all SDC 6 instances are done. This provides Joyent-vetted images
+(a.k.a. datasets) for use in SDC 6 standups. In SDC 6, MAPI (the Master API)
+running inside each datacenter manages datasets within that datacenter.
+MAPI's "/datasets" endpoints provide a subset of the DSAPI API.
+<!-- #endif -->
 
-The joyent IMGAPI (https://images.joyent.com) is the new central repository
+The joyent IMGAPI (https://images.joyent.com) is the central repository
 of Joyent-vetted base images for usage in SmartOS. (Images from software
 vendors may exist here, but are still vetted by Joyent.) All images here are
 public -- no read auth, no private images. SmartOS' `imgadm` version 2
-(the default imgadm after TODO:release-date) is configured to use this
-image repository by default. SDC's operator portal (a.k.a. adminui) is
-configured by default to list this repository from which to import images.
-Administration of the https://images.joyent.com is via the `joyent-imgadm`
+is configured to use this image repository by default. SDC's operator portal
+(a.k.a. adminui) is configured by default to list this repository from which
+to import images.
+
+<!-- #ifdef PRIVATE -->
+Administration of https://images.joyent.com is via the `joyent-imgadm`
 tool (currently available in `git@git.joyent.com:imgapi-cli.git`).
 
 There is an IMGAPI in each SDC datacenter that manages images available in
@@ -41,47 +45,40 @@ in a given datacenter. This is the authority for which images are available
 for provisioning in that DC. The provisioning process will lazily
 `zfs receive` images on CNs as necessary -- streaming from the IMGAPI
 (`imgadm` on that machine handles that). IMGAPI supports private images,
-customer-owned images, etc. CloudAPI speaks to IMGAPI for its
+customer-owned images, etc. Cloud API speaks to IMGAPI for its
 ['/images'](https://mo.joyent.com/docs/cloudapi/master/#images) and legacy
 ['/datasets'](https://mo.joyent.com/docs/cloudapi/master/#datasets)
 endpoints.
 
 See [Use Cases](#use-cases) for details on how IMGAPI is (designed to be)
 used.
+<!-- #endif -->
 
 
+<!-- #ifdef PRIVATE -->
 # Current Status
 
 - Good: The 'imgapi' zone is available and running in sdc with most endpoints
   implemented (see [API Summary](#api-summary)).
 
-- Bad: Notably unimplemented is UpdateImage for modifying mutable manifest
-  data on already loaded images and the MigrateImage for copying images
-  between datacenters in the same SDC cloud.
-
 - Good: `sdc-imgadm` is available in SDC GZs for managing the datacenter's
   IMGAPI from the command-line.
 
-- Bad: IMGAPI is **not** yet being bootstrapped with manta images on
-  `manta-init` because of
-  [MANTA-815](https://devhub.joyent.com/jira/browse/MANTA-815).
+- Good: `imgadm` v2 for SmartOS (imgadm v2) is in.
 
-- Bad: The replacement `imgadm` for SmartOS (imgadm v2) is **not** yet
-  complete nor included in the platform. This and provisioner agent
-  integration are required.
+- Good: Manta as a storage backend support is in.
+
+- Bad: The full process for a user creating a custom image (IMGAPI-93).
 
 - Bad: SDC 6 backward compatibility testing hasn't been done yet. However,
   this is somewhat vetted already.
 
-- Bad: The full process for a user creating a custom image
-
-- Bad: A number of manifest fields remain to be added: `tags` for portal usage
-
-- Bad: don't yet support manta as a storage backend (though the framework
-  is there for it).
+- Bad: Notably unimplemented is MigrateImage for copying images
+  between datacenters in the same SDC cloud.
 
 - Bad: Multi-DC support (replicated manifest info in UFDS) isn't fully
   specified yet.
+<!-- #endif -->
 
 
 # API Summary
@@ -103,16 +100,17 @@ used.
 ||[GetImageIcon](#GetImageIcon)||GET /images/:uuid/icon||Get the image icon file.||
 ||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
+||[ImportImage](#ImportImage)||POST /images/$uuid?action=import&source=$imgapi-url||**NYI** Import an image from another IMGAPI (IMGAPI-80).||
+||[Ping](#Ping)||GET /ping||Ping if the server is up.||
+<!-- #ifdef PRIVATE -->
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
+<!-- #endif -->
 
 
 
 # Errors
 
-The full list of errors returned by the IMGAPI are described in
-[errors.js](https://mo.joyent.com/imgapi/blob/master/lib/errors.js).
-
-TODO: generate a nice table here.
+<!-- #include "build/errors.restdown" -->
 
 
 # Image manifests
@@ -534,6 +532,7 @@ This is a required field for `type === "zvol"` images.
 
 
 
+<!-- #ifdef PRIVATE -->
 # Use Cases
 
 Here we look at some SDC use cases that touch on IMGAPI, and hence drive
@@ -644,9 +643,10 @@ limitation that only operators can add images. To enable users adding
 their own images, a Manta is required.
 
 TODO: how is this setup? SAPI?
+<!-- #endif -->
 
 
-
+<!-- #ifdef PRIVATE -->
 # Image file storage
 
 There are three possible storage mechanisms for the (large) image files.
@@ -695,7 +695,7 @@ Open questions (TODO):
 - Should 'dcls' usage be limited to a set of users? Or have a config item
   to limit the set of users that can use it. If so, then need an endpoint
   to update that config.
-
+<!-- #endif -->
 
 
 # Image API
@@ -1643,6 +1643,7 @@ CLI tool:
     $ cat data.json | sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874
 
 
+<!-- #ifdef PRIVATE -->
 ## AdminImportImage (POST /images/:uuid?action=import)
 
 Import an image (preserving its `uuid` and `published_at` fields). This is
@@ -1692,11 +1693,12 @@ AddImageFile and ActivateImage calls after the AdminImportImage.
     100% [=============================]  time 0.6s  eta 0.0s
     Added file "file.bz2" to image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699
     Activated image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699
-
+<!-- #endif -->
 
 
 # Miscellaneous API
 
+<!-- #ifdef PRIVATE -->
 ## Ping (GET /ping)
 
 A simple ping to check to health of the IMGAPI server. Here "pid" is the PID
@@ -1714,8 +1716,9 @@ When not simulating an error response, a "pong" object is returned:
 
 ||**Field**||**Type**||**Description**||
 ||ping||String||"pong"||
-||pid||String||The PID of IMGAPI server process.||
-||version||String||The version of the IMGAPI app..||
+||pid||String||The PID of IMGAPI server process. Only for non-"public" mode IMGAPI configurations.||
+||version||String||The version of the IMGAPI app.||
+||imgapi||Boolean||true||
 
 When simulating an error, the HTTP response code depends on the error type
 and the response body is an JSON object with:
@@ -1762,7 +1765,43 @@ Ping can also be used to simulate error responses from the IMGAPI:
       "errors": []
     }
 
+<!-- #else -->
 
+## Ping (GET /ping)
+
+A simple ping to check to health of the IMGAPI server.
+
+### Returns
+
+A "pong" object is returned:
+
+||**Field**||**Type**||**Description**||
+||ping||String||"pong"||
+||version||String||The version of the IMGAPI app.||
+||imgapi||Boolean||true||
+
+### Examples
+
+    $ curl -i https://images.joyent.com/ping
+    HTTP/1.1 200 OK
+    Date: Fri, 22 Feb 2013 23:52:18 GMT
+    Content-Type: application/json
+    Connection: keep-alive
+    Content-Length: 60
+    Server: Joyent Image API
+    x-request-id: e41046a0-7d4a-11e2-8ad6-7ff4644169eb
+    x-response-time: 1
+    x-server-name: b908c5b2-ccd9-4f43-b5ff-2997eb6bd682.local
+
+    {
+      "ping": "pong",
+      "version": "1.0.0",
+      "imgapi": true
+    }
+<!-- #endif -->
+
+
+<!-- #ifdef PRIVATE -->
 ## AdminGetState (GET /state)
 
 Return server internal state. For debugging/dev only.
@@ -1787,8 +1826,10 @@ A JSON representation of some internal state.
       },
       ...
     }
+<!-- #endif -->
 
 
+<!-- #ifdef PRIVATE -->
 
 # Configuration
 
@@ -1841,7 +1882,7 @@ top-level keys in the factory settings. For example: if providing
 This section is intended to give necessary information for diagnosing and
 dealing with issues with Image API in a SmartDataCenter installation.
 
-There is one IMGAPI per datacenter. There might actually be more than
+There is one IMGAPI service per datacenter. There might actually be more than
 one "imgapi" zone for HA. Use this to list the imgapi zones in a DC:
 
     sdc-vmapi /vms?owner_uuid=$(bash /lib/sdc/config.sh -json | json ufds_admin_uuid) \
@@ -1868,3 +1909,5 @@ TODO: sdc-healthcheck, sdc-webinfo
 
 ||**service/path**||**where**||**format**||**tail -f**||
 ||imgapi||in each "imgapi" zone||[Bunyan](https://github.com/trentm/node-bunyan)||`` sdc-login imgapi; tail -f `svcs -L imgapi` | bunyan ``||
+
+<!-- #endif -->

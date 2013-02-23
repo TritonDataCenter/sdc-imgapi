@@ -3,5 +3,7 @@
 /build
 /docs/*.json
 /docs/*.html
+/docs/index.restdown
+/docs/public.restdown
 /smf/manifests/imgapi.xml
 /etc/imgapi.config.json

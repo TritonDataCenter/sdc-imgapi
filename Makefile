@@ -8,7 +8,7 @@
 # Vars, Tools, Files, Flags
 #
 NAME		:= imgapi
-DOC_FILES	 = index.restdown design.restdown
+DOC_FILES	 = index.restdown public.restdown design.restdown
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/')
 JSL_CONF_NODE	 = tools/jsl.node.conf
@@ -87,6 +87,17 @@ test-kvm7: | $(NODEUNIT)
 	./tools/runtests-on-kvm7
 test-images.joyent.com: | $(NODEUNIT)
 	./test/runtests -p -r default
+
+# Doc preprocessing to get public and private IMGAPI docs out of the same
+# docs/index.restdown.in.
+CLEAN_FILES += docs/index.restdown docs/public.restdown build/errors.restdown
+build/errors.restdown:
+	$(NODE) lib/errors.js > $@
+docs/index.restdown: docs/index.restdown.in build/errors.restdown
+	python tools/preprocess.py -o $@ -I. -D PRIVATE=1 $<
+docs/public.restdown: docs/index.restdown.in
+	python tools/preprocess.py -o $@ -I. $<
+
 
 .PHONY: release
 release: all
