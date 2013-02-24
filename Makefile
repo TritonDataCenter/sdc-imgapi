@@ -47,7 +47,7 @@ TMPDIR          := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack | $(NODEUNIT) $(REPO_DEPS)
+all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(NODEUNIT) $(REPO_DEPS)
 	$(NPM) install
 
 # Node hack for images.joyent.com and updates.joyent.com
@@ -99,9 +99,19 @@ docs/index.restdown: docs/index.restdown.in build/errors.restdown
 docs/public.restdown: docs/index.restdown.in
 	python tools/preprocess.py -o $@ -I. $<
 
+build/public/docs/index.html: build/docs/public/public.html
+	$(MKDIR) build/public/docs
+	$(CP) $< $@
+
+.PHONY: public-docs
+public-docs: docs
+	$(RM) -r build/public-docs/docs
+	$(MKDIR) build/public-docs/docs
+	$(CP) $(DOC_BUILD)/public.html build/public-docs/docs/public.html
+	$(CP) -PR $(DOC_BUILD)/media build/public-docs/docs/media
 
 .PHONY: release
-release: all
+release: all public-docs
 	@echo "Building $(RELEASE_TARBALL)"
 	mkdir -p $(TMPDIR)/root/opt/smartdc/$(NAME)
 	mkdir -p $(TMPDIR)/site
@@ -109,7 +119,6 @@ release: all
 	mkdir -p $(TMPDIR)/root
 	cp -r \
 		$(TOP)/bin \
-		$(TOP)/build \
 		$(TOP)/main.js \
 		$(TOP)/lib \
 		$(TOP)/etc \
@@ -118,6 +127,11 @@ release: all
 		$(TOP)/smf \
 		$(TOP)/test \
 		$(TMPDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(TMPDIR)/root/opt/smartdc/$(NAME)/build
+	cp -r \
+		$(TOP)/build/node \
+		$(TOP)/build/public-docs \
+		$(TMPDIR)/root/opt/smartdc/$(NAME)/build
 	mkdir -p $(TMPDIR)/root/var/svc
 	cp -r \
 		$(TOP)/sdc/setup \
