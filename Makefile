@@ -92,11 +92,11 @@ test-images.joyent.com: | $(NODEUNIT)
 # Doc preprocessing to get public and private IMGAPI docs out of the same
 # docs/index.restdown.in.
 CLEAN_FILES += docs/index.restdown docs/public.restdown build/errors.restdown
-build/errors.restdown: node_modules/restify | $(NODE_EXEC)
+build/errors.restdown: lib/errors.js | node_modules/restify $(NODE_EXEC)
 	$(NODE) lib/errors.js > $@
 docs/index.restdown: docs/index.restdown.in build/errors.restdown
 	python tools/preprocess.py -o $@ -I. -D PRIVATE=1 $<
-docs/public.restdown: docs/index.restdown.in
+docs/public.restdown: docs/index.restdown.in build/errors.restdown
 	python tools/preprocess.py -o $@ -I. $<
 
 build/public/docs/index.html: build/docs/public/public.html
