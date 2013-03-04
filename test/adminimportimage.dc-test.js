@@ -199,9 +199,11 @@ test('AdminImportImage from local .imgmanifest', function (t) {
         self.client.addImageFile(fopts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
-            t.equal(image.files.length, 1, 'image.files');
-            t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
-            t.equal(image.files[0].size, size, 'image.files.0.size');
+            if (image) {
+                t.equal(image.files.length, 1, 'image.files');
+                t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
+                t.equal(image.files[0].size, size, 'image.files.0.size');
+            }
             next(err);
         });
     }
