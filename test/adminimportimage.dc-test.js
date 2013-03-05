@@ -51,10 +51,10 @@ before(function (next) {
         if (err)
             return next(err);
         IMAGES_JOYENT_COM_IP = stdout.trim();
-        exec('dig datasets.joyent.com +short', function (err, stdout, stderr) {
-            if (err)
-                return next(err);
-            DATASETS_JOYENT_COM_IP = stdout.trim();
+        exec('dig datasets.joyent.com +short', function (err2, stdout2, stderr2) {
+            if (err2)
+                return next(err2);
+            DATASETS_JOYENT_COM_IP = stdout2.trim();
             next();
         });
     });

@@ -37,7 +37,7 @@ test('ListImages returns a list', function (t) {
         t.ok(images, 'images');
         t.ok(Array.isArray(images), 'images');
         t.end();
-    })
+    });
 });
 
 test('GetImage 404', function (t) {
@@ -50,7 +50,7 @@ test('GetImage 404', function (t) {
         t.ok(err.body.message, 'res body has a message');
         t.equal(res.statusCode, 404, 'res.statusCode 404');
         t.end();
-    })
+    });
 });
 
 test('GetImage existing', function (t) {
@@ -105,7 +105,7 @@ test('CreateImage', function (t) {
     var iconPath = __dirname + '/icon.jpg';
     var fileCompression = 'bzip2';
     var uuid;
-    var size, iconSize;
+    var size;
     var sha1, iconSha1;
     var md5, iconMd5;
     var aImage;
@@ -218,7 +218,7 @@ test('CreateImage', function (t) {
         fs.stat(iconPath, function (err, stats) {
             if (err)
                 return next(err);
-            iconSize = stats.size;
+            // iconSize = stats.size;
             next();
         });
     }

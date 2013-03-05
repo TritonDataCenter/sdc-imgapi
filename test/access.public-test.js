@@ -57,7 +57,7 @@ test('ping: auth', function (t) {
         t.ok(pong.pid, 'pong.pid');
         t.ok(pong.version, 'pong.version');
         t.end();
-    })
+    });
 });
 
 test('ping: no auth', function (t) {
@@ -69,7 +69,7 @@ test('ping: no auth', function (t) {
         // No 'pid' given on unauthed '/ping' to 'public' mode IMGAPI server.
         t.ok(pong.pid, undefined);
         t.end();
-    })
+    });
 });
 
 
@@ -156,12 +156,12 @@ test('UpdateImage fail for a private image', function (t) {
     self.authClient.listImages(function (listErr, images, res) {
         var uuid = images[0].uuid;
         var data = { 'public': false };
-        self.authClient.updateImage(uuid, data, function (err, image, res) {
-            t.ok(err, 'got error: ' + err);
-            if (err) {
-                t.equal(err.body.code, 'ValidationFailed',
-                    'err code: ' + err.body.code);
-                t.ok(err.message.indexOf('public') !== -1,
+        self.authClient.updateImage(uuid, data, function (err2, image, res2) {
+            t.ok(err2, 'got error: ' + err2);
+            if (err2) {
+                t.equal(err2.body.code, 'ValidationFailed',
+                    'err code: ' + err2.body.code);
+                t.ok(err2.message.indexOf('public') !== -1,
                     'error in validating "public" field');
             }
             t.end();
@@ -183,15 +183,15 @@ test('unauthed user cannot see state other than active', function (t) {
 
         // disabled
         self.noAuthClient.listImages({state: 'disabled'},
-                                     function (err, images, res) {
-            t.ifError(err, err);
-            t.equal(images.length, 0, 'no disabled images for me');
+                                     function (err2, dImages, res2) {
+            t.ifError(err2, err2);
+            t.equal(dImages.length, 0, 'no disabled images for me');
 
             // unactivated
             self.noAuthClient.listImages({state: 'unactivated'},
-                                         function (err, images, res) {
-                t.ifError(err, err);
-                t.equal(images.length, 0, 'no disabled images for me');
+                                         function (err3, uImages, res3) {
+                t.ifError(err3, err3);
+                t.equal(uImages.length, 0, 'no disabled images for me');
             });
         });
     });
