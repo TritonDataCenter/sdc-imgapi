@@ -98,11 +98,11 @@ test('401 on misc endpoints without auth', function (t) {
 test('401 on modifying endpoints without auth', function (t) {
     var self = this;
     var endpoints = [
-        ['createImage', [{}]],
-        ['addImageFile', [{uuid: '900850d9-4bc2-da4b-84be-7e7cd50fe136',
+        ['createImage', [ {} ] ],
+        ['addImageFile', [ { uuid: '900850d9-4bc2-da4b-84be-7e7cd50fe136',
                            file: __filename,
                            size: 42,
-                           compression: 'none'}]],
+                           compression: 'none' } ]],
         ['activateImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']],
         ['disableImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']],
         ['enableImage', ['900850d9-4bc2-da4b-84be-7e7cd50fe136']],

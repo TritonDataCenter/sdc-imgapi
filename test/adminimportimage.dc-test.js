@@ -51,7 +51,8 @@ before(function (next) {
         if (err)
             return next(err);
         IMAGES_JOYENT_COM_IP = stdout.trim();
-        exec('dig datasets.joyent.com +short', function (err2, stdout2, stderr2) {
+        exec('dig datasets.joyent.com +short',
+        function (err2, stdout2, stderr2) {
             if (err2)
                 return next(err2);
             DATASETS_JOYENT_COM_IP = stdout2.trim();
@@ -564,7 +565,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
     var self = this;
     // smartos-1.3.18 (40MB) -- pick a small one for faster download in
     // shitty-networking BH-1 where testing is typically done.
-    var uuid = "47e6af92-daf0-11e0-ac11-473ca1173ab0";
+    var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
     var manifest;
     var filePath = format('/var/tmp/image-test-file-%s.zfs.bz2', process.pid);
     var fileCompression = 'bzip2';
@@ -713,7 +714,7 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
     var self = this;
     // smartos-1.3.18 (40MB) -- pick a small one for faster download in
     // shitty-networking BH-1 where testing is typically done.
-    var uuid = "47e6af92-daf0-11e0-ac11-473ca1173ab0";
+    var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
     var manifest;
     var filePath = format('/var/tmp/dataset-test-file-%s.zfs.bz2', process.pid);
     var fileCompression = 'bzip2';

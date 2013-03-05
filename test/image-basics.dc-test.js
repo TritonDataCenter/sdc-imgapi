@@ -96,7 +96,7 @@ test('CreateImage', function (t) {
             brand: 'joyent'
         },
         billing_tags: ['oracle'],
-        traits: { foo: "bar", ssd: true },
+        traits: { foo: 'bar', ssd: true },
         homepage: 'http://images.com/v1.html'
     };
 

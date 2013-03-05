@@ -332,10 +332,12 @@ Object.keys(data).forEach(function (nameVer) {
                     function (i) { return [i.name, i.version].join('-'); });
                 if (account.cansee) {
                     t.ok(nameVers.indexOf(nameVer) !== -1,
-                        format('account %s can see image %s', account.login, nameVer));
+                        format('account %s can see image %s',
+                        account.login, nameVer));
                 } else {
                     t.equal(nameVers.indexOf(nameVer), -1,
-                        format('account %s cannot see image %s', account.login, nameVer));
+                        format('account %s cannot see image %s',
+                        account.login, nameVer));
                 }
                 next();
             });
@@ -353,7 +355,8 @@ Object.keys(data).forEach(function (nameVer) {
         var imageUuid = imageUuidFromNameVer[nameVer];
         var accounts = data[nameVer];
         async.forEach(accounts, function (account, next) {
-            self.imgapiClient.getImage(imageUuid, account.uuid, function (err, image) {
+            self.imgapiClient.getImage(imageUuid, account.uuid,
+            function (err, image) {
                 if (!account.cansee) {
                     t.ok(err);
                     t.equal(err.statusCode, 404,
