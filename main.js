@@ -169,7 +169,7 @@ function handleArgv() {
     serializers.image = function (image) {
         // 'config.mode' isn't know yet, but that doesn't matter for internal
         // logging.
-        return image.serialize('dc');
+        return (image ? image.serialize('dc') : image);
     };
     log = bunyan.createLogger({  // `log` is intentionally global.
         name: NAME,
