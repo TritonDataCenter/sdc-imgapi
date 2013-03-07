@@ -22,7 +22,17 @@ import json
 from os.path import realpath, dirname
 
 
+#---- globals/config
+
 TOP = realpath(dirname(dirname(__file__)))
+IMG_UUID_SKIPS = [
+    # sngl:0.99.0 is only for images.joyent.com. Only works on recent
+    # (pre-6.5) platforms so don't want it exposed on datasets.jo.
+    '4bf9530a-7ae5-11e2-bb4e-3bad5fbc3de9'
+]
+
+
+#---- errors
 
 class Error(Exception):
     pass
@@ -90,9 +100,10 @@ def ds2imgdiff():
             print "Only in datasets.joyent.com: image %s (%s %s)" % (
                 uuid, datasets[uuid]["name"], datasets[uuid]["version"])
         elif uuid not in ds_uuids and uuid in img_uuids:
-            is_diff = True
-            print "Only in images.joyent.com: image %s (%s %s)" % (
-                uuid, images[uuid]["name"], images[uuid]["version"])
+            if uuid not in IMG_UUID_SKIPS:
+                is_diff = True
+                print "Only in images.joyent.com: image %s (%s %s)" % (
+                    uuid, images[uuid]["name"], images[uuid]["version"])
         else:
             #pass
             #print "--", uuid

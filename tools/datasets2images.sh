@@ -99,6 +99,11 @@ function delimages {
 }
 
 push2images
+
+# Disabled for now to allow some images.jo-only images, e.g. multiarch.
+# There is a skip list of UUIDs in 'ds2imgdiff' to not report on known
+# diffs. This means that we'll need to manually delete datasets.jo
+# deletions. That's probably a good thing.
 delimages
 
 SCRIPT
