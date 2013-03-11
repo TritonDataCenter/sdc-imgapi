@@ -23,7 +23,7 @@ CLEAN_FILES += ./node_modules
 # "tools/mk/Makefile.node_prebuilt.targ" for details.
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_CC_VERSION=4.6.2
-	NODE_PREBUILT_VERSION=v0.8.18
+	NODE_PREBUILT_VERSION=v0.8.22
 	NODE_PREBUILT_TAG=zone
 endif
 IMAGES_JOYENT_COM_NODE=/root/opt/node-0.8.20
