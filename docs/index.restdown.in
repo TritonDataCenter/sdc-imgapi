@@ -173,8 +173,8 @@ A summary of fields (details are provided below):
 ||[requirements.ssh_key](#manifest-requirementsssh_key)||Boolean||No||Yes||Indicates that provisioning with this image requires that an SSH public key be provided.||
 ||[requirements.min_ram](#manifest-requirementsmin_ram)||Integer||No||Yes||Minimum RAM (in MiB) required to provision this image.||
 ||[requirements.max_ram](#manifest-requirementsmax_ram)||Integer||No||Yes||Maximum RAM (in MiB) this image may be provisioned with.||
-||[requirements.min_platform](#manifest-requirementsmin_platform)||Array||No||Yes||Minimum platform requirement for provisioning with this image.||
-||[requirements.max_platform](#manifest-requirementsmax_platform)||Array||No||Yes||Maximum platform requirement for provisioning with this image.||
+||[requirements.min_platform](#manifest-requirementsmin_platform)||Object||No||Yes||Minimum platform requirement for provisioning with this image.||
+||[requirements.max_platform](#manifest-requirementsmax_platform)||Object||No||Yes||Maximum platform requirement for provisioning with this image.||
 ||[users](#manifest-users)||Array||No||Yes||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[billing_tags](#manifest-billing-tags)||Array||No||Yes||A list of tags that can be used by operators for additional billing processing.||
 ||[traits](#manifest-traits)||Object||No||Yes||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
@@ -435,25 +435,45 @@ this image may provisioned with. If `min_ram` is also specified, then
 
 ## Manifest: requirements.min_platform
 
-Optional. `min_platform` is an array of pairs of strings that indicates what is
-the minimum required platform for this image to be used for provisioning. The
-pair of strings is a tuple that describes a platform version with the
-[semver, date] format. If `min_platform` has more than one pair it means that
-there is more than one minimum requirement across major versions of platforms.
-Example:
+Optional. `min_platform` is an object that describes what is the minimum
+required platform for this image to be used for provisioning. Each key in the
+object represents a major SDC version and each value represents a Live Image
+platform version. If the SDC Version on a system is greater than any of the
+min_platform keys, then this image can be used for provisioning. The platform
+version follows the ISO 8601 combined date and time format without colons or
+dashes. The min_platform object can contain any number keys. On a SmartOS
+system the values for SDC and Live Image versions can be found by running the
+following commands:
 
-    "min_platform": [ ["6.5", "20120901T113025Z"], ["7.0", "20130308T102805Z"]]
+    # sysinfo | json "SDC Version"
+    7.0
+    # sysinfo | json "Live Image"
+    20130309T172903Z
+
+Example value for min_platform:
+
+    "min_platform": { "6.5": "20120901T113025Z", "7.0": "20130308T102805Z" }
 
 ## Manifest: requirements.max_platform
 
-Optional. `max_platform` is an array of pairs of strings that indicates what is
-the maximum allowed platform for this image to be used for provisioning. The
-pair of strings is a tuple that describes a platform version with the
-[semver, date] format. If `max_platform` has more than one pair it means that
-there is more than one maximum requirement across major versions of platforms.
-Example:
+Optional. `max_platform` is an object that describes what is the maximum allowed
+platform for this image to be used for provisioning. Each key in the object
+represents a major SDC version and each value represents a Live Image platform
+version. If the SDC Version on a system is greater than any of the max_platform
+keys, then this image cannot be used for provisioning. The platform version
+follows the ISO 8601 combined date and time format without colons or dashes.
+The max_platform object can contain any number keys. On a SmartOS system the
+values for SDC and Live Image versions can be found by running the following
+commands:
 
-    "max_platform": [ ["6.5", "20120901T113025Z"], ["7.0", "20130308T102805Z"]]
+    # sysinfo | json "SDC Version"
+    7.0
+    # sysinfo | json "Live Image"
+    20130309T172903Z
+
+Example value for max_platform:
+
+    "max_platform": { "6.5": "20120901T113025Z", "7.0": "20130308T102805Z" }
 
 ## Manifest: users
 

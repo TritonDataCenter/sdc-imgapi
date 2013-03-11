@@ -92,7 +92,7 @@ test('CreateImage', function (t) {
         type: 'zone-dataset',
         public: true,
         requirements: {
-            min_platform: [['7.0', '20130308T102805Z']],
+            min_platform: { '7.0': '20130308T102805Z' },
             brand: 'joyent'
         },
         billing_tags: ['oracle'],
