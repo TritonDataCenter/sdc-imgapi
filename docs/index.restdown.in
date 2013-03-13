@@ -1937,4 +1937,32 @@ TODO: sdc-healthcheck, sdc-webinfo
 ||**service/path**||**where**||**format**||**tail -f**||
 ||imgapi||in each "imgapi" zone||[Bunyan](https://github.com/trentm/node-bunyan)||`` sdc-login imgapi; tail -f `svcs -L imgapi` | bunyan ``||
 
+
+## Examples
+
+1. Dig into IMGAPI's Manta storage (if this IMGAPI is setup to use Manta):
+
+        HN=stage2    # my SDC headnode login
+
+        # Get one of the Manta LB IPs:
+        export MANTA_URL=$(ssh $HN "/opt/smartdc/bin/sdc-vmapi /vms?tag.manta_role=loadbalancer | json -H -c 'this.state==\"running\"' 0.nics | json -c 'this.nic_tag==\"external\"' 0.ip" 2>/dev/null)
+
+        # Get a local copy of the admin SSH key being used for Manta access
+        # (or add your own to the admin user).
+        ZONENAME=$(ssh $HN vmadm lookup -1 alias=imgapi0)
+        cd /var/tmp
+        scp $HN:/zones/$ZONENAME/root/opt/smartdc/imgapi/etc/id_rsa* .
+        export MANTA_KEY_ID=`pwd`/id_rsa
+
+        export MANTA_USER=admin
+        set | grep MANTA_
+
+        # With mantash from python-manta:
+        mantash -k find /admin/stor/imgapi
+
+        # With node-manta tools:
+        # TODO: I think node-manta tools don't support a non-default path
+        # to the ssh key?
+
+
 <!-- #endif -->
