@@ -154,8 +154,8 @@ A summary of fields (details are provided below):
 ||[v](#manifest-v)||Integer||Yes||No||Version of the manifest format/spec. The current value is **2**.||
 ||[uuid](#manifest-uuid)||UUID||Yes||No||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
 ||[owner](#manifest-owner)||UUID||Yes||No||The UUID of the owner of this image (the account that created it).||
-||[name](#manifest-name)||String||Yes||Yes||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
-||[version](#manifest-version)||String||Yes||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
+||[name](#manifest-name)||String||Yes||No||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
+||[version](#manifest-version)||String||Yes||No||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||Yes||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||No||Yes||Homepage URL where users can find more information about the image.||
 ||[icon](#manifest-icon)||Boolean||No||Yes (\*)||Indicates if the image has an icon file. If not present, then no icon is present.||
@@ -1663,8 +1663,6 @@ updated.
 
 ||**Field**||**Type**||**Default**||**Notes**||
 ||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[name](#manifest-name)||String||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
-||[version](#manifest-version)||String||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||-||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||-||Homepage URL where users can find more information about the image.||
 ||[public](#manifest-public)||Boolean||false||Indicates if this image is publicly available.||
