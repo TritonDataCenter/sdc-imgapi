@@ -354,9 +354,9 @@ The array of image files that make up this image. Currently only a single
 file is supported. An image cannot be activated until it has one file
 uploaded. A "file" entry has the following fields:
 
-||**OS**||**DESCRIPTION**||
+||**FIELD**||**DESCRIPTION**||
 ||sha1||SHA-1 hex digest of the file content. Used for upload/download corruption checking.||
-||size||number of bytes||
+||size||Number of bytes. Maximum 20GiB. This maximum is meant to be a "you'll never hit it" cap, the purpose is to inform cache handling in IMGAPI servers.||
 ||compression||The type of file compression used by the file. One of 'bzip2', 'gzip', 'none'.||
 
 Example:
