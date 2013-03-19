@@ -25,7 +25,7 @@ var test = tap4nodeunit.test;
 //---- tests
 
 before(function (next) {
-    this.client = new IMGAPI({url: process.env.IMGAPI_URL});
+    this.client = new IMGAPI({url: process.env.IMGAPI_URL, agent: false});
     next();
 });
 

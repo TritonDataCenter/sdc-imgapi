@@ -26,7 +26,8 @@ var test = tap4nodeunit.test;
 
 before(function (next) {
     var options = {
-        url: process.env.IMGAPI_URL
+        url: process.env.IMGAPI_URL,
+        agent: false
     };
     if (process.env.IMGAPI_PASSWORD) {
         options.user = process.env.IMGAPI_USER;

@@ -35,7 +35,10 @@ var imageUuidFromNameVer = {
 
 
 before(function (next) {
-    this.imgapiClient = new IMGAPI({url: process.env.IMGAPI_URL});
+    this.imgapiClient = new IMGAPI({
+        url: process.env.IMGAPI_URL,
+        agent: false
+    });
     next();
 });
 

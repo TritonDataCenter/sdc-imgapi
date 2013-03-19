@@ -39,7 +39,7 @@ var DATASETS_JOYENT_COM_IP = null;
 //---- tests
 
 before(function (next) {
-    this.client = new IMGAPI({url: process.env.IMGAPI_URL});
+    this.client = new IMGAPI({url: process.env.IMGAPI_URL, agent: false});
 
     if (process.env.IMGAPI_TEST_OFFLINE) {
         return next();
