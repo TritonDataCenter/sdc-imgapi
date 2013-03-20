@@ -46,7 +46,10 @@ before(function (next) {
         assert.fail('What no auth info!?');
     }
     this.authClient = imgapi.createClient(options);
-    this.noAuthClient = imgapi.createClient({url: process.env.IMGAPI_URL});
+    this.noAuthClient = imgapi.createClient({
+        url: process.env.IMGAPI_URL,
+        agent: false
+    });
     next();
 });
 
