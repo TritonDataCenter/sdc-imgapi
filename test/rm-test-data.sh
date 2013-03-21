@@ -78,6 +78,7 @@ elif [[ "$opt_mode" == "dc" ]]; then
     dns+=" uuid=c58161c0-2547-11e2-a75e-9fdca1940570,ou=images,o=smartdc"
     dns+=" uuid=47e6af92-daf0-11e0-ac11-473ca1173ab0,ou=images,o=smartdc"
     dns+=" uuid=1fc068b0-13b0-11e2-9f4e-2f3f6a96d9bc,ou=images,o=smartdc"
+    dns+=" uuid=583287ae-366b-11e2-aea4-bf6c552eb39b,ou=images,o=smartdc"
 
     for dn in $dns; do
         if [[ -n "$($TOP/test/sdc-ldap search -b "$dn")" ]]; then
