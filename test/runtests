@@ -168,8 +168,8 @@ if [[ "$opt_mode" == "dc" ]]; then
         CFG_FILE=$TOP/etc/imgapi.config.json
         [[ ! -f "$CFG_FILE" ]] && fatal "'$CFG_FILE' does not exist"
         export UFDS_URL=$(json ufds.url <$CFG_FILE)
-        export UFDS_ROOT_DN=$(json ufds.rootDn <$CFG_FILE)
-        export UFDS_PASSWORD=$(json ufds.password <$CFG_FILE)
+        export UFDS_ROOT_DN=$(json ufds.bindDN <$CFG_FILE)
+        export UFDS_PASSWORD=$(json ufds.bindPassword <$CFG_FILE)
         if [[ $(zonename) == "global" ]]; then
             export IMGAPI_URL=http://$(/opt/smartdc/bin/sdc-vmapi /vms \
                 | json -H -c 'tags.smartdc_role=="imgapi"' -c 'state=="running"' 0.nics.0.ip)

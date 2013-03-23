@@ -1913,8 +1913,8 @@ top-level keys in the factory settings. For example: if providing
 ||database||Object||-||Database info. The "database" is how the image manifest data is stored.||
 ||database.type||String||ufds||One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images.||
 ||database.url||String||-||LDAP URL to connect to UFDS. Required if `database.type === 'ufds'`.||
-||database.rootDn||String||-||UFDS root dn. Required if `database.type === 'ufds'`.||
-||database.password||String||-||UFDS root dn password. Required if `database.type === 'ufds'`.||
+||database.bindDN||String||-||UFDS root dn. Required if `database.type === 'ufds'`.||
+||database.bindPassword||String||-||UFDS root dn password. Required if `database.type === 'ufds'`.||
 ||database.dir||String||-||The base directory for the database `database.type === 'local'`.||
 ||storage||Object||-||The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion.||
 ||storage.manta||Object||-||TODO: doc||

@@ -120,8 +120,8 @@ function loadConfigSync(configPath) {
         'config.database.type not "ufds" or "local"');
     if (config.database.type === 'ufds') {
         assert.string(config.database.url, 'config.database.url');
-        assert.string(config.database.rootDn, 'config.database.rootDn');
-        assert.string(config.database.password, 'config.database.password');
+        assert.string(config.database.bindDN, 'config.database.bindDN');
+        assert.string(config.database.bindPassword, 'config.database.bindPassword');
     } else if (config.database.type === 'local') {
         assert.string(config.database.dir, 'config.database.dir');
     }
