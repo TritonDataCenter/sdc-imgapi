@@ -2000,4 +2000,77 @@ TODO: sdc-healthcheck, sdc-webinfo
         # to the ssh key?
 
 
+## Configuring IMGAPI for HTTPS
+
+On SmartOS, IMGAPI can be deployed to support HTTPS with the use of Stud
+(https://github.com/bumptech/stud) as a SSL/TLS termination proxy. Because of the
+way Stud works we need to put an additional reverse proxy between Stud and IMGAPI:
+HAProxy. The only caveat here is that the latest version of HAProxy doesn't
+fully understand the traffic coming from Stud, so we use a patched version of
+the package.
+
+### Prerrequisites and Assumptions
+
+* IMGAPI running on an Image with at least a 2012Q2 release of pkgsrc
+* IMGAPI running on port 8080 if using configuration defaults
+* Generated certficate file
+* gmake
+
+### Installing and Configuring HAProxy
+
+The IMGAPI repository contains the patched copy of HAProxy under the deps/
+directory. cd to that directory and proceed to compile HAProxy as follows:
+
+    cd $IMGAPI_REPO/deps/haproxy-1.4.21/
+    gmake TARGET=solaris
+
+It's not necessary to move the resulting binary to another location. Now, we need
+to configure HAProxy. This repository contains a sample configuration file (on
+etc/haproxy.cfg.in) that will make the proxy listen on port 8443 and redirect
+its traffic to port 8080.
+
+The final step is to import the HAProxy SMF file in order to run the proxy as a
+service. The IMGAPI repository contains a sample service definition file that
+can be imported after updating the exec_method tag and config_file values to
+reflect the current install setup. With a valid SMF file we can proceed to
+import it and start running HAProxy:
+
+  cp $IMGAPI_REPO/smf/manifests/haproxy.xml.in $IMGAPI_REPO/smf/manifests/haproxy.xml
+  # --- Replace variables ---
+  svccfg import $IMGAPI_REPO/smf/manifests/haproxy.xml
+  svcadm enable haproxy:default
+
+### Installing and configuring Stud
+
+Configuring Stud is easier since it doesn't require a custom binary, we use the
+version provided by pksrc. Additionally, pkgsrc provides a sample SMF and
+configuration file to use for Stud. Begin by installing the package:
+
+  # Install Stud
+  pkgin -y in stud-0nb20120827
+
+This package will write a sample configuration file to /opt/local/etc/stud.conf.
+For this guide we assume that Stud will terminate and redirect its traffic to a
+service listening on port 8443. The only additional value we need to modify
+is pem-file, which specifies the location of the SSL certificate to use. After
+updating the configuration file we enable the Stud SMF service, since the sample
+SMF file was already imported (assuming we are OK with using
+/opt/local/etc/stud.conf as the location for our configuration file):
+
+  svcadm enable stud:default
+
+At this point Stud, HAProxy and IMGAPI should all be running correctly. We can
+confirm this with the help of the netstat command:
+
+    netstat -f inet -an
+
+    TCP: IPv4
+       Local Address        Remote Address    Swind Send-Q Rwind Recv-Q    State
+    -------------------- -------------------- ----- ------ ----- ------ -----------
+          *.8080               *.*                0      0 128000      0 LISTEN
+          *.8443               *.*                0      0 128000      0 LISTEN
+    127.0.0.1.8081             *.*                0      0 128000      0 LISTEN
+          *.443                *.*                0      0 128000      0 LISTEN
+
+
 <!-- #endif -->
