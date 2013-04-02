@@ -2035,10 +2035,10 @@ can be imported after updating the exec_method tag and config_file values to
 reflect the current install setup. With a valid SMF file we can proceed to
 import it and start running HAProxy:
 
-  cp $IMGAPI_REPO/smf/manifests/haproxy.xml.in $IMGAPI_REPO/smf/manifests/haproxy.xml
-  # --- Replace variables ---
-  svccfg import $IMGAPI_REPO/smf/manifests/haproxy.xml
-  svcadm enable haproxy:default
+    cp $IMGAPI_REPO/smf/manifests/haproxy.xml.in $IMGAPI_REPO/smf/manifests/haproxy.xml
+    # --- Replace variables ---
+    svccfg import $IMGAPI_REPO/smf/manifests/haproxy.xml
+    svcadm enable haproxy:default
 
 ### Installing and configuring Stud
 
@@ -2046,8 +2046,8 @@ Configuring Stud is easier since it doesn't require a custom binary, we use the
 version provided by pksrc. Additionally, pkgsrc provides a sample SMF and
 configuration file to use for Stud. Begin by installing the package:
 
-  # Install Stud
-  pkgin -y in stud-0nb20120827
+    # Install Stud
+    pkgin -y in stud-0nb20120827
 
 This package will write a sample configuration file to /opt/local/etc/stud.conf.
 For this guide we assume that Stud will terminate and redirect its traffic to a
@@ -2057,7 +2057,7 @@ updating the configuration file we enable the Stud SMF service, since the sample
 SMF file was already imported (assuming we are OK with using
 /opt/local/etc/stud.conf as the location for our configuration file):
 
-  svcadm enable stud:default
+    svcadm enable stud:default
 
 At this point Stud, HAProxy and IMGAPI should all be running correctly. We can
 confirm this with the help of the netstat command:
