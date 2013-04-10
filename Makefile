@@ -37,7 +37,7 @@ endif
 include ./tools/mk/Makefile.smf.defs
 
 RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-TMPDIR          := /tmp/$(STAMP)
+RELTMPDIR       := /tmp/$(STAMP)
 
 
 
@@ -111,10 +111,10 @@ public-docs: docs
 .PHONY: release
 release: all public-docs
 	@echo "Building $(RELEASE_TARBALL)"
-	mkdir -p $(TMPDIR)/root/opt/smartdc/$(NAME)
-	mkdir -p $(TMPDIR)/site
-	touch $(TMPDIR)/site/.do-not-delete-me
-	mkdir -p $(TMPDIR)/root
+	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(RELTMPDIR)/site
+	touch $(RELTMPDIR)/site/.do-not-delete-me
+	mkdir -p $(RELTMPDIR)/root
 	cp -r \
 		$(TOP)/bin \
 		$(TOP)/main.js \
@@ -124,19 +124,19 @@ release: all public-docs
 		$(TOP)/package.json \
 		$(TOP)/smf \
 		$(TOP)/test \
-		$(TMPDIR)/root/opt/smartdc/$(NAME)
-	mkdir -p $(TMPDIR)/root/opt/smartdc/$(NAME)/build
+		$(RELTMPDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/build/node \
 		$(TOP)/build/public-docs \
-		$(TMPDIR)/root/opt/smartdc/$(NAME)/build
-	mkdir -p $(TMPDIR)/root/var/svc
+		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
+	mkdir -p $(RELTMPDIR)/root/var/svc
 	cp -r \
 		$(TOP)/sdc/setup \
 		$(TOP)/sdc/configure \
-		$(TMPDIR)/root/var/svc
-	(cd $(TMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
-	@rm -rf $(TMPDIR)
+		$(RELTMPDIR)/root/var/svc
+	(cd $(RELTMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
+	@rm -rf $(RELTMPDIR)
 
 .PHONY: publish
 publish: release
