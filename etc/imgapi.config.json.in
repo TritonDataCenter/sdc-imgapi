@@ -1,0 +1,24 @@
+{
+    "// notes": "This is an example IMGAPI config for example only.",
+
+    "serverName": "{{NAME}}",
+
+    "mode": "dc",
+    "// mode": "public",
+    "// auth": {
+        "type": "signature",
+        "keys": {
+            "bob": ["ssh-rsa ...== comment"]
+        }
+    },
+
+    "storage": {
+        "local": {
+            "dir": "/var/tmp/imgapi/images"
+        }
+    },
+    "database": {
+        "type": "local",
+        "dir": "/var/tmp/imgapi/manifests"
+    }
+}

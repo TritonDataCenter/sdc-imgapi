@@ -191,7 +191,7 @@ deploy-updates.joyent.us:
 
 .PHONY: devrun
 devrun:
-	node-dev main.js -f tools/imgapi.config.local-signature-auth.json | bunyan -o short
+	node-dev main.js -f etc/imgapi.config.json | bunyan -o short
 
 .PHONY: dumpvar
 dumpvar:
