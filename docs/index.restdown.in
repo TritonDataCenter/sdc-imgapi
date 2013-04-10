@@ -1980,14 +1980,22 @@ TODO: sdc-healthcheck, sdc-webinfo
         HN=stage2    # my SDC headnode login
 
         # Get one of the Manta LB IPs:
-        export MANTA_URL=$(ssh $HN "/opt/smartdc/bin/sdc-vmapi /vms?tag.manta_role=loadbalancer | json -H -c 'this.state==\"running\"' 0.nics | json -c 'this.nic_tag==\"external\"' 0.ip" 2>/dev/null)
+        export MANTA_URL=https://$(ssh $HN "/opt/smartdc/bin/sdc-vmapi /vms?tag.manta_role=loadbalancer | json -H -c 'this.state==\"running\"' 0.nics | json -c 'this.nic_tag==\"external\"' 0.ip" 2>/dev/null)
 
         # Get a local copy of the admin SSH key being used for Manta access
         # (or add your own to the admin user).
         ZONENAME=$(ssh $HN vmadm lookup -1 alias=imgapi0)
-        cd /var/tmp
+        mkdir -p /var/tmp/$HN
+        cd /var/tmp/$HN
         scp $HN:/zones/$ZONENAME/root/opt/smartdc/imgapi/etc/id_rsa* .
-        export MANTA_KEY_ID=`pwd`/id_rsa
+
+        # This would be sufficient for python-manta and mantash:
+        #    export MANTA_KEY_ID=`pwd`/id_rsa
+        # However, node-manta tools are a little more picky. You need to
+        # have your id_rsa in ~/.ssh or in your agent. So we'll do the
+        # latter:
+        ssh-add `pwd`/id_rsa
+        MANTA_KEY_ID=$(ssh-keygen -l -f id_rsa.pub | awk '{print $2}')
 
         export MANTA_USER=admin
         set | grep MANTA_
