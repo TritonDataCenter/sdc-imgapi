@@ -25,7 +25,7 @@ ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
 endif
 IMAGES_JOYENT_COM_NODE=/root/opt/node-0.8.20
-UPDATES_JOYENT_COM_NODE=/root/opt/node-0.8.20
+UPDATES_JOYENT_COM_NODE=/root/opt/node-0.8.22
 
 
 include ./tools/mk/Makefile.defs
@@ -176,7 +176,6 @@ deploy-updates.joyent.us:
 	ssh root@updates.joyent.us ' \
 		set -x \
 		&& export PATH=$(UPDATES_JOYENT_COM_NODE)/bin:$$PATH \
-		&& which node && node --version && npm --version \
 		&& test ! -d /root/services/imgapi.deploying \
 		&& cd /root/services \
 		&& cp -PR imgapi imgapi.deploying \
