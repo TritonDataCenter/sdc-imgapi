@@ -776,7 +776,7 @@ authenticated account. The latter is for operator-only querying.
 ||owner||UUID||Only list images owned by this account.||
 ||state||String||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
 ||name||String||List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
-||version||String||List images with the given version.||
+||version||String||List images with the given version. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
 ||public||Boolean||List just public or just private images.||
 ||os||String||List images with the given os.||
 ||type||String||List images of the given type.||

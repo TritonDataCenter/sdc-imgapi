@@ -6,7 +6,7 @@
 - XMPP/Jabber: <mib@groupchat.joyent.com>
 - Tickets/bugs: <https://devhub.joyent.com/jira/browse/IMGAPI>
 - CI builds: <https://jenkins.joyent.us/job/imgapi>,
-  <https://stuff.joyent.us/stuff/builds/imgapi/>
+  <https://bits.joyent.us/builds/imgapi/>
 
 
 # Overview

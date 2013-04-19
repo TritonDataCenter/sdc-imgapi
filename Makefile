@@ -168,12 +168,12 @@ deploy-images.joyent.com:
 		&& svcadm restart imgapi \
 		&& tail -f `svcs -L imgapi` | bunyan -o short'
 
-.PHONY: deploy-updates.joyent.us
-deploy-updates.joyent.us:
-	@echo '# Deploy to updates.joyent.us. This is a *production* server.'
+.PHONY: deploy-updates.joyent.com
+deploy-updates.joyent.com:
+	@echo '# Deploy to updates.joyent.com. This is a *production* server.'
 	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
 	@read
-	ssh root@updates.joyent.us ' \
+	ssh root@updates.joyent.com ' \
 		set -x \
 		&& export PATH=$(UPDATES_JOYENT_COM_NODE)/bin:$$PATH \
 		&& test ! -d /root/services/imgapi.deploying \
