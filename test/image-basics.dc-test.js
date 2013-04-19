@@ -97,6 +97,7 @@ test('CreateImage', function (t) {
         },
         billing_tags: ['oracle'],
         traits: { foo: 'bar', ssd: true },
+        tags: { key: 'value' },
         homepage: 'http://images.com/v1.html'
     };
 

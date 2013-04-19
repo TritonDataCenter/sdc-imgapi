@@ -178,6 +178,7 @@ A summary of fields (details are provided below):
 ||[users](#manifest-users)||Array||No||Yes||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[billing_tags](#manifest-billing-tags)||Array||No||Yes||A list of tags that can be used by operators for additional billing processing.||
 ||[traits](#manifest-traits)||Object||No||Yes||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
+||[tags](#manifest-tags)||Object||No||Yes||An object of key/value pairs that allows clients to categorize images by any given criteria.||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||Yes||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||No||Yes||A list of inherited directories (other than the defaults for the brand).||
 ||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||Yes||NIC driver used by this VM image.||
@@ -538,6 +539,18 @@ strings are allowed for their values. Example:
         "users": ["ef5d70c0-5281-154a-9f05-fad0ff43181e],
         "hw": ["richmond-a"],
         "over-provision-ram": "2.5"
+    }
+
+## Manifest: tags
+
+Optional. An object of key/value pairs that allows clients to categorize images
+by any given criteria. The keys allowed in this object are application specific,
+but only strings, numbers or booleans are allowed for their values.
+Example:
+
+    "tags": {
+      "role": "db",
+      "license": "gpl"
     }
 
 ## Manifest: generate_passwords
@@ -1118,6 +1131,7 @@ provisioning.
 ||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[billing_tags](#manifest-billing-tags)||Array||No||-||A list of tags that can be used by operators for additional billing processing.||
 ||[traits](#manifest-traits)||Object||No||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
+||[tags](#manifest-tags)||Object||No||-||An object of key/value pairs that allows clients to categorize images by any given criteria.||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||No||-||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||No||-||A list of inherited directories (other than the defaults for the brand).||
 ||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||-||NIC driver used by this VM image.||
@@ -1673,6 +1687,7 @@ updated.
 ||[users](#manifest-users)||Array||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
 ||[billing_tags](#manifest-billing-tags)||Array||-||A list of tags that can be used by operators for additional billing processing.||
 ||[traits](#manifest-traits)||Object||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
+||[tags](#manifest-tags)||Object||-||An object of key/value pairs that allows clients to categorize images by any given criteria.||
 ||[inherited_directories](#manifest-inherited-directories)||Array||-||A list of inherited directories (other than the defaults for the brand).||
 ||[generate_passwords](#manifest-generate-passwords)||Boolean||-||A boolean indicating whether to generate passwords for the users in the "users" field.||
 ||[nic_driver](#manifest-nic-driver)||String||-||NIC driver used by this VM image. Required if `type==="zvol"`||
