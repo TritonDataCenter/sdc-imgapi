@@ -576,7 +576,8 @@ test('AdminImportImage from images.joyent.com', function (t) {
 
     var imagesClient = new IMGAPI({
         url: 'https://' + IMAGES_JOYENT_COM_IP,
-        agent: false
+        agent: false,
+        rejectUnauthorized: false
     });
 
     function getManifestFromImagesJo(next) {
@@ -728,7 +729,8 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
 
     var datasetsClient = new DSAPI({
         url: 'https://' + DATASETS_JOYENT_COM_IP,
-        agent: false
+        agent: false,
+        rejectUnauthorized: false
     });
 
     function getManifestFromDatasetsJo(next) {
