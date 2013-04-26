@@ -58,12 +58,12 @@ if (os.platform() === 'darwin') {
 }
 
 var CONFIG_VARS = [
-    "SAPI_ADMIN_IPS",
-    "VMAPI_ADMIN_IPS",
-    "UFDS_ADMIN_UUID",
-    "UFDS_ADMIN_IPS",
-    "UFDS_LDAP_ROOT_DN",
-    "UFDS_LDAP_ROOT_PW"
+    'SAPI_ADMIN_IPS',
+    'VMAPI_ADMIN_IPS',
+    'UFDS_ADMIN_UUID',
+    'UFDS_ADMIN_IPS',
+    'UFDS_LDAP_ROOT_DN',
+    'UFDS_LDAP_ROOT_PW'
 ];
 
 
@@ -90,6 +90,7 @@ function loadConfig(opts, callback) {
         line = line.trim();
         if (!line.length)
             return;
+        /* JSSTYLED */
         var match = /^(\w+)='(.*?)'$/.exec(line);
         if (!match) {
             console.warn('unexpected line in "%s": "%s"',
@@ -113,13 +114,13 @@ function loadConfig(opts, callback) {
         }
     }
 
-    // "UFDS_ADMIN_IP" is the first of UFDS_ADMIN_IPS
+    // 'UFDS_ADMIN_IP' is the first of UFDS_ADMIN_IPS
     config.UFDS_ADMIN_IP = (opts.ufds_admin_ip ||
         config.UFDS_ADMIN_IPS.split(',')[0].trim());
-    // "SAPI_ADMIN_IP" is the first of SAPI_ADMIN_IPS
+    // 'SAPI_ADMIN_IP' is the first of SAPI_ADMIN_IPS
     config.SAPI_ADMIN_IP = (opts.sapi_admin_ip ||
         config.SAPI_ADMIN_IPS.split(',')[0].trim());
-    // "VMAPI_ADMIN_IP" is the first of VMAPI_ADMIN_IPS
+    // 'VMAPI_ADMIN_IP' is the first of VMAPI_ADMIN_IPS
     config.VMAPI_ADMIN_IP = (opts.vmapi_admin_ip ||
         config.VMAPI_ADMIN_IPS.split(',')[0].trim());
 
@@ -133,7 +134,7 @@ function getMantaUrl(config, callback) {
     assert.object(config, 'config');
     assert.func(callback, 'callback');
 
-    if (config.manta_url !== "FIRST-LB") {
+    if (config.manta_url !== 'FIRST-LB') {
         return callback(null, config.manta_url);
     }
 
@@ -149,7 +150,8 @@ function getMantaUrl(config, callback) {
     });
 
     sapi.listApplications({name: 'manta'}, function (aErr, apps) {
-        if (aErr) return callback(aErr);
+        if (aErr)
+            return callback(aErr);
         if (apps.length === 0) {
             return callback(new Error('no "manta" application found'));
         }
@@ -157,7 +159,7 @@ function getMantaUrl(config, callback) {
         var mantaOwner = app.owner_uuid;  // should be the poseidon UUID
 
         // TODO: should perhaps use the app.metadata.MANTA_SERVICE
-        // (e.g. "MANTA_SERVICE": "manta.bh1.joyent.us"), but at least in
+        // (e.g. 'MANTA_SERVICE': 'manta.bh1.joyent.us'), but at least in
         // staging that doesn't resolve yet. For now we'll use the first
         // LB IP.
         var search = {
@@ -165,7 +167,8 @@ function getMantaUrl(config, callback) {
             'tag.manta_role': 'loadbalancer'
         };
         vmapi.listVms(search, function (vErr, vms) {
-            if (vErr) return callback(vErr);
+            if (vErr)
+                return callback(vErr);
             if (vms.length === 0) {
                 return callback(new Error(
                     'no manta "loadbalancer" VMs were found'));
@@ -284,7 +287,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
         function (next) {
             log.info('get the sdc application from SAPI');
             sapi.listApplications({name: 'sdc'}, function (aErr, apps) {
-                if (aErr) return next(aErr);
+                if (aErr)
+                    return next(aErr);
                 app = apps[0];
                 next();
             });
@@ -293,7 +297,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
             log.info('check whether SAPI already has an imgapi key');
             var searchOpts = {name: 'imgapi', application_uuid: app.uuid};
             sapi.listServices(searchOpts, function (sErr, svcs) {
-                if (sErr) return next(sErr);
+                if (sErr)
+                    return next(sErr);
                 svc = svcs[0];
                 if (!svc.manifests.ssh_public_key ||
                     !svc.manifests.ssh_private_key ||
@@ -305,15 +310,16 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                 }
                 // Check if the 'imgapi' manifest (i.e. the imgapi.config.json
                 // file) is setup for manta.
-                sapi.getManifest(svc.manifests.imgapi, function (gErr, manifest) {
-                    if (gErr) return next(gErr);
+                sapi.getManifest(svc.manifests.imgapi, function (gErr, m) {
+                    if (gErr)
+                        return next(gErr);
                     try {
-                        var template = JSON.parse(manifest.template);
+                        var template = JSON.parse(m.template);
                     } catch (e) {
                         return next(new Error(format(
                             'could not JSON.parse imgapi manifest %s '
                             + 'template: "%s"',
-                            svc.manifests.imgapi, manifest.template)));
+                            svc.manifests.imgapi, m.template)));
                     }
                     if (!template.storage.manta) {
                         // TODO: could verify that settings match the key
@@ -333,7 +339,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
         function (next) {
             log.info('generate a new key');
             generateKey(function (kErr, key_) {
-                if (kErr) return next(kErr);
+                if (kErr)
+                    return next(kErr);
                 key = key_;
                 log.info({key: key}, 'generated key');
                 next();
@@ -346,7 +353,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                 IMGAPI_KEY_ID: key.id
             };
             sapi.updateService(svc.uuid, {metadata: md}, function (uErr) {
-                if (uErr) return (next(uErr));
+                if (uErr)
+                    return (next(uErr));
                 log.info('metadata added to imgapi service');
                 next();
             });
@@ -359,7 +367,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                 path: '/root/.ssh/id_rsa.pub'
             };
             sapi.createManifest(data, function (mErr, manifest) {
-                if (mErr) return next(mErr);
+                if (mErr)
+                    return next(mErr);
                 log.info({manifest: manifest}, 'pub key manifest created');
                 var update = {
                     manifests: {
@@ -367,7 +376,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                     }
                 };
                 sapi.updateService(svc.uuid, update, function (uErr) {
-                    if (uErr) return next(uErr);
+                    if (uErr)
+                        return next(uErr);
                     log.info('pub key manifest added to imgapi service');
                     if (oldUuid) {
                         log.info('delete old pub key manifest:', oldUuid);
@@ -386,7 +396,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                 path: '/root/.ssh/id_rsa'
             };
             sapi.createManifest(data, function (mErr, manifest) {
-                if (mErr) return next(mErr);
+                if (mErr)
+                    return next(mErr);
                 log.info({manifest: manifest}, 'priv key manifest created');
                 var update = {
                     manifests: {
@@ -394,7 +405,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                     }
                 };
                 sapi.updateService(svc.uuid, update, function (uErr) {
-                    if (uErr) return next(uErr);
+                    if (uErr)
+                        return next(uErr);
                     log.info('priv key manifest added to imgapi service');
                     if (oldUuid) {
                         log.info('delete old priv key manifest:', oldUuid);
@@ -407,9 +419,9 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
         },
         function (next) {
             // Add the 'storage.manta' section to the imgapi config.
-            // wdp: CreateManifest, then UpdateInstance to refer to the new manifest
             sapi.getManifest(svc.manifests.imgapi, function (gErr, oldMan) {
-                if (gErr) return next(gErr);
+                if (gErr)
+                    return next(gErr);
                 try {
                     var template = JSON.parse(oldMan.template);
                 } catch (e) {
@@ -430,7 +442,8 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                     template: JSON.stringify(template, null, 2)
                 };
                 sapi.createManifest(newMan, function (mErr, manifest) {
-                    if (mErr) return next(mErr);
+                    if (mErr)
+                        return next(mErr);
                     log.info({manifest: manifest},
                         'new imgapi config manifest created');
                     var update = {
@@ -440,10 +453,12 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                     };
                     var oldManifestUuid = svc.manifests.imgapi;
                     sapi.updateService(svc.uuid, update, function (uErr) {
-                        if (uErr) return next(uErr);
-                        log.info('imgapi config manifest added to imgapi service');
+                        if (uErr)
+                            return next(uErr);
+                        log.info('config manifest added to imgapi service');
                         sapi.deleteManifest(oldManifestUuid, function (dErr) {
-                            if (dErr) return next(dErr);
+                            if (dErr)
+                                return next(dErr);
                             log.info('deleted old "imgapi" manifest: %s',
                                 oldManifestUuid);
                             next();
@@ -490,9 +505,7 @@ function ensureKeyOnAdminUser(config, key, sdcApp, callback) {
     log.info('ensure admin user has the imgapi key');
 
     // Get the URL for the *master* UFDS, which might not be local.
-    var ufdsIsMaster = ((sdcApp.metadata.ufds_is_master || sdcApp.metadata.ufds_is_local) === 'true');
-    //XXX
-    //var ufdsIsMaster = (sdcApp.metadata.ufds_is_master === 'true');
+    var ufdsIsMaster = (sdcApp.metadata.ufds_is_master === 'true');
     var ufdsIp;
     if (ufdsIsMaster) {
         ufdsIp = sdcApp.metadata.ufds_admin_ips.split(',')[0];
@@ -529,16 +542,19 @@ function ensureKeyOnAdminUser(config, key, sdcApp, callback) {
     };
     getUfdsClient(options, function (cErr, ufds) {
         ufds.getUser(config.UFDS_ADMIN_UUID, function (uErr, user) {
-            if (uErr) return callback(uErr);
+            if (uErr)
+                return callback(uErr);
             log.info({user: user}, 'got %s user', config.UFDS_ADMIN_UUID);
             var sdcKey = {
                 name: format('%s imgapi', sdcApp.metadata.datacenter_name),
                 openssh: key.pub
             };
             deleteKeyIfExists(ufds, user, sdcKey.name, function (dErr) {
-                if (dErr) return callback(dErr);
+                if (dErr)
+                    return callback(dErr);
                 ufds.addKey(user, sdcKey, function (aErr, addedKey) {
-                    if (aErr) return callback(aErr);
+                    if (aErr)
+                        return callback(aErr);
                     log.info({addedKey: addedKey},
                         'added sdckey to admin user in UFDS');
                     ufds.close(callback);
