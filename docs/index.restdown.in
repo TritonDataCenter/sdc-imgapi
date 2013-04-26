@@ -1714,7 +1714,7 @@ Raw API tool:
 
 CLI tool:
 
-    $ sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874 -F data.json
+    $ sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874 -f data.json
     $ sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874 description='new description'
     $ cat data.json | sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874
 
