@@ -1933,9 +1933,14 @@ top-level keys in the factory settings. For example: if providing
 ||database.bindPassword||String||-||UFDS root dn password. Required if `database.type === 'ufds'`.||
 ||database.dir||String||-||The base directory for the database `database.type === 'local'`.||
 ||storage||Object||-||The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion.||
-||storage.manta||Object||-||TODO: doc||
-||storage.dcls||Object||-||TODO: doc||
-||storage.local||Object||-||TODO: doc||
+||storage.local||Object||-||Object holding config information for "local" disk storage.||
+||storage.local.dir||String||-||The base directory in which to store image files for "local" storage.||
+||storage.manta||Object||-||Object holding config information for Manta storage.||
+||storage.manta.url||String||-||The Manta API URL.||
+||storage.manta.user||String||-||The Manta user under which to store data.||
+||storage.manta.key||String||-||Path to the SSH private key file with which to authenticate to Manta.||
+||storage.manta.keyId||String||-||The SSH public key ID (signature).||
+
 
 
 # Developer Guide
