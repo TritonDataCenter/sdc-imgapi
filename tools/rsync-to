@@ -1,14 +1,13 @@
 #!/bin/bash
 #
-# Rsync the master in this working copy to the install on the bh1-kvm7 headnode
-# GZ.
+# Rsync the master in this working copy to the install on the given HN.
 #
 
 #set -o xtrace
 set -o errexit
 
 TOP=$(cd $(dirname $0)/../; pwd)
-NODE=root@10.2.109.20
+NODE=$1
 
 if [[ -z "$IMGAPI_ZONE" ]]; then
     IMGAPI_ZONE=$(ssh $NODE "/opt/smartdc/bin/sdc-vmapi /vms" 2>/dev/null \
@@ -20,6 +19,9 @@ echo "IMGAPI_ZONE: $IMGAPI_ZONE"
 extraOpts=
 if [[ $(uname -s) != "SunOS" ]]; then
     extraOpts="--exclude *.node --exclude build"
+else
+    # Clean node_modules everytime.
+    ssh $NODE rm -rf /zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/node_modules
 fi
 
 rsync -av ${TOP}/ \

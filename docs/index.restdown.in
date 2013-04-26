@@ -2007,13 +2007,14 @@ TODO: sdc-healthcheck, sdc-webinfo
         ZONENAME=$(ssh $HN vmadm lookup -1 alias=imgapi0)
         mkdir -p /var/tmp/$HN
         cd /var/tmp/$HN
-        scp $HN:/zones/$ZONENAME/root/opt/smartdc/imgapi/etc/id_rsa* .
+        scp $HN:/zones/$ZONENAME/root/root/.ssh/id_rsa* .
 
         # This would be sufficient for python-manta and mantash:
         #    export MANTA_KEY_ID=`pwd`/id_rsa
         # However, node-manta tools are a little more picky. You need to
         # have your id_rsa in ~/.ssh or in your agent. So we'll do the
         # latter:
+        chmod 0600 id_rsa*
         ssh-add `pwd`/id_rsa
         MANTA_KEY_ID=$(ssh-keygen -l -f id_rsa.pub | awk '{print $2}')
 
