@@ -8,6 +8,7 @@ var format = require('util').format;
 var exec = require('child_process').exec;
 var crypto = require('crypto');
 var fs = require('fs');
+var dns = require('dns');
 var https = require('https');
 var async = require('async');
 var restify = require('restify');
@@ -47,15 +48,18 @@ before(function (next) {
 
     // We typically run this test suite from the GZ, where DNS isn't enabled.
     // We need to manually get the IPs for services we are hitting.
-    exec('dig images.joyent.com +short', function (err, stdout, stderr) {
+    dns.lookup('images.joyent.com', function (err, ip) {
         if (err)
             return next(err);
-        IMAGES_JOYENT_COM_IP = stdout.trim();
-        exec('dig datasets.joyent.com +short',
-        function (err2, stdout2, stderr2) {
+        if (!ip)
+            return next(new Error('could not resolve images.joyent.com'));
+        IMAGES_JOYENT_COM_IP = ip;
+        dns.lookup('datasets.joyent.com', function (err2, ip2) {
             if (err2)
                 return next(err2);
-            DATASETS_JOYENT_COM_IP = stdout2.trim();
+            if (!ip2)
+                return next(new Error('could not resolve datasets.joyent.com'));
+            DATASETS_JOYENT_COM_IP = ip2;
             next();
         });
     });
