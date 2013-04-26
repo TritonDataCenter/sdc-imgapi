@@ -5,7 +5,7 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
-    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#44a051e",
+    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#68d7337",
     "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#48900a3",
     "ldapjs": "0.5.7",
     "restify": "git+ssh://git@github.com:mcavage/node-restify.git#cbf497d",
@@ -18,6 +18,7 @@
     "mkdirp": "0.3.4",
     "rimraf": "2.0.2",
     "once": "1.1.1",
+    "dashdash": "1.2.1",
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#1c401e2",
     "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#45dd4db2"
   },
