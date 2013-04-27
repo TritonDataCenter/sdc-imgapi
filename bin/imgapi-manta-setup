@@ -25,6 +25,7 @@ var path = require('path');
 var fs = require('fs');
 var os = require('os');
 
+var once = require('once');
 var assert = require('assert-plus');
 var dashdash = require('dashdash');
 var async = require('async');
@@ -185,9 +186,63 @@ function getMantaUrl(config, callback) {
                 return callback(new Error(
                     'no external IP on the first Manta LB'));
             }
-            var mantaUrl = 'http://' + ip;
+            var mantaUrl = 'https://' + ip;
             callback(null, mantaUrl);
         });
+    });
+}
+
+
+function getUfdsClient(config, sdcApp, callback) {
+    assert.object(config, 'config');
+    assert.object(sdcApp, 'sdcApp');
+    assert.func(callback, 'callback');
+    log.info('get *master* ufdsClient');
+
+    // Get the URL for the *master* UFDS, which might not be local.
+    var ufdsIsMaster = (sdcApp.metadata.ufds_is_master === 'true');
+    var ufdsIp;
+    if (ufdsIsMaster) {
+        ufdsIp = sdcApp.metadata.ufds_admin_ips.split(',')[0];
+    } else {
+        ufdsIp = sdcApp.metadata.ufds_remote_ip;
+    }
+    if (!ufdsIp) {
+        callback(new Error('could not find master UFDS IP (in '
+            + '"ufds_admin_ips" or "ufds_remote_ip")'));
+        return;
+    }
+    var ufdsUrl = 'ldaps://' + ufdsIp;
+
+    var options = {
+        url: ufdsUrl,
+        bindDN: config.UFDS_LDAP_ROOT_DN,
+        bindPassword: config.UFDS_LDAP_ROOT_PW,
+        log: log
+    };
+    var ufds = new sdcClients.UFDS(options);
+
+    var callback_ = once(callback);
+    ufds.on('ready', function () {
+        log.info('ufds client is ready');
+        callback_(null, ufds);
+    });
+    ufds.on('timeout', function () {
+        log.error('ufds client timeout');
+    });
+    ufds.on('error', function (connErr) {
+        log.error('ufds client connect error');
+        callback_(connErr);
+    });
+}
+
+
+function getAdminUser(config, ufdsClient, callback) {
+    ufdsClient.getUser(config.UFDS_ADMIN_UUID, function (uErr, user) {
+        if (uErr)
+            return callback(uErr);
+        log.info({user: user}, 'got admin user');
+        callback(null, user);
     });
 }
 
@@ -268,40 +323,47 @@ function generateKey(callback) {
 }
 
 
+function getSdcApp(config, callback) {
+    var sapi = new sdcClients.SAPI({
+        url: 'http://' + config.SAPI_ADMIN_IP,
+        log: log,
+        agent: false
+    });
+    sapi.listApplications({name: 'sdc'}, function (aErr, apps) {
+        if (aErr)
+            return next(aErr);
+        callback(null, apps[0]);
+    });
+}
+
+
 /**
  * Ensure there is a key (pub and priv) in SAPI for the imgapi service. If
- * not, create it and add it.
+ * not, create it and add it.  This also include other updates: the imgapi
+ * config file, the ~/.mantaprofile file in the imgapi zones.
  *
- * @param config
- * @param callback {Function} `function (err, key, sdcApp)`
+ * ...
+ * @param callback {Function} `function (err, key)`
  */
-function ensureKeyInSapi(config, mantaUrl, callback) {
+function ensureKeyInSapi(config, sdcApp, mantaUrl, adminUser, callback) {
     var sapi = new sdcClients.SAPI({
         url: 'http://' + config.SAPI_ADMIN_IP,
         log: log,
         agent: false
     });
 
-    var app, svc, key;
+    var svc, key;
     async.series([
         function (next) {
-            log.info('get the sdc application from SAPI');
-            sapi.listApplications({name: 'sdc'}, function (aErr, apps) {
-                if (aErr)
-                    return next(aErr);
-                app = apps[0];
-                next();
-            });
-        },
-        function (next) {
             log.info('check whether SAPI already has an imgapi key');
-            var searchOpts = {name: 'imgapi', application_uuid: app.uuid};
+            var searchOpts = {name: 'imgapi', application_uuid: sdcApp.uuid};
             sapi.listServices(searchOpts, function (sErr, svcs) {
                 if (sErr)
                     return next(sErr);
                 svc = svcs[0];
                 if (!svc.manifests.ssh_public_key ||
                     !svc.manifests.ssh_private_key ||
+                    !svc.manifests.mantaprofile ||
                     !svc.metadata.IMGAPI_PUBLIC_KEY ||
                     !svc.metadata.IMGAPI_PRIVATE_KEY ||
                     !svc.metadata.IMGAPI_KEY_ID)
@@ -432,7 +494,7 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                 }
                 template.storage.manta = {
                     url: mantaUrl,
-                    user: config.UFDS_ADMIN_UUID,
+                    user: adminUser.login,
                     key: '/root/.ssh/id_rsa',
                     keyId: key.id
                 };
@@ -466,61 +528,70 @@ function ensureKeyInSapi(config, mantaUrl, callback) {
                     });
                 });
             });
+        },
+        function (next) {
+            // Create a '~/.mantaprofile' to setup for using the node-manta
+            // tools in the imgapi zones.
+            var oldUuid = svc.manifests.mantaprofile;
+            var data = {
+                name: 'mantaprofile',
+                template: (
+                    format('export MANTA_USER=%s\n', adminUser.login)
+                    + format('export MANTA_URL=%s\n', mantaUrl)
+                    + format('export MANTA_KEY_ID=%s\n', key.id)
+                ),
+                path: '/root/.mantaprofile'
+            };
+            sapi.createManifest(data, function (mErr, manifest) {
+                if (mErr)
+                    return next(mErr);
+                log.info({manifest: manifest}, 'mantaprofile manifest created');
+                var update = {
+                    manifests: {
+                        mantaprofile: manifest.uuid
+                    }
+                };
+                sapi.updateService(svc.uuid, update, function (uErr) {
+                    if (uErr)
+                        return next(uErr);
+                    log.info('mantaprofile manifest added to imgapi service');
+                    if (oldUuid) {
+                        log.info('delete old mantaprofile manifest:', oldUuid);
+                        sapi.deleteManifest(oldUuid, next);
+                    } else {
+                        next();
+                    }
+                });
+            });
         }
+
     ], function (err) {
         if (err === true) {
             // This is the signal that we are done processing early, without
             // an error.
-            callback(null, key, app);
+            callback(null, key);
         } else if (err) {
             callback(err);
         } else {
-            callback(null, key, app);
+            callback(null, key);
         }
     });
 }
 
 
-function getUfdsClient(options, callback) {
-    var ufds = new sdcClients.UFDS(options);
-    ufds.on('ready', function () {
-        log.info('ufds client is ready');
-        callback(null, ufds);
-    });
-    ufds.on('timeout', function () {
-        log.error('ufds client timeout');
-    });
-    ufds.on('error', function (connErr) {
-        log.error('ufds client connect error');
-        callback(connErr);
-    });
-}
-
-
-function ensureKeyOnAdminUser(config, key, sdcApp, callback) {
+function ensureKeyOnAdminUser(config, ufdsClient, adminUser, key, sdcApp,
+                              callback) {
     assert.object(config, 'config');
+    assert.object(ufdsClient, 'ufdsClient');
+    assert.object(adminUser, 'adminUser');
     assert.object(key, 'key');
     assert.object(sdcApp, 'sdcApp');
     assert.func(callback, 'callback');
     log.info('ensure admin user has the imgapi key');
 
-    // Get the URL for the *master* UFDS, which might not be local.
-    var ufdsIsMaster = (sdcApp.metadata.ufds_is_master === 'true');
-    var ufdsIp;
-    if (ufdsIsMaster) {
-        ufdsIp = sdcApp.metadata.ufds_admin_ips.split(',')[0];
-    } else {
-        ufdsIp = sdcApp.metadata.ufds_remote_ip;
-    }
-    if (!ufdsIp) {
-        callback(new Error('could not find master UFDS IP (in '
-            + '"ufds_admin_ips" or "ufds_remote_ip")'));
-    }
-    var ufdsUrl = 'ldaps://' + ufdsIp;
-
-    function deleteKeyIfExists(ufds, user, name, next) {
+    function deleteKeyIfExists(user, name, next) {
         log.info('check for existing key name "%s" to delete', name);
-        ufds.getKey(user, name, function (gErr, keyToDel) {
+        ufdsClient.getKey(user, name, function (gErr, keyToDel) {
             if (gErr && gErr.statusCode === 404) {
                 next();
             } else if (gErr) {
@@ -528,38 +599,24 @@ function ensureKeyOnAdminUser(config, key, sdcApp, callback) {
             } else {
                 log.info({keyToDel: keyToDel},
                     'deleting existing sdckey with same name');
-                ufds.deleteKey(user, keyToDel, next);
+                ufdsClient.deleteKey(user, keyToDel, next);
             }
         });
     }
 
-    var options = {
-        url: ufdsUrl,
-        bindDN: config.UFDS_LDAP_ROOT_DN,
-        bindPassword: config.UFDS_LDAP_ROOT_PW,
-        log: log,
-        agent: false
+    var sdcKey = {
+        name: format('%s imgapi', sdcApp.metadata.datacenter_name),
+        openssh: key.pub
     };
-    getUfdsClient(options, function (cErr, ufds) {
-        ufds.getUser(config.UFDS_ADMIN_UUID, function (uErr, user) {
-            if (uErr)
-                return callback(uErr);
-            log.info({user: user}, 'got %s user', config.UFDS_ADMIN_UUID);
-            var sdcKey = {
-                name: format('%s imgapi', sdcApp.metadata.datacenter_name),
-                openssh: key.pub
-            };
-            deleteKeyIfExists(ufds, user, sdcKey.name, function (dErr) {
-                if (dErr)
-                    return callback(dErr);
-                ufds.addKey(user, sdcKey, function (aErr, addedKey) {
-                    if (aErr)
-                        return callback(aErr);
-                    log.info({addedKey: addedKey},
-                        'added sdckey to admin user in UFDS');
-                    ufds.close(callback);
-                });
-            });
+    deleteKeyIfExists(adminUser, sdcKey.name, function (dErr) {
+        if (dErr)
+            return callback(dErr);
+        ufdsClient.addKey(adminUser, sdcKey, function (aErr, addedKey) {
+            if (aErr)
+                return callback(aErr);
+            log.info({addedKey: addedKey},
+                'added sdckey to admin user in UFDS');
+            callback();
         });
     });
 }
@@ -631,6 +688,8 @@ function main() {
     }
 
     var config;
+    var ufdsClient;
+    var adminUser;
     var mantaUrl;
     var key;
     var sdcApp;
@@ -653,15 +712,46 @@ function main() {
         },
 
         function (next) {
-            ensureKeyInSapi(config, mantaUrl, function (sErr, key_, sdcApp_) {
-                key = key_;
+            getSdcApp(config, function (err, sdcApp_) {
                 sdcApp = sdcApp_;
-                next(sErr);
+                next(err);
             });
         },
 
         function (next) {
-            ensureKeyOnAdminUser(config, key, sdcApp, next);
+            getUfdsClient(config, sdcApp, function (err, ufdsClient_) {
+                ufdsClient = ufdsClient_;
+                next(err);
+            });
+        },
+
+        function (next) {
+            getAdminUser(config, ufdsClient, function (err, adminUser_) {
+                adminUser = adminUser_;
+                next(err);
+            });
+        },
+
+        function (next) {
+            ensureKeyInSapi(config, sdcApp, mantaUrl, adminUser,
+                function (sErr, key_) {
+                    key = key_;
+                    next(sErr);
+                }
+            );
+        },
+
+        function (next) {
+            ensureKeyOnAdminUser(config, ufdsClient, adminUser, key,
+                sdcApp, next);
+        },
+
+        function (next) {
+            log.info('closing ufdsClient')
+            ufdsClient.close(function (err) {
+                log.info({err: err}, 'closed ufdsClient')
+                next(err);
+            })
         }
     ], function (err) {
         if (err) {
