@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/opt/smartdc/imgapi/build/node/bin/node
 /**
  * -*- mode: js -*-
  *
