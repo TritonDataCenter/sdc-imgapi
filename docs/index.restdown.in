@@ -621,7 +621,7 @@ for all images used to provision SDC core zones.
 
 ## Use Case 2: Operator adds new images.joyent.com image to the DC
 
-**Status**: incomplete (HEAD-1380 for CLI, talk to Kevin for adminui)
+**Status**: complete (TODO: does adminui support this yet?)
 
 This can be done on the command-line via the following in the headnode GZ:
 
@@ -631,17 +631,14 @@ This can be done on the command-line via the following in the headnode GZ:
     joyent-imgadm get-file -O $uuid     # creates $uuid-file.$ext
     sdc-imgadm import -m manifest -f $uuid-file*
 
-The reason there isn't a command to have this DC's IMGAPI import
-directory from <https://images.joyent.com> is that the IMGAPI doesn't
-necessarily have access to the internet.
-
-Via the Operator Portal (adminui): TODO
+Note: With IMGAPI-80, this will eventually become a one-liner.
 
 
 ## Use Case 3: Operator adds a new image just for this cloud
 
-**Status**: CLI incomplete (TODO: MigrateImage), adminui incomplete (talk to
-kevin).
+**Status**: Incomplete. Currently the image must be manually added to each DC
+as described below (the equivalent of SDC 6.5). Eventually, when IMGAPI has
+MigrateImage (and when adminui supports using it), this will be easier.
 
 How to add an image to a DC via the command-line:
 
@@ -650,46 +647,36 @@ How to add an image to a DC via the command-line:
 
         sdc-imgadm import -m MANIFEST -f FILE
 
-To add the same image to other DCs in the same cloud: Either repeat the
-above steps for each DC or (TODO) use [MigrateImage](#MigrateImage).
-
-How to add an image to a DC via the Operator Portal (adminui): TODO
 
 
 ## Use Case 4: User provisions with an image
 
-**Status**: Incomplete. imgadm v2 is needed in the platform (IMGAPI-40).
-Provisioner integration (AGENT-???). As well, VMAPI integration for
-validation should also be turned on. Currently the latter is turned off to
-not break manta-beta (MANTA-815).
+**Status**: Complete.
 
 This is via a normal
 [cloudapi#CreateMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateMachine)
 call. CloudAPI could use [GetImage](#GetImage) on behalf of the calling user
 to valid access to the `image_uuid`. VMAPI validates the `image_uuid`.
 The provisioner agent uses the local `imgadm` to lazily install the image
-if necessary (imgadm v2 will be configured to talk to the DC's local IMGAPI).
+if necessary (imgadm is configured to talk to the DC's local IMGAPI).
 
 
 ## Use Case 5: User creates a custom image
 
-**Status**: Incomplete. Need to go through the DATASET-??? workflow for this
-again.
-
-TODO: fill this in
+**Status**: Incomplete. Current work is in IMGAPI-95 and related tickets.
 
 
 ## Use Case 6: User modifies an image they own
 
-**Status**: incomplete. UpdateImage (IMGAPI-58) required, then exposing that
-via cloudapi (PUBAPI-???)
-
-TODO: fill this in
+**Status**: Incomplete. UpdateImage is implemented to support this, but
+remaining work include custom image creation (Use Case 5) and exposing
+UpdateImage via cloudapi (TODO: ticket for this).
 
 
 ## Use Case 7: User easily gets custom image from an Ubuntu ISO
 
-**Status**: incomplete (need to discuss how that can work)
+**Status**: Incomplete. This is not an SDC 7.0 requirement and will not
+be implemented for SDC 7.0.
 
 Mark:
 
@@ -700,17 +687,6 @@ Mark:
 
 Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO?
 
-
-## Use Case 8: Configure IMGAPI to use a newly setup Manta
-
-**Status**: Incomplete. Need a setup plan for this. manta-deploy? SAPI?
-
-Manta is an optional addition to SDC. IMGAPI is intended to work without
-a Manta (using a local directory mount or NFS share, aka DCLS) -- with the
-limitation that only operators can add images. To enable users adding
-their own images, a Manta is required.
-
-TODO: how is this setup? SAPI?
 <!-- #endif -->
 
 
