@@ -1896,17 +1896,17 @@ top-level keys in the factory settings. For example: if providing
 ||port||Number||8080||Port number on which to listen.||
 ||serverName||String||IMGAPI/$version||Name of the HTTP server. This value is present on every HTTP response in the 'server' header.||
 ||logLevel||String or Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
-||mode||String||public||One of 'public' (default), running as a public server (e.g. images.joyent.com), or 'dc', running as the IMGAPI in an SDC datacenter.||
 ||maxSockets||Number||100||Maximum number of sockets for external API calls||
+||mode||String||public||One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically public server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter).||
+||ufds.url||String||-||LDAP URL to connect to UFDS. Required if `mode === 'dc'`.||
+||ufds.bindDN||String||-||UFDS root dn. Required if `mode === 'dc'`.||
+||ufds.bindPassword||String||-||UFDS root dn password. Required if `mode === 'dc'`.||
 ||auth||Object||-||If in 'public' mode, then auth details are required. 'dc' mode does no auth.||
 ||auth.type||String||-||One of 'basic' (HTTP Basic Auth) or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)).||
 ||auth.users||Object||-||Required if `auth.type === 'basic'`. A mapping of username to bcrypt-hashed password. Use the `bin/hash-basic-auth-password` tool to create the hash.||
 ||auth.keys||Object||-||Required if `auth.type === 'signature'`. A mapping of username to an array of ssh public keys.||
 ||database||Object||-||Database info. The "database" is how the image manifest data is stored.||
 ||database.type||String||ufds||One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images.||
-||database.url||String||-||LDAP URL to connect to UFDS. Required if `database.type === 'ufds'`.||
-||database.bindDN||String||-||UFDS root dn. Required if `database.type === 'ufds'`.||
-||database.bindPassword||String||-||UFDS root dn password. Required if `database.type === 'ufds'`.||
 ||database.dir||String||-||The base directory for the database `database.type === 'local'`.||
 ||storage||Object||-||The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion.||
 ||storage.local||Object||-||Object holding config information for "local" disk storage.||

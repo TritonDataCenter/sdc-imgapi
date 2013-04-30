@@ -203,6 +203,7 @@ function getUfdsClient(config, sdcApp, callback) {
     var ufdsIsMaster = (sdcApp.metadata.ufds_is_master === 'true');
     var ufdsIp;
     if (ufdsIsMaster) {
+        // TODO: use DNS entries for this?
         ufdsIp = sdcApp.metadata.ufds_admin_ips.split(',')[0];
     } else {
         ufdsIp = sdcApp.metadata.ufds_remote_ip;

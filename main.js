@@ -94,8 +94,14 @@ function loadConfigSync(configPath) {
     }
     assert.string(config.mode, 'config.mode');
     assert.optionalString(config.serverName, 'config.serverName');
-    assert.ok(['public', 'dc'].indexOf(config.mode) !== -1,
+    assert.ok(['public', 'private', 'dc'].indexOf(config.mode) !== -1,
         'invalid config.mode');
+    if (config.mode === 'dc') {
+        assert.object(config.ufds, 'config.ufds');
+        assert.string(config.ufds.url, 'config.ufds.url');
+        assert.string(config.ufds.bindDN, 'config.ufds.bindDN');
+        assert.string(config.ufds.bindPassword, 'config.ufds.bindPassword');
+    }
     assert.object(config.storage, 'config.storage');
     if (config.storage.manta) {
         var manta = config.storage.manta;
@@ -118,12 +124,7 @@ function loadConfigSync(configPath) {
     }
     assert.notEqual(['ufds', 'local'].indexOf(config.database.type), -1,
         'config.database.type not "ufds" or "local"');
-    if (config.database.type === 'ufds') {
-        assert.string(config.database.url, 'config.database.url');
-        assert.string(config.database.bindDN, 'config.database.bindDN');
-        assert.string(config.database.bindPassword,
-            'config.database.bindPassword');
-    } else if (config.database.type === 'local') {
+    if (config.database.type === 'local') {
         assert.string(config.database.dir, 'config.database.dir');
     }
     if (config.wfapi) {

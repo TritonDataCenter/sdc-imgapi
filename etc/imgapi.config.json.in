@@ -4,7 +4,14 @@
     "serverName": "{{NAME}}",
 
     "mode": "dc",
+    "ufds": {
+        "url": "ldaps://{{{UFDS_SERVICE}}}",
+        "bindDN": "{{{ufds_ldap_root_dn}}}",
+        "bindPassword": "{{{ufds_ldap_root_pw}}}"
+    },
+
     "// mode": "public",
+    "// mode": "private",
     "// auth": {
         "type": "signature",
         "keys": {
