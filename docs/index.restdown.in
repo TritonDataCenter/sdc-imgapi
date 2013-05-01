@@ -1713,13 +1713,21 @@ to finish with an image available for provisioning.
 
 ### Inputs
 
-The same fields as for [CreateImage](#CreateImage), including the SDC6-era
-backward compat fields, with the following additions and changes:
+The request body includes the same fields as for [CreateImage](#CreateImage),
+including the SDC6-era backward compat fields, with the following additions
+and changes:
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
 ||account||UUID||No\*||-||This must NOT be provided. See the discussion above.||
 ||uuid||UUID||Yes||-||The existing image UUID.||
 ||published_at||Date||No||-||The published date/time of the image.||
+
+Query params:
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||action||String||Yes||-||"import"||
+||skip_owner_check||Boolean||No||false||Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
+
 
 ### Returns
 

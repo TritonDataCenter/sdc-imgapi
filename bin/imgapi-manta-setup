@@ -332,7 +332,7 @@ function getSdcApp(config, callback) {
     });
     sapi.listApplications({name: 'sdc'}, function (aErr, apps) {
         if (aErr)
-            return next(aErr);
+            return callback(aErr);
         callback(null, apps[0]);
     });
 }
@@ -748,11 +748,11 @@ function main() {
         },
 
         function (next) {
-            log.info('closing ufdsClient')
+            log.info('closing ufdsClient');
             ufdsClient.close(function (err) {
-                log.info({err: err}, 'closed ufdsClient')
+                log.info({err: err}, 'closed ufdsClient');
                 next(err);
-            })
+            });
         }
     ], function (err) {
         if (err) {
