@@ -299,7 +299,8 @@ test('AdminImportImage from local .dsmanifest', function (t) {
     var aImage;
 
     function create(next) {
-        self.client.adminImportImage(data, function (err, image, res) {
+        var iOpts = {skipOwnerCheck: true};
+        self.client.adminImportImage(data, iOpts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             if (image) {
@@ -438,7 +439,8 @@ test('AdminImportImage zvol from local .dsmanifest', function (t) {
     var aImage;
 
     function create(next) {
-        self.client.adminImportImage(data, function (err, image, res) {
+        var iOpts = {skipOwnerCheck: true};
+        self.client.adminImportImage(data, iOpts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             if (image) {
@@ -620,7 +622,8 @@ test('AdminImportImage from images.joyent.com', function (t) {
         });
     }
     function create(next) {
-        self.client.adminImportImage(manifest, function (err, image, res) {
+        var iOpts = {skipOwnerCheck: true};
+        self.client.adminImportImage(manifest, iOpts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             if (image) {
@@ -774,7 +777,8 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
         });
     }
     function create(next) {
-        self.client.adminImportImage(manifest, function (err, image, res) {
+        var iOpts = {skipOwnerCheck: true};
+        self.client.adminImportImage(manifest, iOpts, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             if (image) {
