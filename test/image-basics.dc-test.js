@@ -148,7 +148,12 @@ test('CreateImage', function (t) {
         });
     }
     function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
+        var fopts = {
+            uuid: uuid,
+            file: filePath,
+            compression: fileCompression,
+            sha1: sha1
+        };
         self.client.addImageFile(fopts, luke, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
@@ -243,7 +248,10 @@ test('CreateImage', function (t) {
     }
     function addIcon(next) {
         var fopts = {
-            uuid: uuid, file: iconPath, contentType: 'image/jpeg'
+            uuid: uuid,
+            file: iconPath,
+            contentType: 'image/jpeg',
+            sha1: iconSha1
         };
         self.client.addImageIcon(fopts, luke, function (err, image, res) {
             t.ifError(err, err);
