@@ -864,3 +864,81 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
         }
     );
 });
+
+
+/**
+ * AdminImportRemoteImage scenario from images.joyent.com. These steps happen
+ * inside IMGAPI:
+ * - get manifest from images.joyent.com/images/:uuid
+ * - CreateImage with downloaded manifest
+ * - AddImageFile *stream* from images.joyent.com/images/:uuid/file
+ * - ActivateImage
+ */
+if (!process.env.IMGAPI_TEST_OFFLINE)
+test('AdminImportRemoteImage from images.joyent.com', function (t) {
+    var self = this;
+    // smartos-1.3.18 (40MB) -- pick a small one for faster download in
+    // shitty-networking BH-1 where testing is typically done.
+    var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
+    var size;
+    var aImage;
+    // var imagesUrl = 'https://' + IMAGES_JOYENT_COM_IP;
+    var imagesUrl = 'https://images.joyent.com';
+
+    function importRemote(next) {
+        var iOpts = {skipOwnerCheck: true};
+        self.client.importImage(uuid, imagesUrl, iOpts,
+            function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            if (image) {
+                t.ok(image.uuid);
+                t.ok(image.published_at);
+                t.equal(image.state, 'active');
+                aImage = image;
+            }
+            next(err);
+        });
+    }
+    function getFile(next) {
+        var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
+            process.pid);
+        self.client.getImageFile(uuid, tmpFilePath, vader, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            var hash = crypto.createHash('sha1');
+            var s = fs.createReadStream(tmpFilePath);
+            s.on('data', function (d) { hash.update(d); });
+            s.on('end', function () {
+                var actual_sha1 = hash.digest('hex');
+                t.equal(aImage.files[0].sha1, actual_sha1,
+                    'sha1 matches image data');
+                next();
+            });
+        });
+    }
+    function deleteImage(next) {
+        self.client.deleteImage(uuid, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            t.equal(res.statusCode, 204, 'res.statusCode 204');
+            next();
+        });
+    }
+
+    async.series(
+        [
+            importRemote,
+            getFile,
+            deleteImage
+        ],
+        function (err) {
+            t.end();
+        }
+    );
+});
+

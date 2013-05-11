@@ -101,7 +101,7 @@ used.
 ||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
 <!-- #ifdef PRIVATE -->
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
-||[ImportImage](#ImportImage)||POST /images/$uuid?action=import&source=$imgapi-url||**NYI** Import an image from another IMGAPI (IMGAPI-80).||
+||[ImportImage](#ImportImage)||POST /images/$uuid?action=import&source=$imgapi-url||Import an image from another IMGAPI||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
 <!-- #endif -->
 ||[Ping](#Ping)||GET /ping||Ping if the server is up.||
@@ -1755,6 +1755,54 @@ AddImageFile and ActivateImage calls after the AdminImportImage.
     100% [=============================]  time 0.6s  eta 0.0s
     Added file "file.bz2" to image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699
     Activated image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699
+
+
+## ImportImage (POST /images/:uuid?action=import)
+
+Import an image from another IMGAPI repository. This is typically used for
+importing an image from <https://images.joyent.com>, but can be used for any
+other valid Image repository. It is mainly a convenience method to allow IMGAPI
+to execute the five import steps (get manifest, get file, import manifest,
+add file, activate image) on the user behalf.
+
+This may only be used by operators. All usage of IMGAPI on behalf of end users
+is required to use `account=UUID`; operator usage (e.g. from AdminUI) is
+not.
+
+This creates an active image ready for consumption.
+
+### Inputs
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||uuid||UUID||Yes||-||The existing image UUID.||
+
+Query params:
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||action||String||Yes||-||"import"||
+||source||URL||Yes||-||URL of the source IMGAPI repository||
+||skip_owner_check||Boolean||No||false||Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
+
+
+### Returns
+
+The (active) image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool:
+
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import&source=https://images.joyent.com
+    ...
+
+CLI tool:
+
+    $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -I https://images.joyent.com
+    Imported image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 (base, 1.8.4, state=active)
 <!-- #endif -->
 
 
