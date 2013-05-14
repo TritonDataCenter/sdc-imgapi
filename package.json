@@ -19,7 +19,7 @@
     "rimraf": "2.0.2",
     "once": "1.1.1",
     "dashdash": "1.2.1",
-    "manta": "git+ssh://git@github.com:joyent/node-manta.git#2b0b865",
+    "manta": "git+ssh://git@github.com:joyent/node-manta.git#6c6c8132",
     "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#45dd4db2"
   },
   "optionalDependencies": {
