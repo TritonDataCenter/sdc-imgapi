@@ -888,7 +888,7 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
 
     function importRemote(next) {
         var iOpts = {skipOwnerCheck: true};
-        self.client.importImage(uuid, imagesUrl, iOpts,
+        self.client.adminImportRemoteImageAndWait(uuid, imagesUrl, iOpts,
             function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);

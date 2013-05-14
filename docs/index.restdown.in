@@ -101,7 +101,7 @@ used.
 ||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
 <!-- #ifdef PRIVATE -->
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
-||[ImportImage](#ImportImage)||POST /images/$uuid?action=import&source=$imgapi-url||Import an image from another IMGAPI||
+||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
 <!-- #endif -->
 ||[Ping](#Ping)||GET /ping||Ping if the server is up.||
@@ -1757,7 +1757,12 @@ AddImageFile and ActivateImage calls after the AdminImportImage.
     Activated image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699
 
 
-## ImportImage (POST /images/:uuid?action=import)
+## AdminImportRemoteImage (POST /images/:uuid?action=import-remote)
+
+**DEPRECATION NOTE:** This endpoint currently returns an image object and it is
+going to be changed to return a job response object instead. It implies that the
+API action is going to change to be asynchronous instead. API clients would have
+to poll the job in the response in order to know when the image has been imported.
 
 Import an image from another IMGAPI repository. This is typically used for
 importing an image from <https://images.joyent.com>, but can be used for any
@@ -1786,7 +1791,7 @@ Query params:
 
 ### Returns
 
-The (active) image object.
+The (active) image object. Soon to be changed, read deprecation note.
 
 ### Errors
 
