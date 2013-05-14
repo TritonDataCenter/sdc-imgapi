@@ -623,7 +623,8 @@ test('AdminImportImage from images.joyent.com', function (t) {
     }
     function create(next) {
         var iOpts = {skipOwnerCheck: true};
-        self.client.adminImportImage(manifest, iOpts, function (err, image, res) {
+        self.client.adminImportImage(manifest, iOpts,
+                                     function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             if (image) {
@@ -778,7 +779,8 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
     }
     function create(next) {
         var iOpts = {skipOwnerCheck: true};
-        self.client.adminImportImage(manifest, iOpts, function (err, image, res) {
+        self.client.adminImportImage(manifest, iOpts,
+                                     function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             if (image) {
@@ -880,7 +882,6 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
     // smartos-1.3.18 (40MB) -- pick a small one for faster download in
     // shitty-networking BH-1 where testing is typically done.
     var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
-    var size;
     var aImage;
     // var imagesUrl = 'https://' + IMAGES_JOYENT_COM_IP;
     var imagesUrl = 'https://images.joyent.com';
@@ -941,4 +942,3 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
         }
     );
 });
-
