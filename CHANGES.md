@@ -1,5 +1,10 @@
 # Image API (IMGAPI) change log
 
+# 1.0.2
+
+- IMGAPI-201: "sdc-imgadm enable" does not enable images in us-east-1
+
+
 # 1.0.1
 
 - [HEAD-1665] Update imgmanifest dep to ensure proper upgrade of "disabled"
