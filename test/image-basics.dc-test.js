@@ -177,6 +177,7 @@ test('CreateImage', function (t) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.disabled, true);
+            t.equal(image.state, 'disabled');
             aImage = image;
             next();
         });
@@ -186,6 +187,7 @@ test('CreateImage', function (t) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.disabled, false);
+            t.equal(image.state, 'active');
             aImage = image;
             next();
         });
