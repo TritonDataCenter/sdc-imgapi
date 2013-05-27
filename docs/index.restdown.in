@@ -770,6 +770,7 @@ authenticated account. The latter is for operator-only querying.
 ||os||String||List images with the given os.||
 ||type||String||List images of the given type.||
 ||tag.{key}||String||List images by tags. See below||
+||billing_tag||String||List images by billing tags. See below||
 
 Images can be searched by tags. If an Image is tagged as 'cloud=private', then
 the filter to be added to the request params should be 'tag.cloud=private' and
@@ -777,6 +778,24 @@ the full path for the query would look like "/images?tag.cloud=private". More
 than one tag can be specified for the same search. Multiple tags are interpreted
 as a logical AND, meaning that each of the Images returned is tagged with each of
 the values provided.
+
+In contrast, billing tags are not key/value objects but a single array of values.
+This means that a query filter for billing_tags is constructed in a conventional
+way. As an example, the following queries show the usage of tags and billing_tags
+when filtering images.
+
+    One matching tag
+      GET /images?tag.cloud=private
+
+    Multiple matching tags
+      GET /images?tag.cloud=private&tag.dc=east
+
+    One matching billing tag
+      GET /images?billing_tag=promo
+
+    Multiple matching billing tags
+      GET /images?biling_tag=promo&billing_tag=smallinstance
+
 
 ### Returns
 

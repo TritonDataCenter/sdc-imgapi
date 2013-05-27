@@ -95,7 +95,7 @@ test('CreateImage', function (t) {
             min_platform: { '7.0': '20130308T102805Z' },
             brand: 'joyent'
         },
-        billing_tags: ['oracle'],
+        billing_tags: ['xxllpromo'],
         traits: { foo: 'bar', ssd: true },
         tags: { key: 'value' },
         homepage: 'http://images.com/v1.html'
