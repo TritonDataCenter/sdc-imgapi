@@ -761,7 +761,7 @@ authenticated account. The latter is for operator-only querying.
 ### Inputs
 
 ||**Field**||**Type**||**Description**||
-||account||UUID||Only list images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are listing in the ACL, and (c) their own images.||
+||account||UUID||Only list images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are listed in the ACL, and (c) their own images.||
 ||owner||UUID||Only list images owned by this account.||
 ||state||String||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
 ||name||String||List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
