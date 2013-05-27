@@ -169,6 +169,7 @@ test('AdminImportImage from local .imgmanifest', function (t) {
                 t.equal(image.inherited_directories.join(','),
                     data.inherited_directories.join(','),
                     'inherited_directories');
+                t.ok(image.billing_tags);
             }
             next(err);
         });

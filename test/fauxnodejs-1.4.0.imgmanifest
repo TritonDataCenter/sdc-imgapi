@@ -30,5 +30,6 @@
     }
   ],
   "generate_passwords": true,
-  "inherited_directories": ["/opt/node_service"]
+  "inherited_directories": ["/opt/node_service"],
+  "billing_tags": ["xxllpromo"]
 }
