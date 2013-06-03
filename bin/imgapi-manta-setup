@@ -224,8 +224,8 @@ function getUfdsClient(config, sdcApp, callback) {
     var ufds = new sdcClients.UFDS(options);
 
     var callback_ = once(callback);
-    ufds.on('ready', function () {
-        log.info('ufds client is ready');
+    ufds.on('connect', function () {
+        log.info('ufds client connect');
         callback_(null, ufds);
     });
     ufds.on('timeout', function () {
