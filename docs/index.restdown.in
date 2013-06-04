@@ -346,6 +346,8 @@ The operating system of the image file. Must be one of:
 ||smartos||SmartOS||
 ||linux||Linux, e.g. CentOS, Ubuntu, etc.||
 ||windows||A Microsoft Windows OS image||
+||bsd||FreeBSD/netBSD||
+||illumos||Illumos||
 ||other||A catch-all for other operating systems.||
 
 
