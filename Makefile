@@ -21,7 +21,7 @@ SMF_MANIFESTS_IN = smf/manifests/imgapi.xml.in
 NODEUNIT	:= ./node_modules/.bin/nodeunit
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v0.8.23
+NODE_PREBUILT_VERSION=v0.8.24
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_CC_VERSION=4.6.2
 	NODE_PREBUILT_TAG=zone
