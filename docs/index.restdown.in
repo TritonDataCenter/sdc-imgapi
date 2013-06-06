@@ -2032,6 +2032,9 @@ top-level keys in the factory settings. For example: if providing
 ||storage.manta.user||String||-||The Manta user under which to store data.||
 ||storage.manta.key||String||-||Path to the SSH private key file with which to authenticate to Manta.||
 ||storage.manta.keyId||String||-||The SSH public key ID (signature).||
+||wfapi.url||String||-||The Workflow API URL.||
+||wfapi.workflows||String||-||Array of workflows to load.||
+||wfapi.forceReplace||Boolean||-||Wether to replace all workflows loaded every time the IMGAPI service is started. Ideal for development environments||
 
 
 

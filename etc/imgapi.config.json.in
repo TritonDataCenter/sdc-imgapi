@@ -27,5 +27,9 @@
     "database": {
         "type": "local",
         "dir": "/var/tmp/imgapi/manifests"
-    }
+    },
+    "wfapi": {
+        "workflows": [ "create-from-snapshot", "import-remote-image" ],
+        "url": "{{{workflow_api_url}}}"
+    },
 }
