@@ -68,16 +68,40 @@ used.
 
 - Good: Manta as a storage backend support is in.
 
-- Bad: The full process for a user creating a custom image (IMGAPI-93).
+- Good: SDC 6.5 backward compatibility, i.e. providing images to 6.5 CNs
+  with IMGAPI, is working fine in JPC now.
 
-- Bad: SDC 6 backward compatibility testing hasn't been done yet. However,
-  this is somewhat vetted already.
+- Bad: The full process for a user creating a custom image (IMGAPI-93)
+  in incomplete.
 
 - Bad: Notably unimplemented is MigrateImage for copying images
   between datacenters in the same SDC cloud.
 
-- Bad: Multi-DC support (replicated manifest info in UFDS) isn't fully
-  specified yet.
+
+## Custom Image Management Roadmap
+
+From a discussion with Trent, Bryan and Carlos the MVP image mgmt plan is
+to:
+
+- wait until we fully implement support for both zones and KVM (common case
+  in JPC is custom KVM images);
+- implement incremental images (because we need a manta for storage of
+  customer images, we only have the Manta in us-east, we want image mgmt in
+  other DCs so we'll pull images across the WAN, incr images will help a
+  *lot* here, also a great differentiator);
+
+Roadmap:
+
+-
+
+    - prio #1: roadmap
+    - kvm and zones support for imgadm create
+    - incremental images
+    - package traits for min_platform
+    - dapi to almost reserve those CNs (or at least prefer the other ones
+      if availalbe)
+    - think about (only) caching of the large large images
+
 <!-- #endif -->
 
 
