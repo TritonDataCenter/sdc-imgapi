@@ -1,6 +1,7 @@
 ---
 title: Image API (IMGAPI)
-markdown2extras: wiki-tables, code-friendly, cuddled-lists
+markdown2extras: wiki-tables, code-friendly, cuddled-lists, link-patterns
+markdown2linkpatternsfile: link-patterns.txt
 apisections: Miscellaneous API, Image API
 ---
 
@@ -80,8 +81,8 @@ used.
 
 ## Custom Image Management Roadmap
 
-From a discussion with Trent, Bryan and Carlos the MVP image mgmt plan is
-to:
+From a discussion with Trent, Bryan and Carlos 3 Jun 2013, the MVP image mgmt
+plan is to:
 
 - wait until we fully implement support for both zones and KVM (common case
   in JPC is custom KVM images);
@@ -90,17 +91,67 @@ to:
   other DCs so we'll pull images across the WAN, incr images will help a
   *lot* here, also a great differentiator);
 
+Top-level ticket (FWIW) is IMGAPI-93.
+
 Roadmap:
 
--
+- M1: First, getting the basic full stack creation of non-KVM images, walking
+  up the stack from the platform level:
 
-    - prio #1: roadmap
-    - kvm and zones support for imgadm create
-    - incremental images
-    - package traits for min_platform
+    - [IMGAPI-95, trent, platform] `imgadm create` and `imgadm publish`
+    - [done, AGENT-605] machine_image_create task for custom image creation
+    - [done, CNAPI-259] https://mo.joyent.com/docs/cnapi/master/#VmImagesCreate
+    - [IMGAPI-191, andres] CreateImageFromVm
+    - [PUBAPI-591, trent/pedro] CreateImageFromMachine
+    - test that that is working is all working.
+
+  For starters, this will be not be fully enabled in cloudapi so that we
+  can deploy cloudapi to JPC without this being on.
+
+- M2: Incremental images. Plan is that all custom images created via
+  cloudapi are incremental.
+
+    - [IMGAPI-124] incremental images support: manifest fields, CreateImage,
+      AdminImportImage
+    - [OS-???] incremental images support in 'imgadm create', 'imgadm
+      install', 'imgadm import'
+    - minor PUBAPI, AGENT tickets to pass through the incremental option
+
+- M3: KVM image support
+
+    - [OS-???] kvm support for `imgadm create`
+    - [OS-???] kvm support for incremental images (might not require anything
+      special here)
+    - test kvm custom images working through the stack
+
+- M4: Working with mixed CNs: some with sufficient support, some not.
+  This means documenting usage in a DC (e.g. JPC) for a subset of packages
+  for proto VMs.
+
+    - verify that we have min_platform trait support in DAPI for *packages*
+      (a la image manifest requirements.min_platform). I believe we already do.
+    - specify the set of proto packages that we'll start with for this, and
+      set min_platform on those as required for `imgadm create`
+    - tooling for managing these packages:
+        - update min_platform for a new required fix
+        - list available CNs matching that platform
+      Not sure if these will fit in a generic sdc-packageadm and/or build on the
+      Ben wishlist feature of "aware packages" support in DAPI (DAPI-???).
     - dapi to almost reserve those CNs (or at least prefer the other ones
       if availalbe)
-    - think about (only) caching of the large large images
+
+- M5: Support for remote streaming (from remote manta) of image files for
+  install in local DC. If necessary (typically large incr images and/or
+  slow WAN download), intelligent local pre-caching/loading of images. An
+  obvious case is if a customer creates an image in west-1 (which gets
+  published to the manta in east), then that image should be cached in
+  west-1 for likely provisioning there.
+  
+  This section is obviously underspecified right now.
+
+- M6: Will need to have MigrateImage (or whatever name we choose) solved
+  for a customer making a custom image in DC1 availalbe for provisioning in
+  DC2.
 
 <!-- #endif -->
 
