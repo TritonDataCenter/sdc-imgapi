@@ -104,6 +104,8 @@ Roadmap:
     - [IMGAPI-191, andres] CreateImageFromVm
     - [PUBAPI-591, trent/pedro] CreateImageFromMachine
     - test that that is working is all working.
+    - [OS-???, IMGAPI-???] IMGAPI version header usage from imgadm for
+      future proofing.
 
   For starters, this will be not be fully enabled in cloudapi so that we
   can deploy cloudapi to JPC without this being on.
@@ -146,12 +148,17 @@ Roadmap:
   obvious case is if a customer creates an image in west-1 (which gets
   published to the manta in east), then that image should be cached in
   west-1 for likely provisioning there.
-  
+
   This section is obviously underspecified right now.
 
 - M6: Will need to have MigrateImage (or whatever name we choose) solved
   for a customer making a custom image in DC1 availalbe for provisioning in
   DC2.
+
+- Note from Jens/Carlos discussion Jun 13: *Don't* allow users making images
+  public for now. This would be a guard on changing the 'public' field in
+  IMGAPI's UpdateImage for non-admin user. Perhaps the IMGAPI config
+  could just have a list of user uuids for which to allow public images.
 
 <!-- #endif -->
 
