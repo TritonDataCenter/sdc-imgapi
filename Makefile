@@ -89,9 +89,9 @@ test-kvm7: | $(NODEUNIT)
 test-images.joyent.com: | $(NODEUNIT)
 	./test/runtests -p -r default
 
+
 # Doc preprocessing to get public and private IMGAPI docs out of the same
 # docs/index.restdown.in.
-CLEAN_FILES += docs/index.restdown docs/public.restdown build/errors.restdown
 build/errors.restdown: lib/errors.js | node_modules/restify $(NODE_EXEC)
 	$(NODE) lib/errors.js > $@
 docs/index.restdown: docs/index.restdown.in build/errors.restdown
@@ -109,6 +109,18 @@ public-docs: docs
 	$(MKDIR) build/public-docs/docs
 	$(CP) $(DOC_BUILD)/public.html build/public-docs/docs/public.html
 	$(CP) -PR $(DOC_BUILD)/media build/public-docs/docs/media
+
+DOC_CLEAN_FILES = docs/{index,design,public}.{html,json} \
+	docs/index.restdown \
+	docs/public.restdown \
+	build/errors.restdown \
+	build/docs \
+	build/public-docs
+.PHONY: clean-docs
+clean-docs:
+	-$(RMTREE) $(DOC_CLEAN_FILES)
+clean:: clean-docs
+
 
 .PHONY: release
 release: all public-docs
