@@ -124,6 +124,7 @@ release: all public-docs
 		$(TOP)/etc \
 		$(TOP)/node_modules \
 		$(TOP)/package.json \
+		$(TOP)/sapi_manifests \
 		$(TOP)/smf \
 		$(TOP)/test \
 		$(RELTMPDIR)/root/opt/smartdc/$(NAME)
