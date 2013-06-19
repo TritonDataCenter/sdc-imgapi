@@ -171,6 +171,7 @@ Roadmap:
 ||[GetImageFile](#GetImageFile)||GET /images/:uuid/file||Get the file for this image.||
 ||[DeleteImage](#DeleteImage)||DELETE /images/:uuid||Delete an image (and its file).||
 ||[CreateImage](#CreateImage)||POST /images||Create a new (unactivated) image from a manifest.||
+||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
 ||[AddImageFile](#AddImageFile)||PUT /images/:uuid/file||Upload the image file.||
 ||[ActivateImage](#ActivateImage)||POST /images/:uuid?action=activate||Activate the image.||
 ||[UpdateImage](#UpdateImage)||POST /images/:uuid?action=update||Update image manifest fields. This is limited. Some fields are immutable.||
@@ -1283,6 +1284,91 @@ CLI tool (against an SDC's IMGAPI):
     }' | sdc-imgadm create
     Imported image 25ab9ddf-96e8-4157-899d-1dc8be7b9810 (foo, 1.0.0, state=unactivated)
 
+
+## CreateImageFromVm (POST /images?action=create-from-vm)
+
+Create a new (activated) image from an existent VM. The VM from which the Image
+will be created must be stopped first or else the creation job will fail. This
+endpoint has a subset of allowed inputs compared to [CreateVm](#CreateVm), as
+many of the Image manifest fields are going to be directly computed from the
+source VM.
+
+CreateFromVM takes the following two additional parameters in the URL query string:
+
+### Query String Inputs
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||vm_uuid||UUID||Yes\*||-||The UUID of the source VM.||
+
+The alllowed inputs for the minimal Image manifest that must be passed as the
+request body are listed below:
+
+TODO: complete whitelist of manifest attributes from CreateImageFromVm,
+specifically fix the required/not-required column for the inputs below
+
+### Manifest Inputs
+
+||**Field**||**Type**||**Required?**||**Default**||**Notes**||
+||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[owner](#manifest-owner)||UUID||Yes\*||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
+||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
+||[version](#manifest-version)||String||Yes||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
+||[description](#manifest-description)||String||No||-||A short description of the image.||
+||[homepage](#manifest-homepage)||URL||No||-||Homepage URL where users can find more information about the image.||
+||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
+||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
+||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[os](#manifest-os)||String||Yes||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[acl](#manifest-acl)||Array||No||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+||[requirements](#manifest-requirements)||Object||No||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
+||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[billing_tags](#manifest-billing-tags)||Array||No||-||A list of tags that can be used by operators for additional billing processing.||
+||[traits](#manifest-traits)||Object||No||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
+||[tags](#manifest-tags)||Object||No||-||An object of key/value pairs that allows clients to categorize images by any given criteria.||
+||[generate_passwords](#manifest-generate-passwords)||Boolean||No||-||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
+||[inherited_directories](#manifest-inherited-directories)||Array||No||-||A list of inherited directories (other than the defaults for the brand).||
+||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||-||NIC driver used by this VM image.||
+||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||-||Disk driver used by this VM image.||
+||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||-||The QEMU CPU model to use for this VM image.||
+||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||-||The size (in MiB) of this VM image's disk.||
+
+
+### Returns
+
+A Job object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool (against an SDC's IMGAPI). This queues the creation of a new Image
+from an existing VM:
+
+    $ sdc-imgapi /images?action=create-from-vm&vm_uuid=56b107b9-9277-4a6a-bcd3-17c497041bee \
+        -X POST \
+        --data-binary '{
+            "name": "foo",
+            "version": "1.0.0",
+            "uuid": "4e88c673-f3ab-4a55-9f5d-b54379cf2d8a",
+            "owner": "b5c5c13d-ccc0-5a43-9a46-245ff960cd81"
+        }'
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 236
+    Date: Tue, 08 Jan 2013 20:04:01 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: 8b547800-59ce-11e2-b638-4b6ffa4ca56f
+    x-response-time: 52
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "image_uuid": "4e88c673-f3ab-4a55-9f5d-b54379cf2d8a",
+      "job_uuid": "4c831bba-68ed-4fe8-a54b-a5b5acefd7ac"
+    }
 
 
 ## AddImageFile (PUT /images/:uuid/file)
