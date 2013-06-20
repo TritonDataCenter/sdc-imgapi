@@ -216,7 +216,7 @@ function main() {
         var censored = censorKeys[key];
         return (censored === undefined ? value : censored);
     }
-    log.debug('config: %s', JSON.stringify(theConfig, censor, 2));
+    log.info('config: %s', JSON.stringify(theConfig, censor, 2));
 
     async.series([
         createAndStartTheApp,   // sets `theApp` global

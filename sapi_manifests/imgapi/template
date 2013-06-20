@@ -1,6 +1,6 @@
 {
     "port": 80,
-    "logLevel": "debug",
+    "logLevel": "info",
     "mode": "dc",
     "ufds": {
         "url": "ldaps://{{{UFDS_SERVICE}}}",

@@ -42,3 +42,4 @@ if [[ "$state" == "maintenance" ]]; then
 else
     ssh ${NODE} svcadm -z ${IMGAPI_ZONE} restart imgapi
 fi
+ssh ${NODE} svcadm -z ${IMGAPI_ZONE} restart config-agent
