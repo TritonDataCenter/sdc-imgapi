@@ -173,7 +173,6 @@ Roadmap:
 ||[GetImageFile](#GetImageFile)||GET /images/:uuid/file||Get the file for this image.||
 ||[DeleteImage](#DeleteImage)||DELETE /images/:uuid||Delete an image (and its file).||
 ||[CreateImage](#CreateImage)||POST /images||Create a new (unactivated) image from a manifest.||
-||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
 ||[AddImageFile](#AddImageFile)||PUT /images/:uuid/file||Upload the image file.||
 ||[ActivateImage](#ActivateImage)||POST /images/:uuid?action=activate||Activate the image.||
 ||[UpdateImage](#UpdateImage)||POST /images/:uuid?action=update||Update image manifest fields. This is limited. Some fields are immutable.||
@@ -185,6 +184,7 @@ Roadmap:
 ||[GetImageIcon](#GetImageIcon)||GET /images/:uuid/icon||Get the image icon file.||
 ||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
 <!-- #ifdef PRIVATE -->
+||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
 ||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
@@ -1287,6 +1287,8 @@ CLI tool (against an SDC's IMGAPI):
     Imported image 25ab9ddf-96e8-4157-899d-1dc8be7b9810 (foo, 1.0.0, state=unactivated)
 
 
+<!-- #ifdef PRIVATE -->
+
 ## CreateImageFromVm (POST /images?action=create-from-vm)
 
 Create a new (activated) image from an existent VM. The VM from which the Image
@@ -1338,7 +1340,8 @@ specifically fix the required/not-required column for the inputs below
 
 ### Returns
 
-A Job object.
+A Job object. The location of the workflow API where the status of the job can
+be polled is available in the workflow-api header of the response.
 
 ### Errors
 
@@ -1362,6 +1365,7 @@ from an existing VM:
     Content-Length: 236
     Date: Tue, 08 Jan 2013 20:04:01 GMT
     Server: IMGAPI/1.0.0
+    workflow-api: http://workflow.coal.joyent.us
     x-request-id: 8b547800-59ce-11e2-b638-4b6ffa4ca56f
     x-response-time: 52
     x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
@@ -1372,6 +1376,7 @@ from an existing VM:
       "job_uuid": "4c831bba-68ed-4fe8-a54b-a5b5acefd7ac"
     }
 
+<!-- #endif -->
 
 ## AddImageFile (PUT /images/:uuid/file)
 
