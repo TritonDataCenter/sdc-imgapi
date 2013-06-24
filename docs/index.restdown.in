@@ -1305,16 +1305,13 @@ CreateFromVM takes the following two additional parameters in the URL query stri
 ||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
 ||vm_uuid||UUID||Yes\*||-||The UUID of the source VM.||
 
-The alllowed inputs for the minimal Image manifest that must be passed as the
-request body are listed below:
-
-TODO: complete whitelist of manifest attributes from CreateImageFromVm,
-specifically fix the required/not-required column for the inputs below
-
 ### Manifest Inputs
 
+The following is the list of inputs that can be specified for a new Image created
+from an existing VM:
+
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||[uuid](#manifest-uuid)||UUID||No||-||UUID of the new Image. A new one will be generated if not specified||
 ||[owner](#manifest-owner)||UUID||Yes\*||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
 ||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
 ||[version](#manifest-version)||String||Yes||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
@@ -1322,20 +1319,28 @@ specifically fix the required/not-required column for the inputs below
 ||[homepage](#manifest-homepage)||URL||No||-||Homepage URL where users can find more information about the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
-||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
-||[os](#manifest-os)||String||Yes||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
 ||[acl](#manifest-acl)||Array||No||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
-||[requirements](#manifest-requirements)||Object||No||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
-||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
-||[billing_tags](#manifest-billing-tags)||Array||No||-||A list of tags that can be used by operators for additional billing processing.||
-||[traits](#manifest-traits)||Object||No||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
 ||[tags](#manifest-tags)||Object||No||-||An object of key/value pairs that allows clients to categorize images by any given criteria.||
-||[generate_passwords](#manifest-generate-passwords)||Boolean||No||-||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
-||[inherited_directories](#manifest-inherited-directories)||Array||No||-||A list of inherited directories (other than the defaults for the brand).||
-||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||-||NIC driver used by this VM image.||
-||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||-||Disk driver used by this VM image.||
-||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||-||The QEMU CPU model to use for this VM image.||
-||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||-||The size (in MiB) of this VM image's disk.||
+
+
+### Inherited Fields
+
+The following is the list of fields that the new Image will inherit from the source
+Image of the VM in question and therefore cannot be specified:
+
+||**Field**||**Type**||**Notes**||
+||[type](#manifest-type)||String||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[os](#manifest-os)||String||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[requirements](#manifest-requirements)||Object||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
+||[users](#manifest-users)||Array||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[billing_tags](#manifest-billing-tags)||Array||A list of tags that can be used by operators for additional billing processing.||
+||[traits](#manifest-traits)||Object||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
+||[generate_passwords](#manifest-generate-passwords)||Boolean||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
+||[inherited_directories](#manifest-inherited-directories)||Array||A list of inherited directories (other than the defaults for the brand).||
+||[nic_driver](#manifest-nic-driver)||String||NIC driver used by this VM image.||
+||[disk_driver](#manifest-disk-driver)||String||Disk driver used by this VM image.||
+||[cpu_type](#manifest-cpu-type)||String||The QEMU CPU model to use for this VM image.||
+||[image_size](#manifest-image-size)||Number||The size (in MiB) of this VM image's disk.||
 
 
 ### Returns
