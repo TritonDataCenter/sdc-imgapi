@@ -98,16 +98,23 @@ Roadmap:
 - M1 (1-2 weeks): First, getting the basic full stack creation of non-KVM
   images, walking up the stack from the platform level:
 
-    - [IMGAPI-95, trent, platform] `imgadm create` and `imgadm publish`
-    - [OS-2323, trent/andres] bug in 'imgadm create' work that breaks
+    - [done, IMGAPI-95, trent, platform] `imgadm create` and `imgadm publish`
+      'create' is just for non-KVM VMs so far
+    - [done, OS-2323, andres] bug in 'imgadm create' work that breaks
       'imgadm import'
     - [done, AGENT-605] machine_image_create task for custom image creation
     - [done, CNAPI-259] [https://mo.joyent.com/docs/cnapi/master/#VmImagesCreate]
-    - [IMGAPI-191, andres] CreateImageFromVm
+    - [done, IMGAPI-191, andres] CreateImageFromVm
     - [PUBAPI-591, trent/pedro] CreateImageFromMachine
-    - test that that is working is all working.
-    - [OS-???, IMGAPI-92] IMGAPI version header usage from imgadm for
+    - [RELENG-???, trent]: sdc-system-tests tests for this. Create an image
+      from cloudapi and use it from cloudapi.
+    - [OS-???, IMGAPI-92, andres, platform] IMGAPI version header usage from imgadm for
       future proofing.
+    - [WORKFLOW-113, pedro] Workflow RFE to be able to serialize jobs on
+      the same vm_uuid. This to guard against an attempt to DeleteMachine
+      or StartMachine on a VM being used to create an image until
+      CreateImageFromMachine is complete. This isn't a blocker, *could*
+      just doc this.
 
   For starters, this will be not be fully enabled in cloudapi so that we
   can deploy cloudapi to JPC without this being on.
