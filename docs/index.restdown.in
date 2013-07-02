@@ -151,7 +151,7 @@ Roadmap:
     - dapi to almost reserve those CNs (or at least prefer the other ones
       if availalbe)
 
-- M5 (3 weeks, again very rough estimate): Support for remote streaming (from
+- M5 (3 weeks, again very rough estimate, ): Support for remote streaming (from
   remote manta) of image files for install in local DC. If necessary
   (typically large incr images and/or slow WAN download), intelligent local
   pre-caching/loading of images. An obvious case is if a customer creates an
@@ -159,6 +159,37 @@ Roadmap:
   image should be cached in west-1 for likely provisioning there.
 
   This section is obviously underspecified right now.
+
+  Strawman:
+  Each IMGAPI has a size-limited local LRU cache dir. Limited by two config
+  vars: cacheLimitPercent, % available space on that mount (determined at
+  start up and periodically re-checked for resizing) and cacheLimitSize, max
+  absolute space (e.g. 20GB). Would also attempt to limit to <90% total usage
+  for that disk.
+
+  File caching is only done if the stored file is "remote". "Remote" is a
+  boolean attribute of the "storage" config var.
+
+  IMGAPI changes to manage this cache:
+  - Add AdminFileCacheAdd to POST (or PUT) a file to the local cache
+    (a la AddImageFile)
+  - Change GetImageFile: if file storage is remote, then use the local cache
+    if available there. Perhaps if NOT available locally, then stream to the
+    local cache. I.e., if used by one CN in this DC, then likely will be
+    wanted again soon for another one.
+  - Change AdminGetState to also include the local file LRU cache index.
+  - Add AdminFileCacheFlush (perhaps, if this is useful):
+    POST /state?flush-file-cache
+  - Change AddImageFile, if file storage is remote, to stream to the local
+    file LRU cache.
+  - Change CreateImageFromVm, if file storage is remote, to stream to the local
+    file LRU cache.
+  - For HA (IMGAPI-140): Change AddImageFile, if file storage is remote, to
+    find other IMGAPIs in this DC and call AdminFileCacheAdd on those.
+
+  Create a followable metric (via SDC log analysis) to track GetImageFile
+  times to help improve this caching.
+
 
 - M6 (1 week, likely will fall easily out of M5): Will need to have
   MigrateImage (or whatever name we choose) solved for a customer making a
