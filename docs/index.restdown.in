@@ -93,112 +93,122 @@ plan is to:
 
 Top-level ticket (FWIW) is IMGAPI-93.
 
-Roadmap:
+### M1: basics
 
-- M1 (1-2 weeks): First, getting the basic full stack creation of non-KVM
-  images, walking up the stack from the platform level:
+(1-2 weeks) First, getting the basic full stack creation of non-KVM
+images, walking up the stack from the platform level:
 
-    - [done, IMGAPI-95, trent, platform] `imgadm create` and `imgadm publish`
-      'create' is just for non-KVM VMs so far
-    - [done, OS-2323, andres] bug in 'imgadm create' work that breaks
-      'imgadm import'
-    - [done, AGENT-605] machine_image_create task for custom image creation
-    - [done, CNAPI-259] [https://mo.joyent.com/docs/cnapi/master/#VmImagesCreate]
-    - [done, IMGAPI-191, andres] CreateImageFromVm
-    - [PUBAPI-591, trent/pedro] CreateImageFromMachine
-    - [RELENG-???, trent]: sdc-system-tests tests for this. Create an image
-      from cloudapi and use it from cloudapi.
-    - [OS-???, IMGAPI-92, andres, platform] IMGAPI version header usage from imgadm for
-      future proofing.
-    - [WORKFLOW-113, pedro] Workflow RFE to be able to serialize jobs on
-      the same vm_uuid. This to guard against an attempt to DeleteMachine
-      or StartMachine on a VM being used to create an image until
-      CreateImageFromMachine is complete. This isn't a blocker, *could*
-      just doc this.
+- [done, IMGAPI-95, trent, platform] `imgadm create` and `imgadm publish`
+  'create' is just for non-KVM VMs so far
+- [done, OS-2323, andres] bug in 'imgadm create' work that breaks
+  'imgadm import'
+- [done, AGENT-605] machine_image_create task for custom image creation
+- [done, CNAPI-259] [https://mo.joyent.com/docs/cnapi/master/#VmImagesCreate]
+- [done, IMGAPI-191, andres] CreateImageFromVm
+- [PUBAPI-591, trent/pedro] CreateImageFromMachine
+- [RELENG-???, trent]: sdc-system-tests tests for this. Create an image
+  from cloudapi and use it from cloudapi.
+- [OS-???, IMGAPI-92, andres, platform] IMGAPI version header usage from imgadm for
+  future proofing.
+- [WORKFLOW-113, pedro] Workflow RFE to be able to serialize jobs on
+  the same vm_uuid. This to guard against an attempt to DeleteMachine
+  or StartMachine on a VM being used to create an image until
+  CreateImageFromMachine is complete. This isn't a blocker, *could*
+  just doc this.
 
-  For starters, this will be not be fully enabled in cloudapi so that we
-  can deploy cloudapi to JPC without this being on.
+For starters, this will be not be fully enabled in cloudapi so that we
+can deploy cloudapi to JPC without this being on.
 
-- M2 (1 week): Incremental images. Plan is that all custom images created via
-  cloudapi are incremental.
-
-    - [IMGAPI-124] incremental images support: manifest fields, CreateImage,
-      AdminImportImage
-    - [OS-???] incremental images support in 'imgadm create', 'imgadm
-      install', 'imgadm import'
-    - minor PUBAPI, AGENT tickets to pass through the incremental option
-
-- M3 (2 weeks, very rough time estimate): KVM image support
-
-    - [OS-???] kvm support for `imgadm create`
-    - [OS-???] kvm support for incremental images (might not require anything
-      special here)
-    - test kvm custom images working through the stack
-
-- M4 (2 weeks): Working with mixed CNs: some with sufficient support, some not.
-  This means documenting usage in a DC (e.g. JPC) for a subset of packages
-  for proto VMs.
-
-    - verify that we have min_platform trait support in DAPI for *packages*
-      (a la image manifest requirements.min_platform). I believe we already do.
-    - specify the set of proto packages that we'll start with for this, and
-      set min_platform on those as required for `imgadm create`
-    - tooling for managing these packages:
-        - update min_platform for a new required fix
-        - list available CNs matching that platform
-      Not sure if these will fit in a generic sdc-packageadm and/or build on the
-      Ben wishlist feature of "aware packages" support in DAPI (DAPI-???).
-    - dapi to almost reserve those CNs (or at least prefer the other ones
-      if availalbe)
-
-- M5 (3 weeks, again very rough estimate, ): Support for remote streaming (from
-  remote manta) of image files for install in local DC. If necessary
-  (typically large incr images and/or slow WAN download), intelligent local
-  pre-caching/loading of images. An obvious case is if a customer creates an
-  image in west-1 (which gets published to the manta in east), then that
-  image should be cached in west-1 for likely provisioning there.
-
-  This section is obviously underspecified right now.
-
-  Strawman:
-  Each IMGAPI has a size-limited local LRU cache dir. Limited by two config
-  vars: cacheLimitPercent, % available space on that mount (determined at
-  start up and periodically re-checked for resizing) and cacheLimitSize, max
-  absolute space (e.g. 20GB). Would also attempt to limit to <90% total usage
-  for that disk.
-
-  File caching is only done if the stored file is "remote". "Remote" is a
-  boolean attribute of the "storage" config var.
-
-  IMGAPI changes to manage this cache:
-  - Add AdminFileCacheAdd to POST (or PUT) a file to the local cache
-    (a la AddImageFile)
-  - Change GetImageFile: if file storage is remote, then use the local cache
-    if available there. Perhaps if NOT available locally, then stream to the
-    local cache. I.e., if used by one CN in this DC, then likely will be
-    wanted again soon for another one.
-  - Change AdminGetState to also include the local file LRU cache index.
-  - Add AdminFileCacheFlush (perhaps, if this is useful):
-    POST /state?flush-file-cache
-  - Change AddImageFile, if file storage is remote, to stream to the local
-    file LRU cache.
-  - Change CreateImageFromVm, if file storage is remote, to stream to the local
-    file LRU cache.
-  - For HA (IMGAPI-140): Change AddImageFile, if file storage is remote, to
-    find other IMGAPIs in this DC and call AdminFileCacheAdd on those.
-
-  Create a followable metric (via SDC log analysis) to track GetImageFile
-  times to help improve this caching.
+**Note from Jens/Carlos discussion Jun 13:** *Don't* allow users making
+images public for now. This would be a guard on changing the 'public' field
+in IMGAPI's UpdateImage for non-admin user. Perhaps the IMGAPI config could
+just have a list of user uuids for which to allow public images.
 
 
-- M6 (1 week, likely will fall easily out of M5): Will need to have
-  MigrateImage (or whatever name we choose) solved for a customer making a
-  custom image in DC1 availalbe for provisioning in DC2.
+### M2: incremental images
 
-- Note from Jens/Carlos discussion Jun 13: *Don't* allow users making images
-  public for now. This would be a guard on changing the 'public' field in
-  IMGAPI's UpdateImage for non-admin user. Perhaps the IMGAPI config
-  could just have a list of user uuids for which to allow public images.
+(1 week) Incremental images. Plan is that all custom images created via
+cloudapi are incremental.
+
+- [IMGAPI-124] incremental images support: manifest fields, CreateImage,
+  AdminImportImage
+- [OS-???] incremental images support in 'imgadm create', 'imgadm
+  install', 'imgadm import'
+- minor PUBAPI, AGENT tickets to pass through the incremental option
+
+### M3: KVM image support
+
+(2 weeks, very rough time estimate) KVM image support.
+
+- [OS-???] kvm support for `imgadm create`
+- [OS-???] kvm support for incremental images (might not require anything
+  special here)
+- test kvm custom images working through the stack
+
+
+### M4: Working with mixed CNs
+
+(2 weeks) Working with mixed CNs: some with sufficient support, some not.
+This means documenting usage in a DC (e.g. JPC) for a subset of packages for
+proto VMs.
+
+- verify that we have min_platform trait support in DAPI for *packages*
+  (a la image manifest requirements.min_platform). I believe we already do.
+- specify the set of proto packages that we'll start with for this, and
+  set min_platform on those as required for `imgadm create`
+- tooling for managing these packages:
+    - update min_platform for a new required fix
+    - list available CNs matching that platform
+  Not sure if these will fit in a generic sdc-packageadm and/or build on the
+  Ben wishlist feature of "aware packages" support in DAPI (DAPI-???).
+- dapi to almost reserve those CNs (or at least prefer the other ones
+  if availalbe)
+
+# M5: remote streaming
+
+(3 weeks, again very rough estimate) Support for remote streaming (from
+remote manta) of image files for install in local DC. If necessary (typically
+large incr images and/or slow WAN download), intelligent local
+pre-caching/loading of images. An obvious case is if a customer creates an
+image in west-1 (which gets published to the manta in east), then that image
+should be cached in west-1 for likely provisioning there.
+
+Proposed plan tl;dr: Each IMGAPI maintains an image file MRU cache on local
+disk.
+
+Proposed plan: Each IMGAPI has a size-limited local MRU cache dir. Limited by
+two config vars: cacheLimitPercent, % available space on that mount
+(determined at start up and periodically re-checked for resizing) and
+cacheLimitSize, max absolute space (e.g. 20GB). Would also attempt to limit
+to <90% total usage for that disk. File caching is only done if the stored
+file is "remote". "Remote" is a boolean attribute of the "storage" config
+var. IMGAPI changes to manage this cache:
+
+- Add AdminFileCacheAdd to POST (or PUT) a file to the local cache
+  (a la AddImageFile)
+- Change GetImageFile: if file storage is remote, then use the local cache
+  if available there. Perhaps if NOT available locally, then stream to the
+  local cache. I.e., if used by one CN in this DC, then likely will be
+  wanted again soon for another one.
+- Change AdminGetState to also include the local file LRU cache index.
+- Add AdminFileCacheFlush (perhaps, if this is useful):
+  POST /state?flush-file-cache
+- Change AddImageFile, if file storage is remote, to stream to the local
+  file LRU cache.
+- Change CreateImageFromVm, if file storage is remote, to stream to the local
+  file LRU cache.
+- For HA (IMGAPI-140): Change AddImageFile, if file storage is remote, to
+  find other IMGAPIs in this DC and call AdminFileCacheAdd on those.
+
+Create a followable metric (via SDC log analysis) to track GetImageFile
+times to help improve this caching.
+
+
+# M6: customer moving images between DCs
+
+(1 week, likely will fall easily out of M5) Will need to have MigrateImage
+(or whatever name we choose) solved for a customer making a custom image in
+DC1 availalbe for provisioning in DC2.
 
 <!-- #endif -->
 
