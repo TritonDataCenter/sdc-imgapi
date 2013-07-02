@@ -174,7 +174,7 @@ image in west-1 (which gets published to the manta in east), then that image
 should be cached in west-1 for likely provisioning there.
 
 Proposed plan tl;dr: Each IMGAPI maintains an image file MRU cache on local
-disk.
+disk. This is IMGAPI-235.
 
 Proposed plan: Each IMGAPI has a size-limited local MRU cache dir. Limited by
 two config vars: cacheLimitPercent, % available space on that mount
