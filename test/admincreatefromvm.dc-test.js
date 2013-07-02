@@ -147,7 +147,7 @@ before(function (next) {
                     return cb(err);
                 }
                 VM = job.vm_uuid;
-                setTimeout(function(){
+                setTimeout(function () {
                     return cb();
                 }, 1000);
             });
@@ -169,7 +169,6 @@ before(function (next) {
 
 if (CAN_RUN_TEST)
 test('CreateFromVm should not work for an inexistent VM', function (t) {
-    var self = this;
     this.client.createFromVmAndWait(MANIFEST, { vm_uuid: genUuid() },
       function (err, image) {
         t.ok(err, 'got expected error');
@@ -180,7 +179,6 @@ test('CreateFromVm should not work for an inexistent VM', function (t) {
 
 if (CAN_RUN_TEST)
 test('CreateFromVm should not work for a running VM', function (t) {
-    var self = this;
     this.client.createFromVmAndWait(MANIFEST, { vm_uuid: VM },
       function (err, image) {
         t.ok(err, 'got expected error');
@@ -240,8 +238,6 @@ after(function (next) {
     }
 
     var vmapi = this.vmapi;
-    var self = this;
-
     async.waterfall([
         function deleteVm(cb) {
             vmapi.deleteVm({ uuid: VM }, function (err, job) {
