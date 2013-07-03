@@ -119,7 +119,6 @@ def ds2imgdiff():
             # Normalize the upgraded_d_str: sorted keys for diffing, some
             # default field values added by IMGAPI.
             o = json.loads(upgraded_d_str)
-            if not o.has_key('acl'): o['acl'] = []
             if not o.has_key('disabled'): o['disabled'] = False
             if not o.has_key('state'): o['state'] = 'active'
             upgraded_d_str = json.dumps(o, indent=2, sort_keys=True)
