@@ -177,6 +177,7 @@ deploy-images.joyent.com:
 		&& cd /root/services/imgapi.deploying \
 		&& git fetch origin \
 		&& git pull --rebase origin master \
+		&& git submodule update --init \
 		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
 		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
 		&& mv /root/services/imgapi.deploying /root/services/imgapi \
@@ -197,6 +198,7 @@ deploy-updates.joyent.com:
 		&& cd /root/services/imgapi.deploying \
 		&& git fetch origin \
 		&& git pull --rebase origin master \
+		&& git submodule update --init \
 		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
 		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
 		&& mv /root/services/imgapi.deploying /root/services/imgapi \
