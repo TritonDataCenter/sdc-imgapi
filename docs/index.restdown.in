@@ -305,6 +305,7 @@ A summary of fields (details are provided below):
 ||[version](#manifest-version)||String||Yes||No||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||Yes||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||No||Yes||Homepage URL where users can find more information about the image.||
+||[eula](#manifest-eula)||URL||No||Yes||URL of the End User License Agreement (EULA) for the image.||
 ||[icon](#manifest-icon)||Boolean||No||Yes (\*)||Indicates if the image has an icon file. If not present, then no icon is present.||
 ||[state](#manifest-state)||String||Yes||No||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
 ||[disabled](#manifest-disabled)||Boolean||Yes||No (\*)||Indicates if this image is available for provisioning.||
@@ -417,6 +418,11 @@ A short prose description of this image. Maximum 512 characters.
 ## Manifest: homepage
 
 Homepage URL where users can find more information about the image. Maximum 128
+characters.
+
+## Manifest: eula
+
+URL of the End User License Agreement (EULA) for the image. Maximum 128
 characters.
 
 ## Manifest: icon
@@ -1274,6 +1280,7 @@ provisioning.
 ||[version](#manifest-version)||String||Yes||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||-||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||No||-||Homepage URL where users can find more information about the image.||
+||[eula](#manifest-eula)||URL||No||-||URL of the End User License Agreement (EULA) for the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
@@ -1928,6 +1935,7 @@ updated.
 ||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
 ||[description](#manifest-description)||String||-||A short description of the image.||
 ||[homepage](#manifest-homepage)||URL||-||Homepage URL where users can find more information about the image.||
+||[eula](#manifest-eula)||URL||-||URL of the End User License Agreement (EULA) for the image.||
 ||[public](#manifest-public)||Boolean||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||-||The OS family this image provides. One of "smartos", "windows", and "linux".||

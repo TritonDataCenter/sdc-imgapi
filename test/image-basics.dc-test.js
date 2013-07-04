@@ -98,7 +98,8 @@ test('CreateImage', function (t) {
         billing_tags: ['xxllpromo'],
         traits: { foo: 'bar', ssd: true },
         tags: { key: 'value' },
-        homepage: 'http://images.com/v1.html'
+        homepage: 'http://images.com/v1.html',
+        eula: 'http://images.com/eula.html'
     };
 
     var self = this;
