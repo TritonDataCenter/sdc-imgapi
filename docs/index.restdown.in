@@ -105,7 +105,7 @@ images, walking up the stack from the platform level:
 - [done, AGENT-605] machine_image_create task for custom image creation
 - [done, CNAPI-259] [https://mo.joyent.com/docs/cnapi/master/#VmImagesCreate]
 - [done, IMGAPI-191, andres] CreateImageFromVm
-- [PUBAPI-591, trent/pedro] CreateImageFromMachine
+- [done, PUBAPI-591, trent/pedro] CreateImageFromMachine
 - [RELENG-???, trent]: sdc-system-tests tests for this. Create an image
   from cloudapi and use it from cloudapi.
 - [OS-???, IMGAPI-92, andres, platform] IMGAPI version header usage from imgadm for
@@ -115,6 +115,11 @@ images, walking up the stack from the platform level:
   or StartMachine on a VM being used to create an image until
   CreateImageFromMachine is complete. This isn't a blocker, *could*
   just doc this.
+- [node-smartdc#???, pedro?] Add sdc-createimage to node-smartdc. Need
+  this private/unreleased for now, so perhaps a private fork.
+- [PUBAPI-???, trent/pedro] Cloud API docs for CreateImageFromMachine.
+  Discuss hiding this behind a private #ifdef a la the technique for this
+  in the imgapi docs.
 
 For starters, this will be not be fully enabled in cloudapi so that we
 can deploy cloudapi to JPC without this being on.
@@ -209,6 +214,15 @@ times to help improve this caching.
 (1 week, likely will fall easily out of M5) Will need to have MigrateImage
 (or whatever name we choose) solved for a customer making a custom image in
 DC1 availalbe for provisioning in DC2.
+
+### M7: capacity handling
+
+- What happens when there are >1000 images for a typical search case? Currently
+  IMGAPI doesn't handle paging through "ListImages" results. Proper paging
+  here might require moving IMGAPI's db of manifests from UFDS to Moray
+- How well does IMGAPI fail when its local dir for images files runs out
+  of space? Test it.
+
 
 <!-- #endif -->
 
