@@ -19,6 +19,7 @@ import urllib2
 from pprint import pprint
 import difflib
 import json
+import copy
 from os.path import realpath, dirname
 
 
@@ -52,36 +53,99 @@ def _getJsonUrl(url):
     content = _getUrl(url)
     return json.loads(content)
 
-def upgrade_image_str(img_str):
-    from subprocess import Popen, PIPE
-    cmd = '''node -e 'var up = require("imgmanifest").upgradeManifest;
-        var m = "";
-        process.stdin.resume();
-        process.stdin.on("data", function (d) { m += d });
-        process.stdin.on("end", function () {
-            var ds = JSON.parse(m);
-            var img = up(ds);
-            process.stdout.write(JSON.stringify(img, null, 2));
-        });'
-        '''
-    p = Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,
-        close_fds=True, cwd=TOP)
-    p.stdin.write(img_str)
-    p.stdin.close()
-    code = p.wait()
-    if code != 0:
-        raise Error('error upgrading dataset manifest: exitted=%s, stderr=%r'
-            % (code, p.stderr.read()))
-    upgraded_img_str = p.stdout.read()
-    return upgraded_img_str
+all_file_paths = set()  # track all these to error on duplicates
+def downgrade_image_inplace(img):
+    drop = ["v", "homepage"]
+    for field in drop:
+        if img.has_key(field):
+            del img[field]
+
+    if img["state"] != "active":
+        raise ValueError("image %(uuid)s is not active: state=%(state)r" % img)
+    del img["state"]
+
+    assert not img["disabled"]
+    del img["disabled"]
+
+    assert img["public"]
+    del img["public"]
+
+    # owner fields
+    img["creator_uuid"] = img["vendor_uuid"] = img["owner"]
+    del img["owner"]
+
+    img["platform_type"] = "smartos"
+
+    if img["published_at"].endswith(':00Z'):
+        img["published_at"] = img["published_at"][:-4] + 'Z'
+    img["updated_at"] = img["published_at"]
+    img["created_at"] = img["published_at"]
+
+    if img.has_key("urn"):
+        urn = img["urn"].split(':')
+        img["cloud_name"] = urn[0]
+        img["creator_name"] = urn[1]
+
+    if img.has_key("image_size"):
+        img["image_size"] = str(img["image_size"])
+
+    if img.has_key("acl") and len(img["acl"]) == 0:
+        del img["acl"]
+
+    # Specific manual hacks for some UUIDs on datasets.jo.
+    uuid = img["uuid"]
+
+    # files
+    f = img["files"][0]
+    ext = {"bzip2": ".bz2", "gzip": ".gz", "none": ""}[f["compression"]]
+    if uuid in (
+            "da144ada-a558-11e2-8762-538b60994628",
+            "d2ba0f30-bbe8-11e2-a9a2-6bc116856d85",
+            "94384a12-bbeb-11e2-aec2-2bfa9742484b",
+            "87c556ac-ab9d-11e2-914d-07682fcab47d",
+            "3162a91e-8b5d-11e2-a78f-9780813f9142",
+            "1327ed36-5130-11e2-95a8-9b5a153adf3e",
+            "014e2254-a853-11e2-81c9-b318c31fa17a",
+        ):
+        f["path"] = "%s-%s.zfs%s" % (img["name"], img["version"], ext)
+    elif uuid == "30e9e4c8-bbf2-11e2-ac3b-3b598ee13393":
+        f["path"] = "%s.4-%s.zfs%s" % (img["name"], img["version"], ext)
+    elif uuid == "e42f8c84-bbea-11e2-b920-078fab2aab1f":
+        f["path"] = "%s-18-%s.zfs%s" % (img["name"], img["version"], ext)
+    elif uuid == "46ecf60e-52c8-11e2-b212-9b51fc749547":
+        f["path"] = "%s-%s-1.zfs%s" % (img["name"], img["version"], ext)
+    elif uuid in (
+            "e4cd7b9e-4330-11e1-81cf-3bb50a972bda",
+            "71101322-43a5-11e1-8f01-cf2a3031a7f4",
+        ):
+        f["path"] = "%s-1.0.0.zvol%s" % (img["name"], ext)
+    elif img["type"] == "zvol":
+        f["path"] = "%s-%s.zvol%s" % (img["name"], img["version"], ext)
+    else:
+        f["path"] = "%s-%s.zfs%s" % (img["name"], img["version"], ext)
+    if f["path"] in all_file_paths:
+        raise ValueError("duplicate file 'path': %r" % f["path"])
+    all_file_paths.add(f["path"])
+    f["url"] = "https://datasets.joyent.com/datasets/%s/%s" % (img["uuid"], f["path"])
+    del f["compression"]
+
+
 
 
 
 #---- main functionality
 
 def img2dsdiff():
-    datasets = _getJsonUrl('https://datasets.joyent.com/datasets')
-    images = _getJsonUrl('https://images.joyent.com/images')
+    if True:
+        #XXX
+        datasets = json.load(open('/var/tmp/datasets.json'))
+        images = json.load(open('/var/tmp/images.json'))
+    else:
+        datasets = _getJsonUrl('https://datasets.joyent.com/datasets')
+        open('/var/tmp/datasets.json', 'w').write(json.dumps(datasets)) #XXX
+        images = _getJsonUrl('https://images.joyent.com/images')
+        open('/var/tmp/images.json', 'w').write(json.dumps(images)) #XXX
+
     # Key by uuid
     datasets = dict((d['uuid'], d) for d in datasets)
     images = dict((i['uuid'], i) for i in images)
@@ -107,22 +171,28 @@ def img2dsdiff():
         else:
             #pass
             #print "--", uuid
+            i = copy.deepcopy(images[uuid])
+            downgrade_image_inplace(i)
+            #import time
+            #start = time.time()
+            #print "XXX took: %r" % (time.time() - start)
+
+            ## Normalize the upgraded_d_str: sorted keys for diffing, some
+            ## default field values added by IMGAPI.
+            #o = json.loads(upgraded_d_str)
+            #if not o.has_key('acl'): o['acl'] = []
+            #if not o.has_key('disabled'): o['disabled'] = False
+            #if not o.has_key('state'): o['state'] = 'active'
+            #upgraded_d_str = json.dumps(o, indent=2, sort_keys=True)
+
             d_str = json.dumps(datasets[uuid], indent=2, sort_keys=True)
-            i_str = json.dumps(images[uuid], indent=2, sort_keys=True)
-            upgraded_d_str = upgrade_image_str(d_str)
-
-            # Normalize the upgraded_d_str: sorted keys for diffing, some
-            # default field values added by IMGAPI.
-            o = json.loads(upgraded_d_str)
-            if not o.has_key('acl'): o['acl'] = []
-            if not o.has_key('disabled'): o['disabled'] = False
-            if not o.has_key('state'): o['state'] = 'active'
-            upgraded_d_str = json.dumps(o, indent=2, sort_keys=True)
-
+            downgraded_i_str = json.dumps(i, indent=2, sort_keys=True)
             diff = list(difflib.unified_diff(
-                upgraded_d_str.splitlines(True), i_str.splitlines(True),
+                downgraded_i_str.splitlines(True),
+                d_str.splitlines(True),
+                'https://images.joyent.com/images/' + uuid,
                 'https://datasets.joyent.com/datasets/' + uuid,
-                'https://images.joyent.com/images/' + uuid))
+                ))
             #pprint(diff)
             diff_str = ''.join(diff)
             if diff_str:

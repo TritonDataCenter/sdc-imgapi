@@ -116,7 +116,8 @@ images, walking up the stack from the platform level:
   CreateImageFromMachine is complete. This isn't a blocker, *could*
   just doc this.
 - [node-smartdc#???, pedro?] Add sdc-createimage to node-smartdc. Need
-  this private/unreleased for now, so perhaps a private fork.
+  this private/unreleased for now, so perhaps a private fork (via
+  https://help.github.com/articles/duplicating-a-repository).
 - [PUBAPI-???, trent/pedro] Cloud API docs for CreateImageFromMachine.
   Discuss hiding this behind a private #ifdef a la the technique for this
   in the imgapi docs.
