@@ -220,7 +220,8 @@ DC1 availalbe for provisioning in DC2.
 
 - What happens when there are >1000 images for a typical search case? Currently
   IMGAPI doesn't handle paging through "ListImages" results. Proper paging
-  here might require moving IMGAPI's db of manifests from UFDS to Moray
+  here might require moving IMGAPI's db of manifests from UFDS to Moray.
+  This is IMGAPI-182
 - How well does IMGAPI fail when its local dir for images files runs out
   of space? Test it.
 
