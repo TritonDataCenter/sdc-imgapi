@@ -1,0 +1,94 @@
+#!/bin/bash
+#
+# Command to run in cron to update datasets.joyent.com to mirror
+# from images.joyent.com.
+#
+# This attempts to be silent if there are no
+# changes. It will attempt to mail the ADMIN_EMAIL if there is any
+# update.
+#
+# Usage:
+#   mirror-images
+#
+
+if [ "$TRACE" != "" ]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
+TOOLS=$(unset CDPATH; cd $(dirname $0)/; pwd)
+ERR=
+DIFF=
+UPDATE=
+ADMIN_EMAIL=trentm@gmail.com
+
+
+#---- support functions
+
+function fatal
+{
+    ERR=$1
+    echo "fatal error: $1" >/dev/stderr
+    exit 1
+}
+
+function cleanup () {
+    status=$?
+    if [[ $status -ne 0 && -z "$ERR" ]]; then
+        ERR="unknown error: $status"
+    fi
+
+    local subject="mirror-images update"
+    if [[ -n "$ERR" ]]; then
+        subject+=" (error: $ERR)"
+    fi
+
+    echo "# err"
+    echo "$ERR"
+    echo "# diff"
+    echo "$DIFF"
+    echo "# update"
+    echo "$UPDATE"
+
+    if [[ -n "$DIFF" || -n "$ERR" ]]; then
+        mail "$ADMIN_EMAIL" <<EOM
+Subject: $subject
+From: "mirror-images" <root@images.joyent.com>
+
+# error
+
+$ERR
+
+# diff
+
+$DIFF
+
+# update
+
+$UPDATE
+
+-- the cron job on images.joyent.com
+EOM
+    fi
+    echo "Done: $(date)"
+}
+
+
+
+#---- mainline
+
+trap 'cleanup' EXIT
+
+echo ""
+echo "--"
+echo "Update datasets.joyent.com (mirroring from images.joyent.com): $(date)"
+
+DIFF="$($TOOLS/img2dsdiff 2>&1)"
+if [[ -n "$DIFF" ]]; then
+    UPDATE="$($TOOLS/img2dsdiff --mirror 2>&1)"
+fi
+

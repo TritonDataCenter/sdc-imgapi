@@ -4,13 +4,14 @@
 #
 
 """
-Show a diff of images.joyent.com images -> datasets.joyent.com images.
+Show a diff of images.joyent.com images -> datasets.joyent.com datasets.
 
 Usage:
     img2dsdiff [<options>]
 
 Options:
     -h, --help          Print this help and exit.
+    --mirror            Push changes to datasets.joyent.com.
 """
 
 import os
@@ -21,16 +22,28 @@ import difflib
 import json
 import copy
 from os.path import realpath, dirname
+from subprocess import check_call, check_output
+import logging
+import shutil
+
 
 
 #---- globals/config
+
+log = logging.getLogger('img2dsdiff')
 
 TOP = realpath(dirname(dirname(__file__)))
 IMG_UUID_SKIPS = [
     # sngl:0.99.0 is only for images.joyent.com. Only works on recent
     # (pre-6.5) platforms so don't want it exposed on datasets.jo.
     '4bf9530a-7ae5-11e2-bb4e-3bad5fbc3de9',
+
+    # freebsd guy. Do we really want this on datasets.jo? It has
+    # "jpc" as the creator_name in the URN. That's not really right
+    # for datasets.jo (nor for images.jo for that matter).
+    'df8d2ee6-d87f-11e2-b257-2f02c6f6ce80',
 ]
+
 
 
 #---- errors
@@ -55,7 +68,7 @@ def _getJsonUrl(url):
 
 all_file_paths = set()  # track all these to error on duplicates
 def downgrade_image_inplace(img):
-    drop = ["v", "homepage"]
+    drop = ["v", "homepage", "tags", "billing_tags"]
     for field in drop:
         if img.has_key(field):
             del img[field]
@@ -136,15 +149,14 @@ def downgrade_image_inplace(img):
 #---- main functionality
 
 def img2dsdiff():
-    if True:
-        #XXX
+    if False:
         datasets = json.load(open('/var/tmp/datasets.json'))
         images = json.load(open('/var/tmp/images.json'))
     else:
         datasets = _getJsonUrl('https://datasets.joyent.com/datasets')
-        open('/var/tmp/datasets.json', 'w').write(json.dumps(datasets)) #XXX
+        #open('/var/tmp/datasets.json', 'w').write(json.dumps(datasets))
         images = _getJsonUrl('https://images.joyent.com/images')
-        open('/var/tmp/images.json', 'w').write(json.dumps(images)) #XXX
+        #open('/var/tmp/images.json', 'w').write(json.dumps(images))
 
     # Key by uuid
     datasets = dict((d['uuid'], d) for d in datasets)
@@ -156,36 +168,48 @@ def img2dsdiff():
     all_uuids = ds_uuids.union(img_uuids)
     #pprint(uuids)
 
-    is_diff = False
+    diffs = []
     for uuid in sorted(all_uuids):
         #print "--", uuid
         if uuid in ds_uuids and uuid not in img_uuids:
-            is_diff = True
-            print "Only in datasets.joyent.com: image %s (%s %s)" % (
-                uuid, datasets[uuid]["name"], datasets[uuid]["version"])
+            diffs.append({
+                "uuid": uuid, 
+                "action": "delete",
+                "msg": "Only in datasets.joyent.com: image %s (%s %s)" % (
+                    uuid, datasets[uuid]["name"], datasets[uuid]["version"])
+            })
         elif uuid not in ds_uuids and uuid in img_uuids:
             if uuid not in IMG_UUID_SKIPS:
-                is_diff = True
-                print "Only in images.joyent.com: image %s (%s %s)" % (
-                    uuid, images[uuid]["name"], images[uuid]["version"])
+                diffs.append({
+                    "uuid": uuid, 
+                    "action": "add",
+                    "image": images[uuid],
+                    "msg": "Only in images.joyent.com: image %s (%s %s)" % (
+                        uuid, images[uuid]["name"], images[uuid]["version"])
+                })
         else:
-            #pass
             #print "--", uuid
+
             i = copy.deepcopy(images[uuid])
             downgrade_image_inplace(i)
-            #import time
-            #start = time.time()
-            #print "XXX took: %r" % (time.time() - start)
 
-            ## Normalize the upgraded_d_str: sorted keys for diffing, some
-            ## default field values added by IMGAPI.
-            #o = json.loads(upgraded_d_str)
-            #if not o.has_key('acl'): o['acl'] = []
-            #if not o.has_key('disabled'): o['disabled'] = False
-            #if not o.has_key('state'): o['state'] = 'active'
-            #upgraded_d_str = json.dumps(o, indent=2, sort_keys=True)
+            # Note: Don't compare ownership, that's all messed up btwn
+            # 'admin' or 'all zeros' in images.jo vs 'sdc' user uuid in
+            # datasets.jo.
+            d = copy.deepcopy(datasets[uuid])
+            del d["creator_uuid"]
+            del d["vendor_uuid"]
+            del i["creator_uuid"]
+            del i["vendor_uuid"]
 
-            d_str = json.dumps(datasets[uuid], indent=2, sort_keys=True)
+            # Comparing times for images mirrored from images.jo
+            # to dataset.jo is a fools errand, because datasets.jo
+            # import overrides those values.
+            for field in ["created_at", "published_at", "updated_at"]:
+                del d[field]
+                del i[field]
+
+            d_str = json.dumps(d, indent=2, sort_keys=True)
             downgraded_i_str = json.dumps(i, indent=2, sort_keys=True)
             diff = list(difflib.unified_diff(
                 downgraded_i_str.splitlines(True),
@@ -196,12 +220,66 @@ def img2dsdiff():
             #pprint(diff)
             diff_str = ''.join(diff)
             if diff_str:
-                is_diff = True
-                sys.stdout.write(diff_str)
-    if is_diff:
-        return 1
-    else:
-        return 0
+                diffs.append({
+                    "uuid": uuid,
+                    "action": "diff", 
+                    "msg": diff_str
+                })
+    return diffs
+
+def _indent(s, indent='    '):
+    return indent + indent.join(s.splitlines(True))
+
+def run(argv):
+    from subprocess import check_call
+    print ' '.join(argv)
+    check_call(argv, shell=True)
+
+def add_image(image):
+    CONFIG = json.loads(open('/root/config/img2dsdiff.config.json').read())
+
+    dataset = copy.deepcopy(image)
+    downgrade_image_inplace(dataset)
+    uuid = dataset["uuid"]
+
+    # Force ownership to 'sdc' user.
+    # We are forcing the ownership/creator_uuid to the 'sdc'
+    # user (uuid 352971aa-31ba-496c-9ade-a379feaecd52) because
+    # DSAPI gets picky if you don't match that and the 'sdc'
+    # creator_name (from the urn). We *could* support 'jpc' if we
+    # need to, but really those shouldn't go on datasets.jo.
+    assert dataset["creator_name"] == "sdc", "We only want 'sdc' as the creator_name here, not '%s'" % dataset["creator_name"]
+    dataset["creator_uuid"] = dataset["vendor_uuid"] = '352971aa-31ba-496c-9ade-a379feaecd52'
+
+    tmpd = '/var/tmp/img2dsdiff.%s.%s' % (os.getpid(), uuid)
+    os.makedirs(tmpd)
+
+    print "Image manifest on images.jo:"
+    print _indent(json.dumps(image, indent=2, sort_keys=True))
+
+    print "Dataset manifest downgraded for datasets.jo:"
+    dataset_str = json.dumps(dataset, indent=2, sort_keys=True)
+    print _indent(dataset_str)
+    open(os.path.join(tmpd, 'dsmanifest'), 'w').write(dataset_str)
+
+    print "Download the image file"
+    check_call([
+        '/opt/local/bin/curl', '-kOsS', 'http://localhost:8080/images/%s/file' % uuid,
+    ], cwd=tmpd)
+
+    print "Push to datasets.joyent.com"
+    print check_output([
+        '/opt/local/bin/curl', '-sSi',
+        # Note: presuming no url encoding of user/pass necessary here.
+        'https://%s:%s@datasets.joyent.com/datasets/%s' % (
+            CONFIG["dsapi_user"], CONFIG["dsapi_password"], uuid),
+        '-X', 'PUT',
+        '-F', 'manifest=@dsmanifest',
+        '-F', '%s=@file' % dataset["files"][0]["path"]
+    ], cwd=tmpd)
+
+    shutil.rmtree(tmpd)
+
 
 
 #---- mainline
@@ -210,7 +288,54 @@ def main(argv):
     if '-h' in argv or '--help' in argv:
         sys.stdout.write(__doc__)
         return
-    img2dsdiff()
+    diffs = img2dsdiff()
+    if '--mirror' in argv:
+        for diff in diffs:
+            uuid = diff["uuid"]
+            action = diff["action"]
+            if action == "add":
+                print "Add image %s to datasets.joyent.com" % uuid
+                add_image(diff["image"])
+            elif action == "delete":
+                print "*Skipping* delete of image %s from datasets.joyent.com" % uuid
+            elif action == "diff":
+                print "Image %s differs on datasets.joyent.com (what to do?)" % uuid
+                print diff["msg"]
+    else:
+        for diff in diffs:
+            print diff["msg"]
 
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+
+## {{{ http://code.activestate.com/recipes/577258/ (r5+)
+if __name__ == "__main__":
+    try:
+        retval = main(sys.argv)
+    except KeyboardInterrupt:
+        sys.exit(1)
+    except SystemExit:
+        raise
+    except:
+        import traceback, logging
+        if not log.handlers and not logging.root.handlers:
+            logging.basicConfig()
+        skip_it = False
+        exc_info = sys.exc_info()
+        if hasattr(exc_info[0], "__name__"):
+            exc_class, exc, tb = exc_info
+            if isinstance(exc, IOError) and exc.args[0] == 32:
+                # Skip 'IOError: [Errno 32] Broken pipe': often a cancelling of `less`.
+                skip_it = True
+            if not skip_it:
+                tb_path, tb_lineno, tb_func = traceback.extract_tb(tb)[-1][:3]
+                log.error("%s (%s:%s in %s)", exc_info[1], tb_path,
+                    tb_lineno, tb_func)
+        else:  # string exception
+            log.error(exc_info[0])
+        if not skip_it:
+            if log.isEnabledFor(logging.DEBUG):
+                traceback.print_exception(*exc_info)
+            sys.exit(1)
+    else:
+        sys.exit(retval)
+## end of http://code.activestate.com/recipes/577258/ }}}
+
