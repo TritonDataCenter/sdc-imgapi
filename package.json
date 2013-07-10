@@ -8,7 +8,7 @@
     "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#b26950d",
     "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#9133444",
     "ldapjs": "0.5.7",
-    "restify": "git+ssh://git@github.com:trentm/node-restify.git#a03c4a50",
+    "restify": "git+ssh://git@github.com:mcavage/node-restify.git#3c3a0f9",
     "bunyan": "0.21.4",
     "async": "0.1.22",
     "node-uuid": "1.4.0",
