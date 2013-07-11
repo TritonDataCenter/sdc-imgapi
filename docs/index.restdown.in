@@ -980,10 +980,52 @@ hence the packages, etc. are not practical JPC examples:
   waiting for a certain state on a machine (state='running'). We'll want that
   state field anyway for the user being able to disable their own images.
 
+  TODO: `type="smartmachine"` is wrong here. I don't think it should be
+  translating type values. Or is this already the case for '/my/datasets'?
+  The disconnect with public IMGAPI docs is annoying. I'd be inclined to
+  have limited old language for /datasets, but new for /images. Even so far
+  as 'uuid' instead of 'id'.
+
   WARNING: If the image creation fails the image will be deleted from IMGAPI,
   meaning it won't show up in `sdc-cloudapi /my/images`, meaning there isn't
   a good way to report async creation failure reasons to the user. TODO: think
   about that.
+
+- Here is the full internal data on the image:
+
+        $ sdc-imgadm get cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd
+        {
+          "v": "2",
+          "uuid": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
+          "owner": "930896af-bf8c-48d4-885c-6573a94b1853",
+          "name": "foo",
+          "version": "1.0.0",
+          "state": "active",
+          "disabled": false,
+          "public": false,
+          "published_at": "2013-07-11T04:40:10.364Z",
+          "type": "zone-dataset",
+          "os": "smartos",
+          "files": [
+            {
+              "sha1": "3b52cd61463ee1b0c6551a3789b9db7e591fa410",
+              "size": 381619144,
+              "compression": "none"
+            }
+          ],
+          "description": "my first image",
+          "requirements": {
+            "networks": [
+              {
+                "name": "net0",
+                "description": "public"
+              }
+            ]
+          }
+        }
+
+  Fields that 'requirements.networks' were inherited from the origin 'base'
+  image.
 
 - Provision a new machine with this custom image.
 
