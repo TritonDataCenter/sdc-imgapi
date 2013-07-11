@@ -822,6 +822,209 @@ if necessary (imgadm is configured to talk to the DC's local IMGAPI).
 
 **Status**: Incomplete. Current work is in IMGAPI-95 and related tickets.
 
+An example using raw cloudapi (using the `sdc-cloudapi` tool in the 'sdc' zone
+that allows the *admin* user to talk to CloudAPI). This example is run in COAL,
+hence the packages, etc. are not practical JPC examples:
+
+- Some COAL-only setup.
+
+  Ensure that DAPI will allow using the headnode for provisioning:
+
+        sdc-login dapi
+        cd /opt/smartdc/dapi/sapi_manifests/dapi
+        json -f template -e '
+          this.allocationDescription = this.allocationDescription.filter(
+            function (e) {
+              return !~[
+                "hard-filter-min-ram",
+                "hard-filter-min-disk",
+                "hard-filter-min-cpu",
+                "hard-filter-headnode"
+              ].indexOf(e);
+            })
+          ' > template.new
+        mv template.new template
+        svcadm restart config-agent
+
+  Need an external nic for the 'sdc' and 'imgapi' zones:
+
+        sdc-vmapi /vms/$(vmadm lookup -1 alias=sdc0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
+        {
+            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
+        }
+        EOP
+        sdc-vmapi /vms/$(vmadm lookup -1 alias=imgapi0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
+        {
+            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
+        }
+        EOP
+
+  Get the base 13.1.0 image to work with:
+
+        sdc-imgadm import f669428c-a939-11e2-a485-b790efc0f0c1 -S https://images.joyent.com --skip-owner-check
+
+  Now get into the sdc zone where `sdc-cloudapi` is setup for the admin user:
+
+        [root@headnode (coal) ~]# sdc
+        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]#
+
+- Pick a package via ListPackages:
+
+        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# sdc-cloudapi /my/packages | json -H -c 'this.name=="sdc_256"'
+        [
+          {
+            "name": "sdc_256",
+            "memory": 256,
+            "disk": 25600,
+            "swap": 512,
+            "vcpus": 1,
+            "default": "false",
+            "id": "78aa629d-04fc-4ee5-881b-0b4a914e0c52",
+            "version": "1.0.0"
+          }
+        ]
+
+- Pick a network:
+
+        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# sdc-cloudapi /my/networks | json -H 0
+        {
+          "id": "c1dc3561-86ad-4a14-a3e4-3db849f6e0d4",
+          "name": "external",
+          "public": true
+        }
+
+- [CreateMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateMachine)
+
+        cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
+        {
+        "name": "custom1",
+        "package": "78aa629d-04fc-4ee5-881b-0b4a914e0c52",
+        "image": "f669428c-a939-11e2-a485-b790efc0f0c1",
+        "networks": ["c1dc3561-86ad-4a14-a3e4-3db849f6e0d4"]
+        }
+        EOM
+
+  And wait until it is running:
+
+        while [[ $(sdc-cloudapi /my/machines/9af1f97a-7fce-4fa7-bffa-8c6d4374d885 | json -H state) == "provisioning" ]]; do
+          sleep 2
+        done
+
+  and get its IP:
+
+        $ sdc-cloudapi /my/machines/9af1f97a-7fce-4fa7-bffa-8c6d4374d885 | json -Hj id name state ips
+        {
+          "id": "9af1f97a-7fce-4fa7-bffa-8c6d4374d885",
+          "name": "custom1",
+          "state": "running",
+          "ips": [
+            "10.88.88.7"
+          ]
+        }
+
+- SSH in, make a change and prepare the instance:
+
+        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.7
+        Last login: Thu Jul 11 04:29:02 2013 from 10.88.88.5
+           __        .                   .
+         _|  |_      | .-. .  . .-. :--. |-
+        |_    _|     ;|   ||  |(.-' |  | |
+          |__|   `--'  `-' `;-| `-' '  ' `-'
+                           /  ; SmartMachine (base 13.1.0)
+                           `-'  http://wiki.joyent.com/jpc2/SmartMachine+Base
+        [root@9af1f97a-7fce-4fa7-bffa-8c6d4374d885 ~]# echo 'Trent was here' > /etc/motd
+        [root@9af1f97a-7fce-4fa7-bffa-8c6d4374d885 ~]# sm-prepare-image -y
+        ...
+
+  This will stop the instance.
+
+- Create the custom image:
+
+        cat <<EOM | sdc-cloudapi /my/images -X POST -d@-
+        {
+          "machine": "9af1f97a-7fce-4fa7-bffa-8c6d4374d885",
+          "name": "foo",
+          "version": "1.0.0",
+          "description": "my first image"
+        }
+        EOM
+
+  The image shows up right away:
+
+        {
+          "id": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
+          "name": "foo",
+          "type": "smartmachine",
+          "requirements": {},
+          "version": "1.0.0",
+          "description": "my first image"
+        }
+
+  but without a "published_at". Once it is published:
+
+        $ sdc-cloudapi /my/images | json -H -c 'this.name==="foo"'
+        [
+          {
+            "id": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
+            "name": "foo",
+            "os": "smartos",
+            "type": "smartmachine",
+            "requirements": {},
+            "version": "1.0.0",
+            "description": "my first image",
+            "published_at": "2013-07-11T04:40:10.364Z"
+          }
+        ]
+
+  TODO: We'll want to add the image 'state' field here to make this the same as
+  waiting for a certain state on a machine (state='running'). We'll want that
+  state field anyway for the user being able to disable their own images.
+
+  WARNING: If the image creation fails the image will be deleted from IMGAPI,
+  meaning it won't show up in `sdc-cloudapi /my/images`, meaning there isn't
+  a good way to report async creation failure reasons to the user. TODO: think
+  about that.
+
+- Provision a new machine with this custom image.
+
+        cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
+        {
+        "name": "foo0",
+        "package": "78aa629d-04fc-4ee5-881b-0b4a914e0c52",
+        "image": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
+        "networks": ["c1dc3561-86ad-4a14-a3e4-3db849f6e0d4"]
+        }
+        EOM
+
+  Get its IP:
+
+        $ sdc-cloudapi /my/machines/c4412958-0d6b-46c1-8b98-e4b52361e62c | json -Hj id name state ips
+        {
+          "id": "c4412958-0d6b-46c1-8b98-e4b52361e62c",
+          "name": "foo0",
+          "state": "running",
+          "ips": [
+            "10.88.88.8"
+          ]
+        }
+
+  SSH in to see if it worked:
+
+        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.8
+        The authenticity of host '10.88.88.8 (10.88.88.8)' can't be established.
+        RSA key fingerprint is 5c:6c:9e:50:95:36:5c:1c:17:8f:53:77:84:ee:81:e9.
+        Are you sure you want to continue connecting (yes/no)? yes
+        Warning: Permanently added '10.88.88.8' (RSA) to the list of known hosts.
+        Last login: Thu Jul 11 04:49:11 2013 from 10.88.88.5
+        Trent was here
+        [root@c4412958-0d6b-46c1-8b98-e4b52361e62c ~]#
+
+It worked!
+
+
+An example using [the node-smartdc CLI](https://github.com/joyent/node-smartdc):
+TODO.
+
 
 ## Use Case 6: User modifies an image they own
 
