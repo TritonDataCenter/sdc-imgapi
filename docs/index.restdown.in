@@ -106,11 +106,19 @@ images, walking up the stack from the platform level:
 - [done, CNAPI-259] [https://mo.joyent.com/docs/cnapi/master/#VmImagesCreate]
 - [done, IMGAPI-191, andres] CreateImageFromVm
 - [done, PUBAPI-591, trent/pedro] CreateImageFromMachine
+- Issues with CreateImageFromMachine in CloudAPI:
+  - [trent] pull in TODOs from Use Case 5 below
+  - [trent, pedro, andres to discuss] while the image is being created,
+    currently you get a 404 from 'sdc-cloudapi /my/images/$uuid'. That sucks. No
+    way to distinguish that from "image creation failed". Need to dig up
+    conversations on that and plan. Can CloudAPI keep tabs on the workflow and
+    maintain a meta-state for the image? state="creating" or something? Dunno
+    about "failed" state and showing an error.
 - [RELENG-???, trent]: sdc-system-tests tests for this. Create an image
   from cloudapi and use it from cloudapi.
 - [OS-???, IMGAPI-92, andres, platform] IMGAPI version header usage from imgadm for
   future proofing.
-- [WORKFLOW-113, pedro] Workflow RFE to be able to serialize jobs on
+- [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
   the same vm_uuid. This to guard against an attempt to DeleteMachine
   or StartMachine on a VM being used to create an image until
   CreateImageFromMachine is complete. This isn't a blocker, *could*
@@ -169,6 +177,9 @@ proto VMs.
   Ben wishlist feature of "aware packages" support in DAPI (DAPI-???).
 - dapi to almost reserve those CNs (or at least prefer the other ones
   if availalbe)
+- [orlando/trent] 6.5 agent work to support installing the origin/parent image
+  for incremental images. This is so that custom images can be used for
+  provisioning on 6.5 CNs.
 
 ### M5: remote streaming
 
