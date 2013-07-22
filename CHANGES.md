@@ -1,5 +1,9 @@
 # Image API (IMGAPI) change log
 
+# 1.0.3
+
+- IMGAPI-244: Fix possible crash in audit logging
+
 # 1.0.2
 
 - IMGAPI-201: "sdc-imgadm enable" does not enable images in us-east-1
