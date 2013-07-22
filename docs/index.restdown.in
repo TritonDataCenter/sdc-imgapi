@@ -839,9 +839,35 @@ hence the packages, etc. are not practical JPC examples:
 
 - Some COAL-only setup.
 
+  Provision a cloudapi:
+
+        cat <<EOM | sapiadm provision
+        {
+            "service_uuid": "$(sdc-sapi /services?name=cloudapi | json -H 0.uuid)",
+            "params": {
+                "alias": "cloudapi0",
+                "networks": [
+                    {
+                        "uuid": "$(sdc-napi /networks?name=admin | json -H 0.uuid)"
+                    },
+                    {
+                        "uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)",
+                        "primary": true
+                    }
+                ]
+            }
+        }
+        EOM
+
+  Turn on image management unreleased functionality in cloudapi:
+
+        echo '{"metadata": {"CLOUDAPI_CREATE_IMAGES": true}}' \
+          | sapiadm update $(sdc-sapi /services?name=cloudapi </dev/null | json -H 0.uuid)
+
   Ensure that DAPI will allow using the headnode for provisioning:
 
         sdc-login dapi
+
         cd /opt/smartdc/dapi/sapi_manifests/dapi
         json -f template -e '
           this.allocationDescription = this.allocationDescription.filter(
