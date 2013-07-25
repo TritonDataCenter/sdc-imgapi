@@ -1,5 +1,9 @@
 # Image API (IMGAPI) change log
 
+# 1.1.0
+
+- IMGAPI-214: Incremental image support. New "origin" manifest field.
+
 # 1.0.3
 
 - IMGAPI-244: Fix possible crash in audit logging
