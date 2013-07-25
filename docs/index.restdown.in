@@ -114,7 +114,7 @@ images, walking up the stack from the platform level:
     conversations on that and plan. Can CloudAPI keep tabs on the workflow and
     maintain a meta-state for the image? state="creating" or something? Dunno
     about "failed" state and showing an error.
-- [RELENG-???, trent]: sdc-system-tests tests for this. Create an image
+- [done, RELENG-491, trent]: sdc-system-tests tests for this. Create an image
   from cloudapi and use it from cloudapi.
 - [OS-???, IMGAPI-92, andres, platform] IMGAPI version header usage from imgadm for
   future proofing.
@@ -326,6 +326,7 @@ A summary of fields (details are provided below):
 ||[published_at](#manifest-published_at)||Date||Yes (if activated)||No||The date at which the image is activated). Set by the IMGAPI server.||
 ||[type](#manifest-type)||String||Yes||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||Yes||Yes||The OS family this image provides. One of "smartos", "windows", "linux" or "other".||
+||[origin](#manifest-origin)||UUID||No||No||The origin image UUID if this is an incremental image.||
 ||[files](#manifest-files)||Array||Yes (if activated)||No||An array with a single object describing the image file.||
 ||[acl](#manifest-acl)||Array||No||Yes||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||No||Yes||A set of named requirements for provisioning a VM with this image||
@@ -515,6 +516,13 @@ The operating system of the image file. Must be one of:
 ||bsd||FreeBSD/netBSD||
 ||illumos||Illumos||
 ||other||A catch-all for other operating systems.||
+
+
+## Manifest: origin
+
+If an image has an origin, then it is an **incremental image**. The origin is
+the UUID of the origin image. Currenly only a single level of parentage is
+allowed. I.e. an origin image cannot itself be incremental.
 
 
 ## Manifest: files
@@ -1569,6 +1577,7 @@ provisioning.
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
 ||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
 ||[os](#manifest-os)||String||Yes||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[origin](#manifest-origin)||UUID||No||-||The origin image UUID if this is an incremental image.||
 ||[acl](#manifest-acl)||Array||No||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||No||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
 ||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
@@ -1644,19 +1653,19 @@ CLI tool (against an SDC's IMGAPI):
 
 ## CreateImageFromVm (POST /images?action=create-from-vm)
 
-Create a new (activated) image from an existent VM. The VM from which the Image
-will be created must be stopped first or else the creation job will fail. This
-endpoint has a subset of allowed inputs compared to [CreateVm](#CreateVm), as
-many of the Image manifest fields are going to be directly computed from the
-source VM.
+Create a new (activated) image from an existing VM. The VM from which the Image
+will be created must be stopped. This endpoint has a subset of allowed inputs
+compared to [CreateVm](#CreateVm), as many of the Image manifest fields are
+going to be directly computed from the source VM.
 
 CreateFromVM takes the following two additional parameters in the URL query string:
 
 ### Query String Inputs
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||vm_uuid||UUID||Yes\*||-||The UUID of the source VM.||
+||account||UUID||Yes||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||vm_uuid||UUID||Yes||-||The UUID of the source VM.||
+||incremental||Boolean||No||false||Whether to create an incremental image.||
 
 ### Manifest Inputs
 
@@ -2322,16 +2331,11 @@ AddImageFile and ActivateImage calls after the AdminImportImage.
 
 ## AdminImportRemoteImage (POST /images/:uuid?action=import-remote)
 
-**DEPRECATION NOTE:** This endpoint currently returns an image object and it is
-going to be changed to return a job response object instead. It implies that the
-API action is going to change to be asynchronous instead. API clients would have
-to poll the job in the response in order to know when the image has been imported.
-
 Import an image from another IMGAPI repository. This is typically used for
 importing an image from <https://images.joyent.com>, but can be used for any
 other valid Image repository. It is mainly a convenience method to allow IMGAPI
 to execute the five import steps (get manifest, get file, import manifest,
-add file, activate image) on the user behalf.
+add file, activate image) on the user's behalf.
 
 This may only be used by operators. All usage of IMGAPI on behalf of end users
 is required to use `account=UUID`; operator usage (e.g. from AdminUI) is
@@ -2347,14 +2351,19 @@ This creates an active image ready for consumption.
 Query params:
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||action||String||Yes||-||"import"||
+||action||String||Yes||-||"import-remote"||
 ||source||URL||Yes||-||URL of the source IMGAPI repository||
 ||skip_owner_check||Boolean||No||false||Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
 
 
 ### Returns
 
-The (active) image object. Soon to be changed, read deprecation note.
+A job response object with the following fields:
+
+||**Field**||**Type**||**Notes**||
+||image_uuid||UUID||UUID of the image being imported||
+||job_uuid||UUID||The job UUID. In SDC use `sdc-workflow /jobs/$job_uuid` to inspect.||
+
 
 ### Errors
 
@@ -2364,14 +2373,28 @@ See [Errors](#errors) section above.
 
 Raw API tool:
 
-    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import&source=https://images.joyent.com
-    ...
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import-remote&source=https://images.joyent.com
+    HTTP/1.1 200 OK
+    workflow-api: http://workflow.coal.joyent.us
+    content-type: application/json
+    content-length: 112
+    date: Thu, 25 Jul 2013 05:23:23 GMT
+    server: IMGAPI/1.0.3
+    x-request-id: 4e71ed70-f4ea-11e2-b255-75716000a01d
+    x-response-time: 8307
+    x-server-name: ba928081-1e9f-49dc-8900-0239956fda7b
+
+    {
+      "image_uuid": "a93fda38-80aa-11e1-b8c1-8b1f33cd9007",
+      "job_uuid": "b45be0ae-778a-474e-8e41-9793f09ffde1"
+    }
 
 CLI tool:
 
-    $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -I https://images.joyent.com
+    $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -S https://images.joyent.com
     Imported image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 (base, 1.8.4, state=active)
 <!-- #endif -->
+
 
 
 # Miscellaneous API
