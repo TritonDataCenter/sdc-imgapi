@@ -129,6 +129,7 @@ images, walking up the stack from the platform level:
 - [PUBAPI-???, trent/pedro] Cloud API docs for CreateImageFromMachine.
   Discuss hiding this behind a private #ifdef a la the technique for this
   in the imgapi docs.
+- [PUBAPI-653, trent] enable cloudapi img mgmt endpoints for whitelist of users
 
 For starters, this will be not be fully enabled in cloudapi so that we
 can deploy cloudapi to JPC without this being on.
@@ -146,7 +147,7 @@ cloudapi are incremental.
 
 - [IMGAPI-124] incremental images support: manifest fields, CreateImage,
   AdminImportImage
-- [OS-???] incremental images support in 'imgadm create', 'imgadm
+- [done, OS-2401] incremental images support in 'imgadm create', 'imgadm
   install', 'imgadm import'
 - minor PUBAPI, AGENT tickets to pass through the incremental option
 
