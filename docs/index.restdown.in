@@ -116,8 +116,6 @@ images, walking up the stack from the platform level:
     about "failed" state and showing an error.
 - [done, RELENG-491, trent]: sdc-system-tests tests for this. Create an image
   from cloudapi and use it from cloudapi.
-- [OS-???, IMGAPI-92, andres, platform] IMGAPI version header usage from imgadm for
-  future proofing.
 - [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
   the same vm_uuid. This to guard against an attempt to DeleteMachine
   or StartMachine on a VM being used to create an image until
@@ -130,6 +128,8 @@ images, walking up the stack from the platform level:
   Discuss hiding this behind a private #ifdef a la the technique for this
   in the imgapi docs.
 - [PUBAPI-653, trent] enable cloudapi img mgmt endpoints for whitelist of users
+- [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
+  future proofing.
 
 For starters, this will be not be fully enabled in cloudapi so that we
 can deploy cloudapi to JPC without this being on.
@@ -149,7 +149,8 @@ cloudapi are incremental.
   AdminImportImage
 - [done, OS-2401] incremental images support in 'imgadm create', 'imgadm
   install', 'imgadm import'
-- minor PUBAPI, AGENT tickets to pass through the incremental option
+- [done, PUBAPI-655, trent] Get cloudapi to pass incremental:true
+
 
 ### M3: KVM image support
 
