@@ -130,6 +130,8 @@ images, walking up the stack from the platform level:
 - [PUBAPI-653, trent] enable cloudapi img mgmt endpoints for whitelist of users
 - [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
   future proofing.
+- [PUBAPI-???, trent] Review 'manifestAttributes' allowed in cloudapi's
+  CreateImageFromMachine.
 
 For starters, this will be not be fully enabled in cloudapi so that we
 can deploy cloudapi to JPC without this being on.
@@ -142,10 +144,10 @@ just have a list of user uuids for which to allow public images.
 
 ### M2: incremental images
 
-(1 week) Incremental images. Plan is that all custom images created via
+*Done.* Incremental images. Plan is that all custom images created via
 cloudapi are incremental.
 
-- [IMGAPI-124] incremental images support: manifest fields, CreateImage,
+- [done, IMGAPI-124] incremental images support: manifest fields, CreateImage,
   AdminImportImage
 - [done, OS-2401] incremental images support in 'imgadm create', 'imgadm
   install', 'imgadm import'

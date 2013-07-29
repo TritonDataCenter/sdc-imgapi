@@ -1,0 +1,3 @@
+export MANTA_USER={{{ufds_admin_login}}}
+export MANTA_URL={{{IMGAPI_MANTA_URL}}}
+export MANTA_KEY_ID={{{IMGAPI_KEY_ID}}}

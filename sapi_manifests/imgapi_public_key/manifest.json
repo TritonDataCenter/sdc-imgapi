@@ -1,0 +1,5 @@
+{
+    "name": "imgapi_public_key",
+    "path": "/root/.ssh/imgapi.id_rsa.pub",
+    "post_cmd": "chown nobody:nobody /root/.ssh/imgapi.id_rsa.pub"
+}
