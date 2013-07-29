@@ -145,11 +145,6 @@ release: all public-docs
 		$(TOP)/build/node \
 		$(TOP)/build/public-docs \
 		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
-	mkdir -p $(RELTMPDIR)/root/var/svc
-	cp -r \
-		$(TOP)/sdc/setup \
-		$(TOP)/sdc/configure \
-		$(RELTMPDIR)/root/var/svc
 	(cd $(RELTMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(RELTMPDIR)
 
