@@ -124,9 +124,9 @@ images, walking up the stack from the platform level:
 - [node-smartdc#???, pedro?] Add sdc-createimage to node-smartdc. Need
   this private/unreleased for now, so perhaps a private fork (via
   https://help.github.com/articles/duplicating-a-repository).
-- [PUBAPI-???, trent/pedro] Cloud API docs for CreateImageFromMachine.
-  Discuss hiding this behind a private #ifdef a la the technique for this
-  in the imgapi docs.
+- [docs, PUBAPI-639, trent] Cloud API docs for CreateImageFromMachine.
+  Hidden behind a guard so only at
+  <https://mo.joyent.com/docs/cloudapi/master/#CreateImageFromMachine> for now.
 - [PUBAPI-653, trent] enable cloudapi img mgmt endpoints for whitelist of users
 - [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
   future proofing.
@@ -849,9 +849,10 @@ An example using raw cloudapi (using the `sdc-cloudapi` tool in the 'sdc' zone
 that allows the *admin* user to talk to CloudAPI). This example is run in COAL,
 hence the packages, etc. are not practical JPC examples:
 
-- Some COAL-only setup.
+1. Some COAL-only setup. (Note: This, or the equivalent, is all automatically
+   setup in staging.)
 
-  Provision a cloudapi:
+    Provision a cloudapi:
 
         cat <<EOM | sapiadm provision
         {
@@ -871,12 +872,17 @@ hence the packages, etc. are not practical JPC examples:
         }
         EOM
 
-  Turn on image management unreleased functionality in cloudapi:
+    Turn on image management bleeding edge features in cloudapi for the 'admin'
+    user:
 
-        echo '{"metadata": {"CLOUDAPI_CREATE_IMAGES": true}}' \
-          | sapiadm update $(sdc-sapi /services?name=cloudapi </dev/null | json -H 0.uuid)
+        echo '{
+            "metadata": {
+                "CLOUDAPI_BLEEDING_EDGE_FEATURES": ["img_mgmt"],
+                "CLOUDAPI_BLEEDING_EDGE_LOGIN_WHITELIST": ["admin"]
+            }
+        }' | sapiadm update $(sdc-sapi /services?name=cloudapi | json -H 0.uuid)
 
-  Ensure that DAPI will allow using the headnode for provisioning:
+    Ensure that DAPI will allow using the headnode for provisioning:
 
         sdc-login dapi
 
@@ -895,29 +901,41 @@ hence the packages, etc. are not practical JPC examples:
         mv template.new template
         svcadm restart config-agent
 
-  Need an external nic for the 'sdc' and 'imgapi' zones:
+        exit
 
-        sdc-vmapi /vms/$(vmadm lookup -1 alias=sdc0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
-        {
-            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
-        }
-        EOP
+    Need an external nic for the 'imgapi', 'sdc' and 'workflow' zones:
+
         sdc-vmapi /vms/$(vmadm lookup -1 alias=imgapi0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
         {
             "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
         }
         EOP
+        sdc-vmapi /vms/$(vmadm lookup -1 alias=sdc0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
+        {
+            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
+        }
+        EOP
+        sdc-vmapi /vms/$(vmadm lookup -1 alias=workflow0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
+        {
+            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
+        }
+        EOP
+        sleep 20  # workflow takes a while to come back
 
-  Get the base 13.1.0 image to work with:
+    Get the base 13.1.0 image to work with:
 
         sdc-imgadm import f669428c-a939-11e2-a485-b790efc0f0c1 -S https://images.joyent.com --skip-owner-check
 
-  Now get into the sdc zone where `sdc-cloudapi` is setup for the admin user:
+    Now get into the sdc zone where `sdc-cloudapi` is setup for the admin user:
 
         [root@headnode (coal) ~]# sdc
         [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]#
 
-- Pick a package via ListPackages:
+2.  Pick a package via ListPackages. Basically anyone should do.
+
+        package_id=$(sdc-cloudapi /my/packages | json -H -c 'this.name=="sdc_256"' 0.id)
+
+    E.g.:
 
         [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# sdc-cloudapi /my/packages | json -H -c 'this.name=="sdc_256"'
         [
@@ -933,7 +951,11 @@ hence the packages, etc. are not practical JPC examples:
           }
         ]
 
-- Pick a network:
+3.  Pick a network:
+
+        network_id=$(sdc-cloudapi /my/networks | json -H 0.id)
+
+    E.g.:
 
         [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# sdc-cloudapi /my/networks | json -H 0
         {
@@ -942,38 +964,71 @@ hence the packages, etc. are not practical JPC examples:
           "public": true
         }
 
-- [CreateMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateMachine)
+4.  Create the proto machine (CreateMachine)[https://mo.joyent.com/docs/cloudapi/master/#CreateMachine]:
 
         cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
         {
-        "name": "custom1",
-        "package": "78aa629d-04fc-4ee5-881b-0b4a914e0c52",
-        "image": "f669428c-a939-11e2-a485-b790efc0f0c1",
-        "networks": ["c1dc3561-86ad-4a14-a3e4-3db849f6e0d4"]
+            "name": "proto1",
+            "package": "$package_id",
+            "image": "f669428c-a939-11e2-a485-b790efc0f0c1",
+            "networks": ["$network_id"]
         }
         EOM
 
-  And wait until it is running:
+    E.g.:
 
-        while [[ $(sdc-cloudapi /my/machines/9af1f97a-7fce-4fa7-bffa-8c6d4374d885 | json -H state) == "provisioning" ]]; do
+        HTTP/1.1 201 Created
+        Location: /admin/machines/076a52ff-e18e-4168-b62e-a06dd2af699b
+        Content-Type: application/json
+        Content-Length: 1579
+        ...
+        Api-Version: 7.0.0
+
+        {
+          "id": "076a52ff-e18e-4168-b62e-a06dd2af699b",
+          "name": "proto1",
+          "type": "smartmachine",
+          "state": "provisioning",
+          "image": "f669428c-a939-11e2-a485-b790efc0f0c1",
+          "ips": [],
+          "memory": 256,
+          "disk": 25600,
+          "metadata": {
+            "root_authorized_keys": "..."
+          },
+          "tags": {},
+          "created": "2013-07-30T23:12:57.197Z",
+          "updated": "2013-07-30T23:12:57.197Z",
+          "dataset": "sdc:sdc:base:13.1.0",
+          "firewall_enabled": false,
+          "package": "sdc_256"
+        }
+
+    So:
+
+        machine_id=076a52ff-e18e-4168-b62e-a06dd2af699b
+
+    Wait until it is running:
+
+        while [[ $(sdc-cloudapi /my/machines/$machine_id | json -H state) == "provisioning" ]]; do
           sleep 2
         done
 
-  and get its IP:
+    ... and get its IP:
 
-        $ sdc-cloudapi /my/machines/9af1f97a-7fce-4fa7-bffa-8c6d4374d885 | json -Hj id name state ips
+        $ sdc-cloudapi /my/machines/$machine_id | json -Hj id name state ips
         {
-          "id": "9af1f97a-7fce-4fa7-bffa-8c6d4374d885",
-          "name": "custom1",
+          "id": "076a52ff-e18e-4168-b62e-a06dd2af699b",
+          "name": "proto1",
           "state": "running",
           "ips": [
             "10.88.88.7"
           ]
         }
 
-- SSH in, make a change and prepare the instance:
+5.  SSH in, make a change and prepare the instance:
 
-        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.7
+        [root@076a52ff-e18e-4168-b62e-a06dd2af699b (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.7
         Last login: Thu Jul 11 04:29:02 2013 from 10.88.88.5
            __        .                   .
          _|  |_      | .-. .  . .-. :--. |-
@@ -981,24 +1036,24 @@ hence the packages, etc. are not practical JPC examples:
           |__|   `--'  `-' `;-| `-' '  ' `-'
                            /  ; SmartMachine (base 13.1.0)
                            `-'  http://wiki.joyent.com/jpc2/SmartMachine+Base
-        [root@9af1f97a-7fce-4fa7-bffa-8c6d4374d885 ~]# echo 'Trent was here' > /etc/motd
-        [root@9af1f97a-7fce-4fa7-bffa-8c6d4374d885 ~]# sm-prepare-image -y
+        [root@076a52ff-e18e-4168-b62e-a06dd2af699b ~]# echo 'Trent was here' > /etc/motd
+        [root@076a52ff-e18e-4168-b62e-a06dd2af699b ~]# sm-prepare-image -y
         ...
 
-  This will stop the instance.
+    This will stop the instance.
 
-- Create the custom image:
+6.  Create the custom image:
 
         cat <<EOM | sdc-cloudapi /my/images -X POST -d@-
         {
-          "machine": "9af1f97a-7fce-4fa7-bffa-8c6d4374d885",
+          "machine": "076a52ff-e18e-4168-b62e-a06dd2af699b",
           "name": "foo",
           "version": "1.0.0",
           "description": "my first image"
         }
         EOM
 
-  The image shows up right away:
+    Cloudapi's response gives you the new image UUID:
 
         {
           "id": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
@@ -1009,9 +1064,23 @@ hence the packages, etc. are not practical JPC examples:
           "description": "my first image"
         }
 
-  but without a "published_at". Once it is published:
+    So:
 
-        $ sdc-cloudapi /my/images | json -H -c 'this.name==="foo"'
+        image_id=cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd
+
+    but without a "published_at". Wait (for up to 2 minutes) for it to be created
+    and published to the local IMGAPI:
+
+        for i in {40..1}; do
+            sleep 3
+            if [[ -n "$(sdc-cloudapi /my/images/$image_id | json published_at)" ]]; then
+                break
+            fi
+        done
+
+    Once it is published:
+
+        $ sdc-cloudapi /my/images/$image_id
         [
           {
             "id": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
@@ -1025,22 +1094,58 @@ hence the packages, etc. are not practical JPC examples:
           }
         ]
 
-  TODO: We'll want to add the image 'state' field here to make this the same as
-  waiting for a certain state on a machine (state='running'). We'll want that
-  state field anyway for the user being able to disable their own images.
+    If that returns an error (404), then the creation failed. Currently there
+    is no mechanism to report a specific creation error. There is a plan
+    in M1 of the roadmap to fix that.
 
-  TODO: `type="smartmachine"` is wrong here. I don't think it should be
-  translating type values. Or is this already the case for '/my/datasets'?
-  The disconnect with public IMGAPI docs is annoying. I'd be inclined to
-  have limited old language for /datasets, but new for /images. Even so far
-  as 'uuid' instead of 'id'.
+    The created image will have inherited relevant fields, e.g. billing_tags,
+    from the source image (in this case 'base 13.1.0').
 
-  WARNING: If the image creation fails the image will be deleted from IMGAPI,
-  meaning it won't show up in `sdc-cloudapi /my/images`, meaning there isn't
-  a good way to report async creation failure reasons to the user. TODO: think
-  about that.
+7.  Provision a new machine with this custom image.
 
-- Here is the full internal data on the image:
+        cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
+        {
+            "name": "foo0",
+            "package": "$package_id",
+            "image": "$image_id",
+            "networks": ["$network_id"]
+        }
+        EOM
+
+    Get its IP:
+
+        $ sdc-cloudapi /my/machines/c4412958-0d6b-46c1-8b98-e4b52361e62c | json -Hj id name state ips
+        {
+          "id": "c4412958-0d6b-46c1-8b98-e4b52361e62c",
+          "name": "foo0",
+          "state": "running",
+          "ips": [
+            "10.88.88.8"
+          ]
+        }
+
+    SSH in to see if it worked:
+
+        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.8
+        The authenticity of host '10.88.88.8 (10.88.88.8)' can't be established.
+        RSA key fingerprint is 5c:6c:9e:50:95:36:5c:1c:17:8f:53:77:84:ee:81:e9.
+        Are you sure you want to continue connecting (yes/no)? yes
+        Warning: Permanently added '10.88.88.8' (RSA) to the list of known hosts.
+        Last login: Thu Jul 11 04:49:11 2013 from 10.88.88.5
+        Trent was here
+        [root@c4412958-0d6b-46c1-8b98-e4b52361e62c ~]#
+
+It worked!
+
+
+### Thoughts
+
+Obviously that process (do this; wait for this to be done) is a bit onerous
+on the user. It is scriptable so the node-smartdc tooling should facilitate
+that waiting.
+
+We will be exposing more fields in "GET /my/images/:uuid", e.g. "public". For
+comparison, here is the full internal data on the image:
 
         $ sdc-imgadm get cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd
         {
@@ -1073,48 +1178,7 @@ hence the packages, etc. are not practical JPC examples:
           }
         }
 
-  Fields that 'requirements.networks' were inherited from the origin 'base'
-  image.
-
-- Provision a new machine with this custom image.
-
-        cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
-        {
-        "name": "foo0",
-        "package": "78aa629d-04fc-4ee5-881b-0b4a914e0c52",
-        "image": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
-        "networks": ["c1dc3561-86ad-4a14-a3e4-3db849f6e0d4"]
-        }
-        EOM
-
-  Get its IP:
-
-        $ sdc-cloudapi /my/machines/c4412958-0d6b-46c1-8b98-e4b52361e62c | json -Hj id name state ips
-        {
-          "id": "c4412958-0d6b-46c1-8b98-e4b52361e62c",
-          "name": "foo0",
-          "state": "running",
-          "ips": [
-            "10.88.88.8"
-          ]
-        }
-
-  SSH in to see if it worked:
-
-        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.8
-        The authenticity of host '10.88.88.8 (10.88.88.8)' can't be established.
-        RSA key fingerprint is 5c:6c:9e:50:95:36:5c:1c:17:8f:53:77:84:ee:81:e9.
-        Are you sure you want to continue connecting (yes/no)? yes
-        Warning: Permanently added '10.88.88.8' (RSA) to the list of known hosts.
-        Last login: Thu Jul 11 04:49:11 2013 from 10.88.88.5
-        Trent was here
-        [root@c4412958-0d6b-46c1-8b98-e4b52361e62c ~]#
-
-It worked!
-
-
-An example using [the node-smartdc CLI](https://github.com/joyent/node-smartdc):
-TODO.
+TODO: Redo this example using the node-smartdc CLI.
 
 
 ## Use Case 6: User modifies an image they own
