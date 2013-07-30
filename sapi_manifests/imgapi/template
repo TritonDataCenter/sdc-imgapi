@@ -16,7 +16,8 @@
             "url": "{{IMGAPI_MANTA_URL}}",
             "user": "{{ufds_admin_login}}",
             "key": "/root/.ssh/imgapi.id_rsa",
-            "keyId": "{{IMGAPI_KEY_ID}}"
+            "keyId": "{{IMGAPI_KEY_ID}}",
+            "insecure": {{IMGAPI_MANTA_INSECURE}}
         },
 {{/IMGAPI_MANTA_URL}}
         "local": {

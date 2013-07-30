@@ -268,7 +268,8 @@ function getSdcApp(config, callback) {
  * ...
  * @param callback {Function} `function (err, key)`
  */
-function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, callback) {
+function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, mantaInsecure,
+                                      callback) {
     var sapi = new sdcClients.SAPI({
         url: 'http://' + config.sapi_service,
         log: log,
@@ -285,6 +286,7 @@ function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, callback) {
                     return next(sErr);
                 svc = svcs[0];
                 if (!svc.metadata.IMGAPI_MANTA_URL ||
+                    !svc.metadata.IMGAPI_MANTA_INSECURE ||
                     !svc.metadata.IMGAPI_PUBLIC_KEY ||
                     !svc.metadata.IMGAPI_PRIVATE_KEY ||
                     !svc.metadata.IMGAPI_KEY_ID)
@@ -309,6 +311,7 @@ function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, callback) {
         function (next) {
             var md = {
                 IMGAPI_MANTA_URL: mantaUrl,
+                IMGAPI_MANTA_INSECURE: mantaInsecure,
                 IMGAPI_PRIVATE_KEY: key.priv,
                 IMGAPI_PUBLIC_KEY: key.pub,
                 IMGAPI_KEY_ID: key.id
@@ -391,6 +394,13 @@ var OPTIONS = [
         help: 'The URL at which IMGAPI should access Manta. Required. Use '
           + 'the special value "FIRST-LB" to hack for development: the first '
           + 'local Manta load balancer external IP will be used.'
+    },
+    {
+        names: ['insecure', 'i'],
+        type: 'bool',
+        default: false,
+        help: 'Whether to ignore SSL certs when accessing Manta. '
+            + 'This should only be used in testing/development.'
     }
 ];
 
@@ -441,6 +451,7 @@ function main() {
 
         function (next) {
             ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl,
+                opts.insecure,
                 function (sErr, key_) {
                     key = key_;
                     next(sErr);

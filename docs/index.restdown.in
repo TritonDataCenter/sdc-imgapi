@@ -2566,6 +2566,7 @@ top-level keys in the factory settings. For example: if providing
 ||storage.local.dir||String||-||The base directory in which to store image files for "local" storage.||
 ||storage.manta||Object||-||Object holding config information for Manta storage.||
 ||storage.manta.url||String||-||The Manta API URL.||
+||storage.manta.insecure||Boolean||false||Ignore SSL certs on the Manta URL.||
 ||storage.manta.user||String||-||The Manta user under which to store data.||
 ||storage.manta.key||String||-||Path to the SSH private key file with which to authenticate to Manta.||
 ||storage.manta.keyId||String||-||The SSH public key ID (signature).||
