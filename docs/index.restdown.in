@@ -964,7 +964,7 @@ hence the packages, etc. are not practical JPC examples:
           "public": true
         }
 
-4.  Create the proto machine (CreateMachine)[https://mo.joyent.com/docs/cloudapi/master/#CreateMachine]:
+4.  Create the proto machine [CreateMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateMachine):
 
         cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
         {
