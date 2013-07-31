@@ -185,7 +185,15 @@ proto VMs.
   for incremental images. This is so that custom images can be used for
   provisioning on 6.5 CNs.
 
-### M5: remote streaming
+
+### M5: supporting SDC image builds
+
+The work required to be able to do SDC builds in JPC.
+
+- IMGAPI-249: ExportImage endpoint
+
+
+### M6: remote streaming
 
 (3 weeks, again very rough estimate) Support for remote streaming (from
 remote manta) of image files for install in local DC. If necessary (typically
@@ -225,13 +233,13 @@ Create a followable metric (via SDC log analysis) to track GetImageFile
 times to help improve this caching.
 
 
-### M6: customer moving images between DCs
+### M7: customer moving images between DCs
 
 (1 week, likely will fall easily out of M5) Will need to have MigrateImage
 (or whatever name we choose) solved for a customer making a custom image in
 DC1 availalbe for provisioning in DC2.
 
-### M7: capacity handling
+### M8: capacity handling
 
 - What happens when there are >1000 images for a typical search case? Currently
   IMGAPI doesn't handle paging through "ListImages" results. Proper paging
