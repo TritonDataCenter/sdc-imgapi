@@ -73,13 +73,14 @@ used.
   with IMGAPI, is working fine in JPC now.
 
 - Bad: The full process for a user creating a custom image (IMGAPI-93)
-  in incomplete.
+  in incomplete. See [Custom Image Management
+  Roadmap](#custom-image-management-roadmap) below.
 
 - Bad: Notably unimplemented is MigrateImage for copying images
   between datacenters in the same SDC cloud.
 
 
-## Custom Image Management Roadmap
+# Custom Image Management Roadmap
 
 From a discussion with Trent, Bryan and Carlos 3 Jun 2013, the MVP image mgmt
 plan is to:
@@ -93,7 +94,7 @@ plan is to:
 
 Top-level ticket (FWIW) is IMGAPI-93.
 
-### M1: basics
+## M1: basics
 
 (1-2 weeks) First, getting the basic full stack creation of non-KVM
 images, walking up the stack from the platform level:
@@ -142,7 +143,7 @@ in IMGAPI's UpdateImage for non-admin user. Perhaps the IMGAPI config could
 just have a list of user uuids for which to allow public images.
 
 
-### M2: incremental images
+## M2: incremental images
 
 *Done.* Incremental images. Plan is that all custom images created via
 cloudapi are incremental.
@@ -154,7 +155,7 @@ cloudapi are incremental.
 - [done, PUBAPI-655, trent] Get cloudapi to pass incremental:true
 
 
-### M3: KVM image support
+## M3: KVM image support
 
 (2 weeks, very rough time estimate) KVM image support.
 
@@ -164,7 +165,7 @@ cloudapi are incremental.
 - test kvm custom images working through the stack
 
 
-### M4: Working with mixed CNs
+## M4: Working with mixed CNs
 
 (2 weeks) Working with mixed CNs: some with sufficient support, some not.
 This means documenting usage in a DC (e.g. JPC) for a subset of packages for
@@ -186,14 +187,14 @@ proto VMs.
   provisioning on 6.5 CNs.
 
 
-### M5: supporting SDC image builds
+## M5: supporting SDC image builds
 
 The work required to be able to do SDC builds in JPC.
 
 - IMGAPI-249: ExportImage endpoint
 
 
-### M6: remote streaming
+## M6: remote streaming
 
 (3 weeks, again very rough estimate) Support for remote streaming (from
 remote manta) of image files for install in local DC. If necessary (typically
@@ -233,13 +234,13 @@ Create a followable metric (via SDC log analysis) to track GetImageFile
 times to help improve this caching.
 
 
-### M7: customer moving images between DCs
+## M7: customer moving images between DCs
 
 (1 week, likely will fall easily out of M5) Will need to have MigrateImage
 (or whatever name we choose) solved for a customer making a custom image in
 DC1 availalbe for provisioning in DC2.
 
-### M8: capacity handling
+## M8: capacity handling
 
 - What happens when there are >1000 images for a typical search case? Currently
   IMGAPI doesn't handle paging through "ListImages" results. Proper paging
