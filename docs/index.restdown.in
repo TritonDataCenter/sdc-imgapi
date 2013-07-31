@@ -178,13 +178,11 @@ proto VMs.
 - tooling for managing these packages:
     - update min_platform for a new required fix
     - list available CNs matching that platform
-  Not sure if these will fit in a generic sdc-packageadm and/or build on the
-  Ben wishlist feature of "aware packages" support in DAPI (DAPI-???).
+    - list available capacity (a quick hack script for this if we don't have
+      a more complete "Capacity Aware Packages" answer by then)
 - dapi to almost reserve those CNs (or at least prefer the other ones
   if availalbe)
-- [orlando/trent] 6.5 agent work to support installing the origin/parent image
-  for incremental images. This is so that custom images can be used for
-  provisioning on 6.5 CNs.
+- [AGENT-644, orlando] *6.5* provisioner agent support for incremental images
 
 
 ## M5: supporting SDC image builds
