@@ -136,7 +136,8 @@ proto VMs.
 - [AGENT-644, orlando] *6.5* provisioner agent support for incremental images
 - [RELENG-496, john] Set up staging to more closely reflect JPC
 - [DAPI-143, marsell] add handling for a min_platform package field
-- [PAPI-22, pedro] add min_platform package field
+- [done-ish, PAPI-22, pedro] add min_platform package field. As long as JPC is
+  not switched over the PAPI, this ticket doesn't need to be completed.
 - [IMAGE-318, carlos]: spec small set of packages using min_platform for use for
   VMs for image creation
 - [trent] Docs/tooling for managing these packages. My plan here is to just
@@ -150,6 +151,10 @@ proto VMs.
       a more complete "Capacity Aware Packages" answer by then)
     - list all VMs provisioned with these packages. Consider them "dirty" if
       they have a long life?
+- [IMGAPI-251, trent] add requirements.min_platform to created incremental
+  images to the platform with OS-2401
+- [RELENG-497, trent] sdc-system-tests tests for image creation in the mixed CN
+  environment in staging
 - [merline/jens/et al] Discuss if we want to use traits ("image-create" or
   whatever) on the image creation packages and the few CN(s) in us-east to
   ensure capacity. I.e. to ensure that CN is *only* used for image creation.
@@ -157,7 +162,7 @@ proto VMs.
 
 ## M4: more basics
 
-(1.5 weeks) The remaining scraps from M1 to help clarify required remaining work.
+(2 weeks) The remaining scraps from M1 to help clarify required remaining work.
 
 - [IMGAPI-250, andres]: state=error|creating|... for better UX for cloudapi's
   CreateImageFromMachine
@@ -168,6 +173,8 @@ proto VMs.
   in PUBAPI.
 - [PUBAPI-660, trent/pedro] node-smartdc: add sdc-createimagefrommachine,
   sdc-deleteimage, sdc-updateimage
+- [OS-2203, trent] provision fails when import in progress: imgadm import must
+  coordinate
 
 
 ## M5: supporting SDC image builds
@@ -182,11 +189,8 @@ The work required to be able to do SDC builds in JPC.
 
 (2 weeks, very rough time estimate) KVM image support.
 
-- [OS-???] kvm support for `imgadm create`
-- [OS-???] kvm support for incremental images (might not require anything
-  special here)
-- test kvm custom images working through the stack
-
+- [OS-2410, trent]: kvm support for 'imgadm create'
+- [RELENG-498, trent]: tests for image creation and provisioning of kvm images
 
 
 ## M7: remote streaming
