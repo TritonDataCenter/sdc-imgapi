@@ -135,53 +135,44 @@ proto VMs.
 
 - [AGENT-644, orlando] *6.5* provisioner agent support for incremental images
 - [RELENG-496, john] Set up staging to more closely reflect JPC
-- [marsell/trent] verify that we have min_platform trait support in DAPI for
-  *packages* (a la image manifest requirements.min_platform). I believe we
-  already do.
-- [carlos/trent] specify the set of proto packages that we'll start with for
-  this, and set min_platform on those as required for `imgadm create`
-- docs/tooling for managing these packages:
+- [DAPI-143, marsell/trent] add handling for a min_platform package field
+- [PAPI-???/CAPI-???] add min_platform package field
+- [IMAGE-318, carlos]: spec small set of packages using min_platform for use for
+  VMs for image creation
+- [trent] Docs/tooling for managing these packages. My plan here is to just
+  come up with oneliners for these and document them in a section of the
+  [IMGAPI Operator Guide](https://mo.joyent.com/docs/imgapi/master/#operator-guide).
     - update min_platform for a new required fix
     - list available CNs matching that platform
     - list available capacity (a quick hack script for this if we don't have
       a more complete "Capacity Aware Packages" answer by then)
     - list all VMs provisioned with these packages. Consider them "dirty" if
       they have a long life?
-- Discuss if we want to use traits ("image-create" or whatever) on the image
-  creation packages and the few CN(s) in us-east to ensure capacity. I.e. to
-  ensure that CN is *only* used for image creation.
+- [merline/jens/et al] Discuss if we want to use traits ("image-create" or
+  whatever) on the image creation packages and the few CN(s) in us-east to
+  ensure capacity. I.e. to ensure that CN is *only* used for image creation.
 
 
 ## M4: more basics
 
-The remaining scraps from M1 to help clarify required remaning work.
-- Issues with CreateImageFromMachine in CloudAPI:
-  - [trent] pull in TODOs from Use Case 5 below
-  - [trent, pedro, andres to discuss] while the image is being created,
-    currently you get a 404 from 'sdc-cloudapi /my/images/$uuid'. That sucks. No
-    way to distinguish that from "image creation failed". Need to dig up
-    conversations on that and plan. Can CloudAPI keep tabs on the workflow and
-    maintain a meta-state for the image? state="creating" or something? Dunno
-    about "failed" state and showing an error.
-- [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
-  the same vm_uuid. This to guard against an attempt to DeleteMachine
-  or StartMachine on a VM being used to create an image until
-  CreateImageFromMachine is complete. This isn't a blocker, *could*
-  just doc this.
-- [node-smartdc#???, pedro?] Add sdc-createimage to node-smartdc. Need
-  this private/unreleased for now, so perhaps a private fork (via
-  https://help.github.com/articles/duplicating-a-repository).
-- [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
-  future proofing.
+The remaining scraps from M1 to help clarify required remaining work.
+
+- [IMGAPI-250, andres]: state=error|creating|... for better UX for cloudapi's CreateImageFromMachine
 - [PUBAPI-???, trent] Review 'manifestAttributes' allowed in cloudapi's
   CreateImageFromMachine.
-- (Note from Jens/Carlos discussion Jun 13) *Don't* allow users making images
+- [PUBAPI-???, trent/pedro] Cloudapi support to UpdateImage and DeleteImage for
+  a user's own images. Need to make sure that the IMGAPI endpoints support this,
+  then will pass to pedro.
+- [node-smartdc#???, pedro/trent] Add sdc-createimage to node-smartdc. Need
+  this private/unreleased for now, so perhaps a private fork (via
+  https://help.github.com/articles/duplicating-a-repository).
+- [IMGAPI-???, trent] *Don't* allow users making images
   public for now. This would be a guard on changing the 'public' field in
   IMGAPI's UpdateImage for non-admin user. Perhaps the IMGAPI config could just
   have a list of user uuids for which to allow public images.
 
 
-## M4: supporting SDC image builds
+## M5: supporting SDC image builds
 
 The work required to be able to do SDC builds in JPC.
 
@@ -189,7 +180,7 @@ The work required to be able to do SDC builds in JPC.
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
 
 
-## M5: KVM image support
+## M6: KVM image support
 
 (2 weeks, very rough time estimate) KVM image support.
 
@@ -200,7 +191,7 @@ The work required to be able to do SDC builds in JPC.
 
 
 
-## M6: remote streaming
+## M7: remote streaming
 
 **Note:** Presuming a first JPC rollout *to us-east only*, this milestone is
 not necessary for the end-of-Aug cut.
@@ -243,7 +234,7 @@ Create a followable metric (via SDC log analysis) to track GetImageFile
 times to help improve this caching.
 
 
-## M7: customer moving images between DCs
+## M8: customer moving images between DCs
 
 **Note:** Presuming a first JPC rollout *to us-east only*, this milestone is
 not necessary for the end-of-Aug cut.
@@ -252,7 +243,7 @@ not necessary for the end-of-Aug cut.
 (or whatever name we choose) solved for a customer making a custom image in
 DC1 availalbe for provisioning in DC2.
 
-## M8: capacity handling
+## M9: capacity handling
 
 **Note:** This milestone probably not required for shipping img mgmt in JPC.
 
@@ -265,7 +256,7 @@ DC1 availalbe for provisioning in DC2.
 - How well does IMGAPI fail when its local dir for images files runs out
   of space? Test it.
 
-## M9: tracking usage and billing
+## M10: tracking usage and billing
 
 This is underspecified. Some notes:
 
@@ -280,8 +271,18 @@ This is underspecified. Some notes:
   it. Separate billing line items for this? Grace value? Zonetracker should
   track this? Usage API work to store that data.
 
-## M???: misc
+## M11: misc
 
+A collection of tickets that should be address for robustness, UX, etc. but
+aren't strictly required for a starting rollout.
+
+- [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
+  the same vm_uuid. This to guard against an attempt to DeleteMachine
+  or StartMachine on a VM being used to create an image until
+  CreateImageFromMachine is complete. This isn't a blocker, *could*
+  just doc this.
+- [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
+  future proofing.
 
 
 <!-- #endif -->
