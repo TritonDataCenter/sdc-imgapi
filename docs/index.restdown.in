@@ -157,7 +157,7 @@ proto VMs.
 
 ## M4: more basics
 
-The remaining scraps from M1 to help clarify required remaining work.
+(1.5 weeks) The remaining scraps from M1 to help clarify required remaining work.
 
 - [IMGAPI-250, andres]: state=error|creating|... for better UX for cloudapi's
   CreateImageFromMachine
