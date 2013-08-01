@@ -135,14 +135,16 @@ proto VMs.
 
 - [AGENT-644, orlando] *6.5* provisioner agent support for incremental images
 - [RELENG-496, john] Set up staging to more closely reflect JPC
-- [DAPI-143, marsell/trent] add handling for a min_platform package field
-- [PAPI-???/CAPI-???] add min_platform package field
+- [DAPI-143, marsell] add handling for a min_platform package field
+- [PAPI-22, pedro] add min_platform package field
 - [IMAGE-318, carlos]: spec small set of packages using min_platform for use for
   VMs for image creation
 - [trent] Docs/tooling for managing these packages. My plan here is to just
   come up with oneliners for these and document them in a section of the
   [IMGAPI Operator Guide](https://mo.joyent.com/docs/imgapi/master/#operator-guide).
-    - update min_platform for a new required fix
+    - update min_platform for a new required fix: 'sdc-ldap' can't search fields
+      with an underscore, so might really want that 'sdc-ufds' replacement.
+      Or sdc-packageadm.
     - list available CNs matching that platform
     - list available capacity (a quick hack script for this if we don't have
       a more complete "Capacity Aware Packages" answer by then)
@@ -157,19 +159,15 @@ proto VMs.
 
 The remaining scraps from M1 to help clarify required remaining work.
 
-- [IMGAPI-250, andres]: state=error|creating|... for better UX for cloudapi's CreateImageFromMachine
-- [PUBAPI-???, trent] Review 'manifestAttributes' allowed in cloudapi's
-  CreateImageFromMachine.
-- [PUBAPI-???, trent/pedro] Cloudapi support to UpdateImage and DeleteImage for
-  a user's own images. Need to make sure that the IMGAPI endpoints support this,
-  then will pass to pedro.
-- [node-smartdc#???, pedro/trent] Add sdc-createimage to node-smartdc. Need
-  this private/unreleased for now, so perhaps a private fork (via
-  https://help.github.com/articles/duplicating-a-repository).
-- [IMGAPI-???, trent] *Don't* allow users making images
-  public for now. This would be a guard on changing the 'public' field in
-  IMGAPI's UpdateImage for non-admin user. Perhaps the IMGAPI config could just
-  have a list of user uuids for which to allow public images.
+- [IMGAPI-250, andres]: state=error|creating|... for better UX for cloudapi's
+  CreateImageFromMachine
+- [PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to exposed fields
+  in GetImage and ListImages
+  Note: Specifically doc that 'public' is not updatable or settable right now.
+  Don't want user-created *public* images in JPC right now. For now guard that
+  in PUBAPI.
+- [PUBAPI-660, trent/pedro] node-smartdc: add sdc-createimagefrommachine,
+  sdc-deleteimage, sdc-updateimage
 
 
 ## M5: supporting SDC image builds
@@ -283,6 +281,7 @@ aren't strictly required for a starting rollout.
   just doc this.
 - [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
   future proofing.
+- [PUBAPI-???, trent] What about exposing adding an image icon via cloudapi?
 
 
 <!-- #endif -->
