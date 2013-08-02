@@ -320,13 +320,13 @@ test('CreateImage', function (t) {
     }
     function setError(next) {
         var mod = {
-            state: 'error',
+            state: 'failed',
             error: { message: 'could not publish'}
         };
         self.client.updateImage(uuid, mod, luke, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image, 'image setError');
-            t.equal(image.state, 'error');
+            t.equal(image.state, 'failed');
             t.equal(image.error.message, 'could not publish');
             next();
         });
