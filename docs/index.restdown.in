@@ -175,6 +175,7 @@ proto VMs.
   sdc-deleteimage, sdc-updateimage
 - [OS-2203, trent] provision fails when import in progress: imgadm import must
   coordinate
+- [IMGAPI-252] placeholder images shall have a one week lifespan
 
 
 ## M5: supporting SDC image builds
@@ -371,7 +372,8 @@ A summary of fields (details are provided below):
 ||[homepage](#manifest-homepage)||URL||No||Yes||Homepage URL where users can find more information about the image.||
 ||[eula](#manifest-eula)||URL||No||Yes||URL of the End User License Agreement (EULA) for the image.||
 ||[icon](#manifest-icon)||Boolean||No||Yes (\*)||Indicates if the image has an icon file. If not present, then no icon is present.||
-||[state](#manifest-state)||String||Yes||No||The current state of the image. One of 'active', 'unactivated', 'disabled'.||
+||[state](#manifest-state)||String||Yes||No||The current state of the image. One of 'active', 'unactivated', 'disabled', 'creating', 'failed'.||
+||[error](#manifest-error)||Object||No||No||An object with details on image creation failure. It only exists when `state=='failed'`.||
 ||[disabled](#manifest-disabled)||Boolean||Yes||No (\*)||Indicates if this image is available for provisioning.||
 ||[public](#manifest-public)||Boolean||Yes||Yes (\*)||Indicates if this image is publicly available.||
 ||[published_at](#manifest-published_at)||Date||Yes (if activated)||No||The date at which the image is activated). Set by the IMGAPI server.||
@@ -505,10 +507,25 @@ The current state of the image. One of the following values:
 ||active||The image is ready for use, i.e. VMs can be provisioned using this image.||
 ||unactivated||The image has not yet been activated. See [ActivateImage](#ActivateImage).||
 ||disabled||The image is disabled. This will be the state if the image is activated, but also `disabled == true`. See [EnableImage](#EnableImage) and [DisableImage](#DisableImage).||
+||creating||A state for a placeholder image while an image is being asynchronously created. This is used during [CreateImageFromVm](#CreateImageFromVm).||
+||failed||A state for a placeholder image indicating that asynchronous image creation failed. See the `error` field for details.||
 
 Note that [`disabled`](#manifest-disabled) and [`state`](#manifest-state) can
 seem like duplicate information. However `state` is a computed value from
 `disabled` and whether an image has yet been activated.
+
+Images with state `creating` or `failed` are called "placeholder images" --
+there is no actual image. Placeholder images are reaped after one week to
+prevent very old failures swamping data.
+
+
+
+## Manifest: error
+
+An error object with "message" and (possibly) "code" fields given error details
+on failure of some asynchronous image action. Currently this is used during
+[CreateImageFromVm](#CreateImageFromVm). It is only present with `state ==
+'failed'`.
 
 
 ## Manifest: disabled
@@ -1772,8 +1789,6 @@ Create a new (activated) image from an existing VM. The VM from which the Image
 will be created must be stopped. This endpoint has a subset of allowed inputs
 compared to [CreateVm](#CreateVm), as many of the Image manifest fields are
 going to be directly computed from the source VM.
-
-CreateFromVM takes the following two additional parameters in the URL query string:
 
 ### Query String Inputs
 
