@@ -1,0 +1,142 @@
+#!/bin/bash
+#
+# Setup this COAL DC for custom image management.
+# See step by step at
+# <https://mo.joyent.com/docs/imgapi/master/#use-case-5-user-creates-a-custom-image>.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+export PATH=/usr/bin:/usr/sbin:/smartdc/bin:/opt/smartdc/bin:/opt/local/bin:/opt/local/sbin:/opt/smartdc/agents/bin
+
+
+
+#---- support stuff
+
+function fatal {
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+function cleanup {
+    true
+}
+
+function errexit {
+    cleanup
+    [[ $1 -ne 0 ]] || exit 0
+    fatal "error exit status $1"
+}
+
+
+function provision_cloudapi {
+    vmadm lookup -1 alias=cloudapi0 2>/dev/null >/dev/null && return
+    echo "# Provision cloudapi"
+    cat <<EOM | sapiadm provision
+{
+    "service_uuid": "$(sdc-sapi /services?name=cloudapi | json -H 0.uuid)",
+    "params": {
+        "alias": "cloudapi0",
+        "networks": [
+            {
+                "uuid": "$(sdc-napi /networks?name=admin | json -H 0.uuid)"
+            },
+            {
+                "uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)",
+                "primary": true
+            }
+        ]
+    }
+}
+EOM
+}
+
+function cloudapi_turn_on_img_mgmt_feature {
+    local cloudapi_svc=$(sdc-sapi /services?name=cloudapi | json -H 0.uuid)
+    local have_feature=$(sapiadm get $cloudapi_svc \
+        | json -e 'this.good = Boolean(~(metadata.CLOUDAPI_BLEEDING_EDGE_FEATURES || []).indexOf("img_mgmt"))' good)
+    [[ $have_feature == "true" ]] && return;
+    echo "# Enable 'img_mgmt' feature in cloudapi"
+    echo '{
+        "metadata": {
+            "CLOUDAPI_BLEEDING_EDGE_FEATURES": ["img_mgmt"],
+            "CLOUDAPI_BLEEDING_EDGE_LOGIN_WHITELIST": ["admin"]
+        }
+    }' | sapiadm update $cloudapi_svc
+}
+
+function hack_dapi_for_headnode_provisioning {
+    local dapi_zone=$(vmadm lookup -1 alias=dapi0)
+    # TODO: don't change if already done
+    echo "# Hack DAPI to allow headnode provisioning"
+    local config_path=/zones/$dapi_zone/root/opt/smartdc/dapi/sapi_manifests/dapi/template
+json -f $config_path -e '
+  this.allocationDescription = this.allocationDescription.filter(
+    function (e) {
+      return !~[
+        "hard-filter-min-ram",
+        "hard-filter-min-disk",
+        "hard-filter-min-cpu",
+        "hard-filter-headnode"
+      ].indexOf(e);
+    })
+  ' > $config_path.new
+    mv $config_path.new $config_path
+    svcadm -z $dapi_zone restart config-agent
+}
+
+function add_external_nic_to_some_core_zones {
+    local external_uuid=$(sdc-napi /networks?name=external | json -H 0.uuid)
+
+    for alias in imgapi0 sdc0 workflow0; do
+        local zone_uuid=$(vmadm lookup -1 alias=$alias)
+        local have_external=$(sdc-vmapi /vms/$zone_uuid \
+            | json -H nics | json -c 'this.nic_tag=="external"' length)
+        if [[ "$have_external" == "0" ]]; then
+            echo "# Add external nic to $alias"
+            sdc-vmapi /vms/$zone_uuid?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob || true
+            {
+                "networks": [{"uuid": "$external_uuid"}]
+            }
+EOP
+            sleep 30  # necessary for when we're rebooting zones hosting this process
+        fi
+    done
+}
+
+function install_base_image {
+    local uuid=f669428c-a939-11e2-a485-b790efc0f0c1
+    sdc-imgadm get $uuid >/dev/null 2>/dev/null && return
+    echo "# Install base image"
+    sdc-imgadm import $uuid -S https://images.joyent.com --skip-owner-check
+}
+
+
+
+#---- mainline
+
+trap 'errexit $?' EXIT
+START=$(date +%s)
+
+echo "# Prepare this COAL DC for custom image management."
+
+[[ $(zonename) == "global" ]] || fatal "must run this from the global zone"
+[[ $(bash /lib/sdc/config.sh -json | json datacenter_name) == "coal" ]] \
+    || fatal "datacenter_name is not COAL, refusing to run"
+
+provision_cloudapi
+cloudapi_turn_on_img_mgmt_feature
+hack_dapi_for_headnode_provisioning
+add_external_nic_to_some_core_zones
+install_base_image
+
+
+
+END=$(date +%s)
+echo "$0 finished in $(($END - $START)) seconds"
+
