@@ -141,8 +141,8 @@ proto VMs.
 - [done, IMGAPI-251, trent] add requirements.min_platform to created incremental
   images to the platform with OS-2401
 - [AGENT-644, orlando] *6.5* provisioner agent support for incremental images
-- [RELENG-496, john] Set up staging to more closely reflect JPC
-- [RELENG-497, trent, blocked on RELENG-496] sdc-system-tests tests for image
+- [done, RELENG-496, john] Set up staging to more closely reflect JPC
+- [RELENG-497, trent] sdc-system-tests tests for image
   creation in the mixed CN environment in staging
 - [trent] Docs/tooling for managing these packages. My plan here is to just
   come up with oneliners for these and document them in a section of the
@@ -177,6 +177,7 @@ proto VMs.
   coordinate
 - [IMGAPI-252, andres] placeholder images shall have a one week lifespan
 - [IMGAPI-256, andres] imgapi zone should tune TCP for talking to Manta
+- [IMGAPI-257, trent] get $dcname in the Manta storage of images
 
 
 ## M5: supporting SDC image builds

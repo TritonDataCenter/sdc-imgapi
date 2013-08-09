@@ -104,6 +104,8 @@ function add_external_nic_to_some_core_zones {
                 "networks": [{"uuid": "$external_uuid"}]
             }
 EOP
+            echo ""
+            echo "sleep for 30 for zone to reboot"
             sleep 30  # necessary for when we're rebooting zones hosting this process
         fi
     done
