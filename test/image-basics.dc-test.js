@@ -4,6 +4,7 @@
  * Test basic /images endpoints.
  */
 
+var p = console.log;
 var format = require('util').format;
 var crypto = require('crypto');
 var fs = require('fs');
@@ -316,6 +317,17 @@ test('CreateImage', function (t) {
             t.ifError(err, err);
             t.ok(!(image.icon), 'no icon');
             next();
+        });
+    }
+    function deleteIcon(next) {
+        self.client.deleteImageIcon(uuid, vader, function (err, image, res) {
+            t.ok(err);
+            t.equal(err.body.code, 'NotImageOwner');
+            self.client.deleteImageIcon(uuid, luke, function (err2, image2) {
+                t.ifError(err2, err2);
+                t.ok(!(image2.icon), 'no icon');
+                next();
+            });
         });
     }
     function setError(next) {
