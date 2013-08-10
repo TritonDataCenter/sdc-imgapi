@@ -142,7 +142,7 @@ proto VMs.
   images to the platform with OS-2401
 - [AGENT-644, orlando] *6.5* provisioner agent support for incremental images
 - [done, RELENG-496, john] Set up staging to more closely reflect JPC
-- [RELENG-497, trent] sdc-system-tests tests for image
+- [RELENG-497, john] sdc-system-tests tests for image
   creation in the mixed CN environment in staging
 - [trent] Docs/tooling for managing these packages. My plan here is to just
   come up with oneliners for these and document them in a section of the
@@ -193,6 +193,27 @@ The work required to be able to do SDC builds in JPC.
 (2 weeks, very rough time estimate) KVM image support.
 
 - [OS-2410, trent]: kvm support for 'imgadm create'
+- [carlos, christopher, derek, trent, ...?] Need released tooling for customers
+  for the various OSes to do requisite "prepare-image" work before image
+  creation. E.g. the current "me-centos.git"-based /lib/smartdc/prepare-image in
+  the latest CentOS image isn't correct -- it presumes a process where Joyent
+  support is involved mounting a special disk, i.e. a process appropriate for
+  *our* making tweaked out images, but not for customers. We need to discuss
+  this:
+    - which repo(s): perhaps something along side jperkin's
+      <https://github.com/joyent/imagetools>, say sdc-vmtools or whatever. I'd
+      actually have used "imagetools" but jperkin stole that for creating
+      seed images.
+    - what exactly the process should be (i.e. agree on not bothering with
+      the extra "disk2" for a clean copy of "disk0" for less churn for smaller
+      images). If we *do* want this "disk2" process similar to now... then I
+      think we should have special packages and/or images and/or CreateMachine
+      options that result in that extra disk being created for the user
+      initially. I.e. a special provisioning process for pimped up image-seed
+      VMs.
+  Then we need to get this working for all supported OSes. Currently that
+  means the 3 linuxes and windows. Not sure if freebsd is in the cards *right
+  now*. I also have tried Windows yet.
 - [RELENG-498, trent]: tests for image creation and provisioning of kvm images
 
 
@@ -1632,13 +1653,18 @@ Raw API tool:
 
 Delete the image icon file.
 
+There are two typical calling styles to this endpoint: with 'account=$UUID' and
+without. The former is what cloudapi uses to ask on behalf of a particular
+authenticated account. The latter is for operator-only querying.
+
 ### Inputs
 
-None.
+||**Field**||**Type**||**Description**||
+||account||UUID||Only allow deletion of icons on images owned by this account.||
 
 ### Returns
 
-The image icon file content.
+The image object with the 'icon' field now false.
 
 ### Errors
 
@@ -1658,11 +1684,16 @@ Raw API tool:
 
 ## DeleteImage (DELETE /images/:uuid)
 
-Delete this image (and its file, if any).
+Delete this image (and its file and icon, if any).
+
+There are two typical calling styles to this endpoint: with 'account=$UUID' and
+without. The former is what cloudapi uses to ask on behalf of a particular
+authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
-None.
+||**Field**||**Type**||**Description**||
+||account||UUID||Only allow deletion of images owned by this account.||
 
 ### Returns
 
@@ -1681,13 +1712,16 @@ CLI tool (from images.joyent.com):
 
 Raw API tool (from an SDC's IMGAPI):
 
-    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874/file -X DELETE
+    $ sdc-imgapi /images/f9bbbc9f-d281-be42-9651-72c6be875874 -X DELETE
 
 CLI tool (from an SDC's IMGAPI):
 
     $ sdc-imgadm delete 7a1b1967-6ecf-1e4c-8f09-f49094cc36ad
     Deleted image 7a1b1967-6ecf-1e4c-8f09-f49094cc36ad
 
+Cloud API:
+
+    $ sdc-cloudapi /my/images/7a1b1967-6ecf-1e4c-8f09-f49094cc36ad -X DELETE
 
 
 ## CreateImage (POST /images)
@@ -2213,10 +2247,10 @@ CLI tool:
 
 ## AddImageAcl (POST /images/:uuid/acl?action=add)
 
-Adds more UUIDs to the Image ACL. If any of the account UUIDs is already in the
-image ACL it gets ignored. For convenience, when the action parameter is not present
-it will default to action=add. This means that the **AddImageAcl** action is
-valid in either of the two following forms:
+Adds more UUIDs to the Image ACL (access control list). If any of the account
+UUIDs is already in the image ACL it gets ignored. For convenience, when the
+action parameter is not present it will default to action=add. This means that
+the **AddImageAcl** action is valid in either of the two following forms:
 
     POST /images/:uuid/acl
     POST /images/:uuid/acl?action=add

@@ -1,5 +1,11 @@
 # Image API (IMGAPI) change log
 
+# 1.1.1
+
+- PUBAPI-659: Add support for '?account=UUID' on DeleteImage to guard
+  against CloudAPI's DeleteImage allowing users to delete images that
+  are not owned by them.
+
 # 1.1.0
 
 - IMGAPI-214: Incremental image support. New "origin" manifest field.
