@@ -140,7 +140,7 @@ proto VMs.
   use for VMs for image creation
 - [done, IMGAPI-251, trent] add requirements.min_platform to created incremental
   images to the platform with OS-2401
-- [AGENT-644, orlando] *6.5* provisioner agent support for incremental images
+- [done, AGENT-644, orlando] *6.5* provisioner agent support for incremental images
 - [done, RELENG-496, john] Set up staging to more closely reflect JPC
 - [RELENG-497, john] sdc-system-tests tests for image
   creation in the mixed CN environment in staging
@@ -185,7 +185,9 @@ proto VMs.
 The work required to be able to do SDC builds in JPC.
 
 - [IMGAPI-249, andres] ExportImage endpoint
+- [PUBAPI-674, trent]: ExportImage
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
+
 
 
 ## M6: KVM image support
