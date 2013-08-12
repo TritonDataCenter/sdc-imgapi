@@ -140,6 +140,10 @@ release: all public-docs
 		$(TOP)/smf \
 		$(TOP)/test \
 		$(RELTMPDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/tools
+	cp -r \
+		$(TOP)/tools/seed-packages \
+		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/tools/
 	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/build/node \
