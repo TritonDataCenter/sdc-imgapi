@@ -1,0 +1,115 @@
+# *Seed* packages for image management in us-east-1.
+#
+# Notes:
+# - These are for us-east-1 (package uuids for east-1, the "networks" are the
+#   UUIDs for the "Joyent-SDC-Public" and "Joyent-SDC-Private" network pools
+#   in east-1's NAPI.
+# - These are set to be owned by the "Joyent_Dev" user for testing while
+#   image mgmt is a hidden feature pre-launch.
+#
+
+dn: uuid=9b81f74c-7535-428f-91f6-92f7c5876a45, ou=packages, o=smartdc
+uuid: 9b81f74c-7535-428f-91f6-92f7c5876a45
+owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+active: true
+cpu_cap: 200
+default: false
+group: Seed
+description: Seed - Standard 2 GB RAM 1 CPUs 66 GB Disk
+max_lwps: 4000
+max_physical_memory: 2048
+max_swap: 4096
+name: g3-standard-2-smartos-seed
+common_name: Standard 2
+quota: 67584
+min_platform: {"7.0": "20130810T052224Z"}
+parent: g3-standard-2-smartos
+networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
+version: 1.0.0
+zfs_io_priority: 100
+fss: 200.5
+cpu_burst_ratio: 0.5
+ram_ratio: 1.995012469
+overprovision_cpu: 2
+overprovision_memory: 1
+objectclass: sdcPackage
+
+dn: uuid=5b5740e3-f499-4b26-9514-fc585e096442, ou=packages, o=smartdc
+uuid: 5b5740e3-f499-4b26-9514-fc585e096442
+owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+active: true
+cpu_cap: 200
+default: false
+group: Seed
+description: Seed - Standard 4 GB RAM 1 CPUs 131 GB Disk
+max_lwps: 4000
+max_physical_memory: 4096
+max_swap: 8192
+name: g3-standard-4-smartos-seed
+common_name: Standard 4
+quota: 134144
+min_platform: {"7.0": "20130810T052224Z"}
+parent: g3-standard-4-smartos
+networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
+version: 1.0.0
+zfs_io_priority: 100
+fss: 200.5
+cpu_burst_ratio: 0.5
+ram_ratio: 3.990024938
+overprovision_cpu: 2
+overprovision_memory: 1
+objectclass: sdcPackage
+
+dn: uuid=e0afdd7d-252e-4b18-92b3-2b4783b828d6, ou=packages, o=smartdc
+uuid: e0afdd7d-252e-4b18-92b3-2b4783b828d6
+owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+active: true
+cpu_cap: 100
+default: false
+group: Seed
+description: Seed - Standard 2 GB RAM 1 CPUs 66 GB Disk
+max_lwps: 4000
+max_physical_memory: 2048
+max_swap: 4096
+name: g3-standard-2-kvm-seed
+common_name: Standard 2
+quota: 67584
+min_platform: {"7.0": "20130810T052224Z"}
+parent: g3-standard-2-kvm
+vcpus: 1
+networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
+version: 1.0.0
+zfs_io_priority: 100
+fss: 100.5
+cpu_burst_ratio: 1
+ram_ratio: 1.990049751
+overprovision_cpu: 1
+overprovision_memory: 1
+objectclass: sdcPackage
+
+dn: uuid=0853f27d-5835-45f6-ab5b-f76ad4806c96, ou=packages, o=smartdc
+uuid: 0853f27d-5835-45f6-ab5b-f76ad4806c96
+owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+active: true
+cpu_cap: 100
+default: false
+group: Seed
+description: Seed - Standard 4 GB RAM 1 CPUs 131 GB Disk
+max_lwps: 4000
+max_physical_memory: 4096
+max_swap: 8192
+name: g3-standard-4-kvm-seed
+common_name: Standard 4
+quota: 134144
+min_platform: {"7.0": "20130810T052224Z"}
+parent: g3-standard-4-kvm
+vcpus: 1
+networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
+version: 1.0.0
+zfs_io_priority: 100
+fss: 100.5
+cpu_burst_ratio: 1
+ram_ratio: 3.980099502
+overprovision_cpu: 1
+overprovision_memory: 1
+objectclass: sdcPackage
