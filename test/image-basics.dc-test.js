@@ -335,7 +335,7 @@ test('CreateImage', function (t) {
             state: 'failed',
             error: { message: 'could not publish'}
         };
-        self.client.updateImage(uuid, mod, luke, function (err, image, res) {
+        self.client.updateImage(uuid, mod, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image, 'image setError');
             t.equal(image.state, 'failed');
