@@ -343,6 +343,19 @@ test('CreateImage', function (t) {
             next();
         });
     }
+    function exportImage(next) {
+        var opts = {
+            manta_path: '/andresr83/stor/exports/tests'
+        };
+        self.client.exportImage(uuid, opts, function (err, image, res) {
+            if (err) {
+                t.ok(err, 'IMGAPI-249 - WIP expected export error');
+            } else {
+                t.ok(image, 'image exported');
+            }
+            next();
+        });
+    }
     function deleteImage(next) {
         self.client.deleteImage(uuid, luke, function (err, res) {
             t.ifError(err, err);
@@ -376,6 +389,7 @@ test('CreateImage', function (t) {
             getIcon,
             deleteIcon,
             setError,
+            exportImage,
             deleteImage
         ],
         function (err) {
