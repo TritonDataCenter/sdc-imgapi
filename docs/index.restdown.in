@@ -138,6 +138,7 @@ proto VMs.
   not switched over the PAPI, this ticket doesn't need to be completed.
 - [done, IMAGE-318, carlos]: spec small set of packages using min_platform for
   use for VMs for image creation
+  SYSOPS-6061 to add these to us-east-1.
 - [done, IMGAPI-251, trent] add requirements.min_platform to created incremental
   images to the platform with OS-2401
 - [done, AGENT-644, orlando] *6.5* provisioner agent support for incremental images
@@ -184,6 +185,7 @@ proto VMs.
 
 The work required to be able to do SDC builds in JPC.
 
+- [MANTA-1638, mark] This blocks IMGAPI-249
 - [IMGAPI-249, andres] ExportImage endpoint
 - [PUBAPI-674, trent]: ExportImage
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
@@ -316,38 +318,6 @@ aren't strictly required for a starting rollout.
 
 <!-- #endif -->
 
-
-# API Summary
-
-||**Name**||**Endpoint**||**Notes**||
-||[ListImages](#ListImages)||GET /images||List available images.||
-||[GetImage](#GetImage)||GET /images/:uuid||Get a particular image manifest.||
-||[GetImageFile](#GetImageFile)||GET /images/:uuid/file||Get the file for this image.||
-||[DeleteImage](#DeleteImage)||DELETE /images/:uuid||Delete an image (and its file).||
-||[CreateImage](#CreateImage)||POST /images||Create a new (unactivated) image from a manifest.||
-||[AddImageFile](#AddImageFile)||PUT /images/:uuid/file||Upload the image file.||
-||[ActivateImage](#ActivateImage)||POST /images/:uuid?action=activate||Activate the image.||
-||[UpdateImage](#UpdateImage)||POST /images/:uuid?action=update||Update image manifest fields. This is limited. Some fields are immutable.||
-||[DisableImage](#DisableImage)||POST /images/:uuid?action=disable||Disable the image.||
-||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||Enable the image.||
-||[AddImageAcl](#AddImageAcl)||POST /images/:uuid/acl?action=add||Add account UUIDs to the image ACL.||
-||[RemoveImageAcl](#RemoveImageAcl)||POST /images/:uuid/acl?action=remove||Remove account UUIDs from the image ACL.||
-||[AddImageIcon](#AddImageIcon)||POST /images/:uuid/icon||Add the image icon.||
-||[GetImageIcon](#GetImageIcon)||GET /images/:uuid/icon||Get the image icon file.||
-||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
-<!-- #ifdef PRIVATE -->
-||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
-||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
-||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
-||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
-<!-- #endif -->
-||[Ping](#Ping)||GET /ping||Ping if the server is up.||
-
-
-
-# Errors
-
-<!-- #include "build/errors.restdown" -->
 
 
 # Image manifests
@@ -1294,56 +1264,39 @@ Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO
 <!-- #endif -->
 
 
+# API Summary
+
+||**Name**||**Endpoint**||**Notes**||
+||[ListImages](#ListImages)||GET /images||List available images.||
+||[GetImage](#GetImage)||GET /images/:uuid||Get a particular image manifest.||
+||[GetImageFile](#GetImageFile)||GET /images/:uuid/file||Get the file for this image.||
+||[DeleteImage](#DeleteImage)||DELETE /images/:uuid||Delete an image (and its file).||
+||[CreateImage](#CreateImage)||POST /images||Create a new (unactivated) image from a manifest.||
+||[AddImageFile](#AddImageFile)||PUT /images/:uuid/file||Upload the image file.||
+||[ActivateImage](#ActivateImage)||POST /images/:uuid?action=activate||Activate the image.||
+||[UpdateImage](#UpdateImage)||POST /images/:uuid?action=update||Update image manifest fields. This is limited. Some fields are immutable.||
+||[DisableImage](#DisableImage)||POST /images/:uuid?action=disable||Disable the image.||
+||[EnableImage](#EnableImage)||POST /images/:uuid?action=enable||Enable the image.||
+||[AddImageAcl](#AddImageAcl)||POST /images/:uuid/acl?action=add||Add account UUIDs to the image ACL.||
+||[RemoveImageAcl](#RemoveImageAcl)||POST /images/:uuid/acl?action=remove||Remove account UUIDs from the image ACL.||
+||[AddImageIcon](#AddImageIcon)||POST /images/:uuid/icon||Add the image icon.||
+||[GetImageIcon](#GetImageIcon)||GET /images/:uuid/icon||Get the image icon file.||
+||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
 <!-- #ifdef PRIVATE -->
-# Image file storage
-
-There are three possible storage mechanisms for the (large) image files.
-Which are in use depend on the IMGAPI configuration (and availability
-in the DC).
-
-1. manta: Requires an available Manta for this DC's region. All files are
-   store in the "imgapi" user's Manta area.
-2. dcls: Data Center Local Storage.
-   TODO: details from wdp how this would be used.
-3. local: A local dir (or locally mounted dir). Only useful for testing and
-   development. This is insufficient for production usage because a locally
-   mounted dir can't handle HA (imgapi zones on more than one server).
-
-The set of available storages is set in the configuration. E.g.:
-
-    "storage": {
-        "manta": {
-            "url": "https://manta.bh1-kvm1.joyent.us",   // or something
-            "user": "imgapi",
-            "password": "***"
-        },
-        "dcls": {
-            "dir": "/mnt/share/imgapi"
-        },
-        "local": {
-            "dir": "/var/db/imgapi"
-        }
-    }
-
-A production setup needs at least one of "manta" or "dcls" storage, where
-"production" is defined as running without the `IMGAPI_DEVELOPMENT` envvar
-defined (with a non-empty string value). Likewise, usage of "local" is only
-allowed if `IMGAPI_DEVELOPMENT` is set.
-
-When adding an image file the storage used is determined as follows:
-
-- if "manta" is available, use that
-- else if "dcls" is available, use that
-- else if "local" is available, use that
-
-
-Open questions (TODO):
-
-- Do we need more control than the above storage determination?
-- Should 'dcls' usage be limited to a set of users? Or have a config item
-  to limit the set of users that can use it. If so, then need an endpoint
-  to update that config.
+||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
+||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
+||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
+||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
+||- - -||- - -|| - - - ||
+||[AdminGetState](#AdminGetState)||GET /state||Dump internal server state (for dev/debugging)||
 <!-- #endif -->
+||[Ping](#Ping)||GET /ping||Ping if the server is up.||
+
+
+
+# Errors
+
+<!-- #include "build/errors.restdown" -->
 
 
 # Image API
@@ -2699,7 +2652,40 @@ A JSON representation of some internal state.
 
 
 <!-- #ifdef PRIVATE -->
+# Image file storage
 
+There are three possible storage mechanisms for the (large) image files.
+Which are in use depend on the IMGAPI configuration (and availability
+in the DC).
+
+1. manta: Requires an available Manta for this DC's region. All files are
+   store in the "imgapi" user's Manta area.
+2. local: A local dir (or locally mounted dir). Only really mean for testing,
+   development and bootstrapping. Generally 'local' usage is insufficient
+   for producion usage because a locally mounted dir can't handle HA (imgapi
+   zones on more than one server).
+
+The set of available storages is set in the configuration. E.g.:
+
+    "storage": {
+        "manta": {
+            "url": "https://us-east.manta.joyent.com",
+            "user": "admin",
+            "key": "/root/.ssh/imgapi.id_rsa",
+            "keyId": "59:8a:63:3f:9d:5d:69:5f:cf:37:2e:0d:84:80:91:da"
+        },
+        "local": {
+            "dir": "/data/imgapi/images"
+        }
+    }
+
+Manta storage, if available, is used in preference to "local" storage. Manta
+storage is *required* for user custom image creation, i.e. CloudAPI's
+[CreateImageFromMachine](http://apidocs.joyent.com/cloudapi/#CreateImageFromMachine).
+<!-- #endif -->
+
+
+<!-- #ifdef PRIVATE -->
 # Configuration
 
 Reference docs on configuration vars to imgapi. Default values are in
