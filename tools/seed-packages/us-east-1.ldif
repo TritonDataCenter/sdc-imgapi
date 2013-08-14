@@ -22,7 +22,7 @@ max_swap: 4096
 name: g3-standard-2-smartos-seed
 common_name: Standard 2
 quota: 67584
-min_platform: {"7.0": "20130810T052224Z"}
+min_platform: {"7.0": "20130814T003036Z"}
 parent: g3-standard-2-smartos
 networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
 version: 1.0.0
@@ -48,7 +48,7 @@ max_swap: 8192
 name: g3-standard-4-smartos-seed
 common_name: Standard 4
 quota: 134144
-min_platform: {"7.0": "20130810T052224Z"}
+min_platform: {"7.0": "20130814T003036Z"}
 parent: g3-standard-4-smartos
 networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
 version: 1.0.0
@@ -74,7 +74,7 @@ max_swap: 4096
 name: g3-standard-2-kvm-seed
 common_name: Standard 2
 quota: 67584
-min_platform: {"7.0": "20130810T052224Z"}
+min_platform: {"7.0": "20130814T003036Z"}
 parent: g3-standard-2-kvm
 vcpus: 1
 networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
@@ -101,7 +101,7 @@ max_swap: 8192
 name: g3-standard-4-kvm-seed
 common_name: Standard 4
 quota: 134144
-min_platform: {"7.0": "20130810T052224Z"}
+min_platform: {"7.0": "20130814T003036Z"}
 parent: g3-standard-4-kvm
 vcpus: 1
 networks: ["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]
