@@ -298,6 +298,7 @@ aren't strictly required for a starting rollout.
 - [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
   future proofing.
 - [PUBAPI-???, trent] What about exposing adding an image icon via cloudapi?
+- [IMGAPI-215] 'PUBLIC' column in sdc-imgadm default output
 
 
 <!-- #endif -->
