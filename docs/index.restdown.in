@@ -145,6 +145,9 @@ proto VMs.
 - [done, RELENG-496, john] Set up staging to more closely reflect JPC
 - [RELENG-497, john] sdc-system-tests tests for image
   creation in the mixed CN environment in staging
+- [IMAGE-???, trent/carlos/ops] Add a 'img_mgmt: true' trait on the seed
+  packages and the designated CNs for image creation: to ensure that CN is
+  *only* used for image creation.
 - [trent] Docs/tooling for managing these packages. My plan here is to just
   come up with oneliners for these and document them in a section of the
   [IMGAPI Operator Guide](https://mo.joyent.com/docs/imgapi/master/#operator-guide).
@@ -156,9 +159,6 @@ proto VMs.
       a more complete "Capacity Aware Packages" answer by then)
     - list all VMs provisioned with these packages. Consider them "dirty" if
       they have a long life?
-- [merline/jens/et al] Discuss if we want to use traits ("image-create" or
-  whatever) on the image creation packages and the few CN(s) in us-east to
-  ensure capacity. I.e. to ensure that CN is *only* used for image creation.
 
 
 ## M4: more basics
@@ -167,17 +167,18 @@ proto VMs.
 
 - [done, IMGAPI-250, andres]: state=error|creating|... for better UX for
   cloudapi's CreateImageFromMachine
+- [done, IMGAPI-256, andres] imgapi zone should tune TCP for talking to Manta
 - [PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to exposed fields
   in GetImage and ListImages
   Note: Specifically doc that 'public' is not updatable or settable right now.
   Don't want user-created *public* images in JPC right now. For now guard that
   in PUBAPI.
+- [PUBAPI-675, trent] ability for sdc-listImages to filter on public/private images
 - [PUBAPI-660, pedro] node-smartdc: add sdc-createimagefrommachine,
   sdc-deleteimage, sdc-updateimage
 - [OS-2203, trent] provision fails when import in progress: imgadm import must
   coordinate
 - [IMGAPI-252, andres] placeholder images shall have a one week lifespan
-- [IMGAPI-256, andres] imgapi zone should tune TCP for talking to Manta
 - [IMGAPI-257, trent] get $dcname in the Manta storage of images
 
 
@@ -187,7 +188,7 @@ The work required to be able to do SDC builds in JPC.
 
 - [MANTA-1638, mark] This blocks IMGAPI-249
 - [IMGAPI-249, andres] ExportImage endpoint
-- [PUBAPI-674, trent]: ExportImage
+- [PUBAPI-674, trent]: ExportImage in cloudapi
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
 
 
@@ -196,28 +197,11 @@ The work required to be able to do SDC builds in JPC.
 
 (2 weeks, very rough time estimate) KVM image support.
 
-- [OS-2410, trent]: kvm support for 'imgadm create'
-- [carlos, christopher, derek, trent, ...?] Need released tooling for customers
-  for the various OSes to do requisite "prepare-image" work before image
-  creation. E.g. the current "me-centos.git"-based /lib/smartdc/prepare-image in
-  the latest CentOS image isn't correct -- it presumes a process where Joyent
-  support is involved mounting a special disk, i.e. a process appropriate for
-  *our* making tweaked out images, but not for customers. We need to discuss
-  this:
-    - which repo(s): perhaps something along side jperkin's
-      <https://github.com/joyent/imagetools>, say sdc-vmtools or whatever. I'd
-      actually have used "imagetools" but jperkin stole that for creating
-      seed images.
-    - what exactly the process should be (i.e. agree on not bothering with
-      the extra "disk2" for a clean copy of "disk0" for less churn for smaller
-      images). If we *do* want this "disk2" process similar to now... then I
-      think we should have special packages and/or images and/or CreateMachine
-      options that result in that extra disk being created for the user
-      initially. I.e. a special provisioning process for pimped up image-seed
-      VMs.
-  Then we need to get this working for all supported OSes. Currently that
-  means the 3 linuxes and windows. Not sure if freebsd is in the cards *right
-  now*. I also have tried Windows yet.
+- [done, OS-2410, trent]: kvm support for 'imgadm create'
+- [carlos, christopher, derek, trent, jperkin ...?] smartos-vmtools.git
+  I.e. a new repo collecting from current "prepare-image" scripts to provide
+  tooling for customers to prepare a KVM VM to become an image. Lots of work
+  and testing to be done here.
 - [RELENG-498, trent]: tests for image creation and provisioning of kvm images
 
 
