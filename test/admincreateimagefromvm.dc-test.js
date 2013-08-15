@@ -47,7 +47,8 @@ var IMAGE = null;
 var CAN_RUN_TEST = (process.env.VMAPI_URL !== undefined &&
                     process.env.NAPI_URL !== undefined &&
                     process.env.CNAPI_URL !== undefined &&
-                    process.env.UFDS_ADMIN_UUID !== undefined);
+                    process.env.UFDS_ADMIN_UUID !== undefined &&
+                    process.env.IMGAPI_HAS_MANTA !== undefined);
 
 var MANIFEST = {
     name: 'custom-image',
