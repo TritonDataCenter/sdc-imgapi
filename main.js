@@ -93,6 +93,8 @@ function loadConfigSync(configPath) {
         config.mode = 'public';
     }
     assert.string(config.mode, 'config.mode');
+    assert.optionalNumber(config.placeholderImageLifespanDays,
+        'config.placeholderImageLifespanDays');
     assert.optionalString(config.serverName, 'config.serverName');
     assert.ok(['public', 'private', 'dc'].indexOf(config.mode) !== -1,
         'invalid config.mode');
@@ -235,6 +237,7 @@ function createAndStartTheApp(next) {
         if (err)
             return next(err);
         theApp = app;  // `theApp` is intentionally global
+        theApp.setupPlaceholderCleanupInterval();
         theApp.listen(function () {
             var addr = theApp.server.address();
             log.info('Image API listening on <http://%s:%s>.',
