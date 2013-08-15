@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2012 Joyent Inc. All rights reserved.
+ * Copyright (c) 2013 Joyent Inc. All rights reserved.
  *
  * Test CreateImageFromVm endpoint.
  */
 
+var p = console.log;
 var format = require('util').format;
 var exec = require('child_process').exec;
 var crypto = require('crypto');
@@ -37,12 +38,7 @@ function skiptest() {} // quick hack to comment out a test
 
 //---- globals
 
-var vader = '86055c40-2547-11e2-8a6b-4bb37edc84ba';
-var luke = '91ba0e64-2547-11e2-a972-df579e5fddb3';
-var sdc = 'ba28f844-8cb4-f141-882d-46d6251e6a9f';
 var SMARTOS = '01b2c898-945f-11e1-a523-af1afbe22822';
-var IMAGES_JOYENT_COM_IP = null;
-var DATASETS_JOYENT_COM_IP = null;
 var NETWORK = null;
 var SERVER = null;
 var VM = null;
@@ -168,8 +164,8 @@ before(function (next) {
 
 
 if (CAN_RUN_TEST)
-test('CreateFromVm should not work for an inexistent VM', function (t) {
-    this.client.createFromVmAndWait(MANIFEST, { vm_uuid: genUuid() },
+test('CreateImageFromVm should not work for an nonexistent VM', function (t) {
+    this.client.createImageFromVmAndWait(MANIFEST, { vm_uuid: genUuid() },
       function (err, image) {
         t.ok(err, 'got expected error');
         t.end();
@@ -178,8 +174,8 @@ test('CreateFromVm should not work for an inexistent VM', function (t) {
 
 
 if (CAN_RUN_TEST)
-test('CreateFromVm should not work for a running VM', function (t) {
-    this.client.createFromVmAndWait(MANIFEST, { vm_uuid: VM },
+test('CreateImageFromVm should not work for a running VM', function (t) {
+    this.client.createImageFromVmAndWait(MANIFEST, { vm_uuid: VM },
       function (err, image) {
         t.ok(err, 'got expected error');
         t.end();
@@ -188,7 +184,7 @@ test('CreateFromVm should not work for a running VM', function (t) {
 
 
 if (CAN_RUN_TEST)
-test('CreateFromVm should create the image', function (t) {
+test('CreateImageFromVm should create the image', function (t) {
     var vmapi = this.vmapi;
     var self = this;
 
@@ -210,7 +206,7 @@ test('CreateFromVm should create the image', function (t) {
             });
         },
         function createFromVm(cb) {
-            self.client.createFromVmAndWait(MANIFEST, { vm_uuid: VM },
+            self.client.createImageFromVmAndWait(MANIFEST, { vm_uuid: VM },
               function (err, image) {
                 if (err) {
                     return cb(err);

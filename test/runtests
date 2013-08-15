@@ -161,6 +161,7 @@ mkdir -p $OUTPUT_DIR
 
 # Gather IMGAPI/datacenter data to be used by the test suite.
 if [[ "$opt_mode" == "dc" ]]; then
+
     if [[ -n "$opt_local" ]]; then
         CFG_FILE=$TOP/test/imgapi-config-local-dc.json
         export IMGAPI_URL=http://localhost:$(json port <$CFG_FILE)
@@ -171,8 +172,7 @@ if [[ "$opt_mode" == "dc" ]]; then
         export UFDS_ROOT_DN=$(json ufds.bindDN <$CFG_FILE)
         export UFDS_PASSWORD=$(json ufds.bindPassword <$CFG_FILE)
         if [[ $(zonename) == "global" ]]; then
-            export IMGAPI_URL=http://$(/opt/smartdc/bin/sdc-vmapi /vms \
-                | json -H -c 'tags.smartdc_role=="imgapi"' -c 'state=="running"' 0.nics.0.ip)
+            export IMGAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.IMGAPI_SERVICE)"
         else
             export IMGAPI_URL=http://$(/usr/sbin/ifconfig net0 | grep inet | awk '{print $2}')
         fi
@@ -180,6 +180,10 @@ if [[ "$opt_mode" == "dc" ]]; then
         if [[ -n "$IMGAPI_PORT" && "$IMGAPI_PORT" != "80" ]]; then
             export IMGAPI_URL=$IMGAPI_URL:$IMGAPI_PORT
         fi
+        export UFDS_ADMIN_UUID="$(sdc-sapi /applications?name=sdc | json -H 0.metadata.ufds_admin_uuid)"
+        export VMAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.VMAPI_SERVICE)"
+        export NAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.NAPI_SERVICE)"
+        export CNAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.CNAPI_SERVICE)"
     fi
 else
     # "public" mode
