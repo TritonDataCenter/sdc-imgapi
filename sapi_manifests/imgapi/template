@@ -2,6 +2,7 @@
     "port": 80,
     "logLevel": "info",
     "mode": "dc",
+    "datacenterName": "{{{datacenter_name}}}",
     "ufds": {
         "url": "ldaps://{{{UFDS_SERVICE}}}",
         "bindDN": "{{{ufds_ldap_root_dn}}}",
