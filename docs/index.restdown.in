@@ -2685,6 +2685,7 @@ top-level keys in the factory settings. For example: if providing
 ||logLevel||String or Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
 ||maxSockets||Number||100||Maximum number of sockets for external API calls||
 ||mode||String||public||One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically public server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter).||
+||datacenterName||String||-||Name of the SDC datacenter on which IMGAPI is running.||
 ||placeholderImageLifespanDays||Number||7||The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database.||
 ||allowLocalCreateImageFromVm||Boolean||false||Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing.||
 ||ufds.url||String||-||LDAP URL to connect to UFDS. Required if `mode === 'dc'`.||
