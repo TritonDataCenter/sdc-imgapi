@@ -184,7 +184,7 @@ if [[ "$opt_mode" == "dc" ]]; then
         export VMAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.VMAPI_SERVICE)"
         export NAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.NAPI_SERVICE)"
         export CNAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.CNAPI_SERVICE)"
-        export IMGAPI_HAS_MANTA="$(sdc-imgapi /state | json -H -c '~this.storageTypes.indexOf("manta")')"
+        export IMGAPI_HAS_MANTA="$(sdc-imgapi /state | json -H -e 'this.hasManta = ~this.storageTypes.indexOf("manta")' hasManta)"
     fi
 else
     # "public" mode
