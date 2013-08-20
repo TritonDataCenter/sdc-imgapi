@@ -145,7 +145,7 @@ proto VMs.
 - [done, RELENG-496, john] Set up staging to more closely reflect JPC
 - [RELENG-497, john] sdc-system-tests tests for image
   creation in the mixed CN environment in staging
-- [IMAGE-???, trent/carlos/ops] Add a 'img_mgmt: true' trait on the seed
+- [done, IMGAPI-262, trent/ops] Add a 'img_mgmt: true' trait on the seed
   packages and the designated CNs for image creation: to ensure that CN is
   *only* used for image creation.
 - [trent] Docs/tooling for managing these packages. My plan here is to just
@@ -168,18 +168,17 @@ proto VMs.
 - [done, IMGAPI-250, andres]: state=error|creating|... for better UX for
   cloudapi's CreateImageFromMachine
 - [done, IMGAPI-256, andres] imgapi zone should tune TCP for talking to Manta
-- [PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to exposed fields
-  in GetImage and ListImages
-  Note: Specifically doc that 'public' is not updatable or settable right now.
-  Don't want user-created *public* images in JPC right now. For now guard that
-  in PUBAPI.
+- [done, IMGAPI-252, andres] placeholder images shall have a one week lifespan
+- [mostly done, PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to
+  exposed fields in GetImage and ListImages. (Note: Specifically doc that 'public'
+  is not updatable or settable right now. Don't want user-created *public*
+  images in JPC right now. For now guard that in PUBAPI.)
 - [PUBAPI-675, trent] ability for sdc-listImages to filter on public/private images
-- [PUBAPI-660, pedro] node-smartdc: add sdc-createimagefrommachine,
+- [PUBAPI-660, pedro/trent/andres] node-smartdc: add sdc-createimagefrommachine,
   sdc-deleteimage, sdc-updateimage
 - [OS-2203, trent] provision fails when import in progress: imgadm import must
   coordinate
-- [IMGAPI-252, andres] placeholder images shall have a one week lifespan
-- [IMGAPI-257, trent] get $dcname in the Manta storage of images
+- [IMGAPI-257, andres] get $dcname in the Manta storage of images
 
 
 ## M5: supporting SDC image builds
@@ -187,7 +186,7 @@ proto VMs.
 The work required to be able to do SDC builds in JPC.
 
 - [MANTA-1638, mark] This blocks IMGAPI-249
-- [IMGAPI-249, andres] ExportImage endpoint
+- [done, IMGAPI-249, andres] ExportImage endpoint
 - [PUBAPI-674, trent]: ExportImage in cloudapi
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
 
@@ -198,7 +197,7 @@ The work required to be able to do SDC builds in JPC.
 (2 weeks, very rough time estimate) KVM image support.
 
 - [done, OS-2410, trent]: kvm support for 'imgadm create'
-- [carlos, christopher, derek, trent, jperkin ...?] smartos-vmtools.git
+- [IMAGE-???, trent + jens-coralled help] smartos-vmtools.git
   I.e. a new repo collecting from current "prepare-image" scripts to provide
   tooling for customers to prepare a KVM VM to become an image. Lots of work
   and testing to be done here.
@@ -2686,6 +2685,8 @@ top-level keys in the factory settings. For example: if providing
 ||logLevel||String or Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
 ||maxSockets||Number||100||Maximum number of sockets for external API calls||
 ||mode||String||public||One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically public server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter).||
+||placeholderImageLifespanDays||Number||7||The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database.||
+||allowLocalCreateImageFromVm||Boolean||false||Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing.||
 ||ufds.url||String||-||LDAP URL to connect to UFDS. Required if `mode === 'dc'`.||
 ||ufds.bindDN||String||-||UFDS root dn. Required if `mode === 'dc'`.||
 ||ufds.bindPassword||String||-||UFDS root dn password. Required if `mode === 'dc'`.||

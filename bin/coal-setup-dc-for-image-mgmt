@@ -93,7 +93,7 @@ json -f $config_path -e '
 function add_external_nic_to_some_core_zones {
     local external_uuid=$(sdc-napi /networks?name=external | json -H 0.uuid)
 
-    for alias in imgapi0 sdc0 workflow0; do
+    for alias in imgapi0 amon0 sdc0; do
         local zone_uuid=$(vmadm lookup -1 alias=$alias)
         local have_external=$(sdc-vmapi /vms/$zone_uuid \
             | json -H nics | json -c 'this.nic_tag=="external"' length)
@@ -118,6 +118,17 @@ function install_base_image {
     sdc-imgadm import $uuid -S https://images.joyent.com --skip-owner-check
 }
 
+function hack_imgapi_to_allow_local_custom_images {
+    local imgapi_zone=$(vmadm lookup -1 alias=imgapi0)
+    local manifest=/zones/$imgapi_zone/root/opt/smartdc/imgapi/sapi_manifests/imgapi/template
+    if [[ -z "$(grep allowLocalCreateImageFromVm $manifest || true)" ]]; then
+        echo "# Hack IMGAPI template to allow local storage CreateImageFromVM usage"
+        sed -e '1 a\
+            "allowLocalCreateImageFromVm": true,' -i .bak $manifest
+        svcadm -z $imgapi_zone restart config-agent
+    fi
+}
+
 
 
 #---- mainline
@@ -134,6 +145,7 @@ echo "# Prepare this COAL DC for custom image management."
 provision_cloudapi
 cloudapi_turn_on_img_mgmt_feature
 hack_dapi_for_headnode_provisioning
+hack_imgapi_to_allow_local_custom_images
 add_external_nic_to_some_core_zones
 install_base_image
 
