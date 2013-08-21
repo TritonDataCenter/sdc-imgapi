@@ -93,7 +93,7 @@ json -f $config_path -e '
 function add_external_nic_to_some_core_zones {
     local external_uuid=$(sdc-napi /networks?name=external | json -H 0.uuid)
 
-    for alias in imgapi0 amon0 sdc0; do
+    for alias in adminui0 imgapi0 amon0 sdc0; do
         local zone_uuid=$(vmadm lookup -1 alias=$alias)
         local have_external=$(sdc-vmapi /vms/$zone_uuid \
             | json -H nics | json -c 'this.nic_tag=="external"' length)

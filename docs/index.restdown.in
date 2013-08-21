@@ -169,23 +169,23 @@ proto VMs.
   cloudapi's CreateImageFromMachine
 - [done, IMGAPI-256, andres] imgapi zone should tune TCP for talking to Manta
 - [done, IMGAPI-252, andres] placeholder images shall have a one week lifespan
+- [done, IMGAPI-257, andres] get $dcname in the Manta storage of images
 - [mostly done, PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to
   exposed fields in GetImage and ListImages. (Note: Specifically doc that 'public'
   is not updatable or settable right now. Don't want user-created *public*
   images in JPC right now. For now guard that in PUBAPI.)
-- [PUBAPI-675, trent] ability for sdc-listImages to filter on public/private images
-- [PUBAPI-660, pedro/trent/andres] node-smartdc: add sdc-createimagefrommachine,
+- [partly done, PUBAPI-675, trent] ability for sdc-listImages to filter on
+  public/private images
+- [PUBAPI-660, john] node-smartdc: add sdc-createimagefrommachine,
   sdc-deleteimage, sdc-updateimage
-- [OS-2203, trent] provision fails when import in progress: imgadm import must
-  coordinate
-- [IMGAPI-257, andres] get $dcname in the Manta storage of images
 
 
 ## M5: supporting SDC image builds
 
 The work required to be able to do SDC builds in JPC.
 
-- [MANTA-1638, mark] This blocks IMGAPI-249
+- [done, MANTA-1638, mark] This blocks IMGAPI-249
+  *Note: not sure if deployed.*
 - [done, IMGAPI-249, andres] ExportImage endpoint
 - [PUBAPI-674, trent]: ExportImage in cloudapi
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
@@ -197,7 +197,7 @@ The work required to be able to do SDC builds in JPC.
 (2 weeks, very rough time estimate) KVM image support.
 
 - [done, OS-2410, trent]: kvm support for 'imgadm create'
-- [IMAGE-???, trent + jens-coralled help] smartos-vmtools.git
+- [IMAGE-???, trent/derek/...] smartos-vmtools.git
   I.e. a new repo collecting from current "prepare-image" scripts to provide
   tooling for customers to prepare a KVM VM to become an image. Lots of work
   and testing to be done here.
@@ -289,6 +289,8 @@ This is underspecified. Some notes:
 A collection of tickets that should be address for robustness, UX, etc. but
 aren't strictly required for a starting rollout.
 
+- [OS-2203, trent] provision fails when import in progress: imgadm import must
+  coordinate
 - [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
   the same vm_uuid. This to guard against an attempt to DeleteMachine
   or StartMachine on a VM being used to create an image until
