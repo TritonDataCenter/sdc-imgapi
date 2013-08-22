@@ -202,6 +202,9 @@ The work required to be able to do SDC builds in JPC.
   tooling for customers to prepare a KVM VM to become an image. Lots of work
   and testing to be done here.
 - [RELENG-498, trent]: tests for image creation and provisioning of kvm images
+- IMGAPI-269
+- IMGAPI-270
+- IMGAPI-271
 
 
 ## M7: remote streaming

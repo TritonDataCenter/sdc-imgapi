@@ -1,0 +1,197 @@
+#!/opt/smartdc/imgapi/build/node/bin/node
+/**
+ * -*- mode: js -*-
+ *
+ * Copyright (c) 2013, Joyent, Inc. All rights reserved.
+ *
+ * Setup this IMGAPI to use a given Manta for storage. Use this script if
+ * you are setting up IMGAPI to use a remote Manta for storage.
+ *
+ * Note: This is **not the preferred IMGAPI setup**. See the
+ * 'imgapi-local-manta-setup' script in this same directory for the preferred
+ * setup.
+ *
+ * This script will:
+ *
+ * - Take the given url, user, and ssh-rsa key and set the following metadata
+ *   on the 'imgapi' service in SAPI:
+ *
+ *      IMGAPI_MANTA_URL
+ *      IMGAPI_MANTA_USER
+ *      IMGAPI_MANTA_INSECURE
+ *      IMGAPI_PUBLIC_KEY
+ *      IMGAPI_PRIVATE_KEY
+ *      IMGAPI_KEY_ID
+ *
+ * Those updates will trigger regeneration of the appropriate sapi_manifests
+ * to enable IMGAPI to use Manta. Note that it will trigger a refresh of
+ * the imgapi service in every imgapi zone (which currently is a *restart*).
+ */
+
+
+var p = console.log;
+var trace = process.env.TRACE ? p : function () {};
+
+var format = require('util').format;
+var exec = require('child_process').exec;
+var path = require('path');
+var fs = require('fs');
+var os = require('os');
+
+var once = require('once');
+var assert = require('assert-plus');
+var dashdash = require('dashdash');
+var async = require('async');
+var sdcClients = require('sdc-clients');
+var bunyan = require('bunyan');
+
+
+//---- globals
+
+var log; // set in `main()`
+
+var USAGE = (
+    'Setup IMGAPI in this SmartDataCenter to use a given manta\n'
+    + 'for image storage. This will do the appropriate setup for all\n'
+    + 'instances of IMGAPI in this DC. This is also re-runnable if it fails\n'
+    + 'part way.\n'
+    + '\n'
+    + '**Note:** The preferred IMGAPI setup is using a *local* Manta. Please\n'
+    + 'use the "imgapi-local-manta-setup" script for that.\n'
+    + '\n'
+    + 'Usage:\n'
+    + '    imgapi-remote-manta-setup [<options>] <manta-url> <manta-user> \\\n'
+    + '        <path-to-priv-key> | bunyan\n'
+    + '\n'
+    + 'Options:\n'
+    + '%s\n'
+);
+
+var OPTIONS = [
+    {
+        names: ['help', 'h'],
+        type: 'bool',
+        help: 'Print this help and exit.'
+    },
+    {
+        names: ['insecure', 'i'],
+        type: 'bool',
+        default: false,
+        help: 'Whether to ignore SSL certs when accessing Manta. '
+            + 'This should only be used in testing/development.'
+    }
+];
+
+
+var config = require('../etc/imgapi.config.json');
+
+
+
+//---- internal support routines
+
+function fatal(msg, exitCode) {
+    console.error('imgapi-manta-setup: error: %s', msg);
+    if (msg.stack) {
+        console.error(msg.stack);
+    }
+    process.exit(exitCode);
+}
+
+
+//---- mainline
+
+function main() {
+    log = bunyan.createLogger({    // intentionally global
+        name: 'imgapi-manta-setup',
+        src: true,
+        serializers: bunyan.stdSerializers
+    });
+
+    var parser = dashdash.createParser({options: OPTIONS});
+    try {
+        var opts = parser.parse(process.argv);
+    } catch (e) {
+        fatal(e.message, 1);
+    }
+    if (opts.help) {
+        p(USAGE, parser.help({includeEnv: true}).trimRight());
+        process.exit(0);
+    }
+    trace('opts', opts);
+    if (opts._args.length !== 3) {
+        fatal('incorrect number of args', 1);
+    }
+    var mantaUrl = opts._args[0];
+    var mantaUser = opts._args[1];
+    var privKeyPath = opts._args[2];
+
+    var key;
+    var sdcApp;
+    var imgapiSvc;
+
+    var sapi = new sdcClients.SAPI({
+        url: 'http://' + config.sapi_service,
+        log: log,
+        agent: false
+    });
+    async.series([
+        function gatherKey(next) {
+            key = {};
+            key.priv = fs.readFileSync(privKeyPath, 'ascii');
+            key.pub = fs.readFileSync(privKeyPath + '.pub', 'ascii');
+            var cmd = format('/usr/bin/ssh-keygen -l -f %s | ' +
+                'awk \'{print $2}\'', privKeyPath);
+            log.info({cmd: cmd}, 'reading key signature');
+            exec(cmd, function (err, stdout, stderr) {
+                if (err) {
+                    log.error(err, 'failed to read key signature');
+                    return (next(err));
+                }
+                key.id = stdout.trim();
+                next(null);
+            });
+        },
+        function getSdcApp(next) {
+            sapi.listApplications({name: 'sdc'}, function (aErr, apps) {
+                if (aErr)
+                    return next(aErr);
+                sdcApp = apps[0];
+                log.info({uuid: sdcApp.uuid}, 'got sdc app');
+                next();
+            });
+        },
+        function getImgapiService(next) {
+            var searchOpts = {name: 'imgapi', application_uuid: sdcApp.uuid};
+            sapi.listServices(searchOpts, function (sErr, svcs) {
+                if (sErr)
+                    return next(sErr);
+                imgapiSvc = svcs[0];
+                log.info({uuid: imgapiSvc.uuid}, 'got imgapi svc');
+                next();
+            });
+        },
+        function setServiceMetadata(next) {
+            var md = {
+                IMGAPI_MANTA_URL: mantaUrl,
+                IMGAPI_MANTA_USER: mantaUser,
+                IMGAPI_MANTA_INSECURE: opts.insecure,
+                IMGAPI_PRIVATE_KEY: key.priv,
+                IMGAPI_PUBLIC_KEY: key.pub,
+                IMGAPI_KEY_ID: key.id
+            };
+            sapi.updateService(imgapiSvc.uuid, {metadata: md}, function (uErr) {
+                if (uErr)
+                    return (next(uErr));
+                log.info({metadata: md}, 'metadata added to imgapi service');
+                next();
+            });
+        },
+    ], function (err) {
+        if (err) {
+            fatal(err, 1);
+        }
+        log.info('Done.');
+    });
+}
+
+main();

@@ -145,6 +145,7 @@ echo "# Prepare this COAL DC for custom image management."
 provision_cloudapi
 cloudapi_turn_on_img_mgmt_feature
 hack_dapi_for_headnode_provisioning
+# TODO: how to offer alternative to hook up to remote Manta?
 hack_imgapi_to_allow_local_custom_images
 add_external_nic_to_some_core_zones
 install_base_image
