@@ -15,7 +15,7 @@ active: true
 cpu_cap: 200
 default: false
 group: Image Creation
-description: Image Creation: 2GB RAM, 1 CPUs and bursting, and 66GB Disk. Required for Image Creation.
+description: 2GB RAM, 1 CPUs and bursting, and 66GB Disk. Required for Image Creation.
 max_lwps: 4000
 max_physical_memory: 2048
 max_swap: 4096
@@ -41,7 +41,7 @@ active: true
 cpu_cap: 200
 default: false
 group: Image Creation
-description: Image Creation: 4GB RAM, 1 CPUs and bursting, and 131GB Disk. Required for Image Creation.
+description: 4GB RAM, 1 CPUs and bursting, and 131GB Disk. Required for Image Creation.
 max_lwps: 4000
 max_physical_memory: 4096
 max_swap: 8192
@@ -67,7 +67,7 @@ active: true
 cpu_cap: 100
 default: false
 group: Image Creation
-description: Image Creation: 2GB RAM, 1 CPUs, and 66GB Disk. Required for Image Creation.
+description: 2GB RAM, 1 CPUs, and 66GB Disk. Required for Image Creation.
 max_lwps: 4000
 max_physical_memory: 2048
 max_swap: 4096
@@ -94,7 +94,7 @@ active: true
 cpu_cap: 100
 default: false
 group: Image Creation
-description: Image Creation: 4GB RAM, 1 CPUs, and 131GB Disk. Required for Image Creation.
+description: 4GB RAM, 1 CPUs, and 131GB Disk. Required for Image Creation.
 max_lwps: 4000
 max_physical_memory: 4096
 max_swap: 8192
