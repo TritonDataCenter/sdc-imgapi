@@ -11,7 +11,8 @@ NAME		:= imgapi
 DOC_FILES	 = index.restdown public.restdown design.restdown
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/') \
-	bin/imgapi-manta-setup \
+	bin/imgapi-local-manta-setup \
+	bin/imgapi-remote-manta-setup \
 	bin/hash-basic-auth-password
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)

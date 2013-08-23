@@ -2643,12 +2643,13 @@ A JSON representation of some internal state.
 <!-- #ifdef PRIVATE -->
 # Image file storage
 
-There are three possible storage mechanisms for the (large) image files.
-Which are in use depend on the IMGAPI configuration (and availability
-in the DC).
+There are two possible storage mechanisms for the (large) image files (and image
+icon files). Which are in use depend on the IMGAPI configuration (and
+availability in the DC).
 
 1. manta: Requires an available Manta for this DC's region. All files are
-   store in the "imgapi" user's Manta area.
+   store in the "imgapi" user's Manta area. Manta storage may be local
+   (preferred) or remote.
 2. local: A local dir (or locally mounted dir). Only really mean for testing,
    development and bootstrapping. Generally 'local' usage is insufficient
    for producion usage because a locally mounted dir can't handle HA (imgapi
@@ -2660,6 +2661,8 @@ The set of available storages is set in the configuration. E.g.:
         "manta": {
             "url": "https://us-east.manta.joyent.com",
             "user": "admin",
+            "insecure": false,
+            "remote": true,
             "key": "/root/.ssh/imgapi.id_rsa",
             "keyId": "59:8a:63:3f:9d:5d:69:5f:cf:37:2e:0d:84:80:91:da"
         },
@@ -2668,9 +2671,17 @@ The set of available storages is set in the configuration. E.g.:
         }
     }
 
-Manta storage, if available, is used in preference to "local" storage. Manta
-storage is *required* for user custom image creation, i.e. CloudAPI's
+Local Manta storage, if available, is used in preference to "local" storage.
+Manta storage is *required* for user custom image creation, i.e. CloudAPI's
 [CreateImageFromMachine](http://apidocs.joyent.com/cloudapi/#CreateImageFromMachine).
+
+If Manta storage is available *but is remote*, then which storage is used is a
+little more complicated. The intention is that user-created custom images
+(i.e. IMGAPI's CreateImageFromVm, aka CreateImageFromMachine on cloudapi) go
+to Manta. However, admin-managed public images for the DC are typically large
+and can't practically live in a remote Manta. Therefore the algorithm is that
+"admin"-owned images prefer local storage to "remote Manta" storage. Images
+owned by others prefer remote Manta storage to local storage.
 <!-- #endif -->
 
 
@@ -2691,6 +2702,7 @@ top-level keys in the factory settings. For example: if providing
 ||maxSockets||Number||100||Maximum number of sockets for external API calls||
 ||mode||String||public||One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically public server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter).||
 ||datacenterName||String||-||Name of the SDC datacenter on which IMGAPI is running.||
+||adminUuid||String||-||The UUID of the admin user in this SDC.||
 ||placeholderImageLifespanDays||Number||7||The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database.||
 ||allowLocalCreateImageFromVm||Boolean||false||Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing.||
 ||ufds.url||String||-||LDAP URL to connect to UFDS. Required if `mode === 'dc'`.||
@@ -2709,6 +2721,7 @@ top-level keys in the factory settings. For example: if providing
 ||storage.manta||Object||-||Object holding config information for Manta storage.||
 ||storage.manta.url||String||-||The Manta API URL.||
 ||storage.manta.insecure||Boolean||false||Ignore SSL certs on the Manta URL.||
+||storage.manta.remote||Boolean||-||Whether this Manta is remote to this IMGAPI. This helps IMGAPI determine practical issues on whether manta or local storage is used for large files.||
 ||storage.manta.user||String||-||The Manta user under which to store data.||
 ||storage.manta.key||String||-||Path to the SSH private key file with which to authenticate to Manta.||
 ||storage.manta.keyId||String||-||The SSH public key ID (signature).||

@@ -3,6 +3,7 @@
     "logLevel": "info",
     "mode": "dc",
     "datacenterName": "{{{datacenter_name}}}",
+    "adminUuid": "{{{ufds_admin_uuid}}}",
     "ufds": {
         "url": "ldaps://{{{UFDS_SERVICE}}}",
         "bindDN": "{{{ufds_ldap_root_dn}}}",
@@ -18,7 +19,8 @@
             "user": "{{IMGAPI_MANTA_USER}}",
             "key": "/root/.ssh/imgapi.id_rsa",
             "keyId": "{{IMGAPI_KEY_ID}}",
-            "insecure": {{IMGAPI_MANTA_INSECURE}}
+            "insecure": {{IMGAPI_MANTA_INSECURE}},
+            "remote": {{IMGAPI_MANTA_REMOTE}}
         },
 {{/IMGAPI_MANTA_URL}}
         "local": {

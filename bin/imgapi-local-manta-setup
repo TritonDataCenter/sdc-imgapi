@@ -19,6 +19,7 @@
  *      IMGAPI_MANTA_URL
  *      IMGAPI_MANTA_USER
  *      IMGAPI_MANTA_INSECURE
+ *      IMGAPI_MANTA_REMOTE     Boolean. Is this manta remote?
  *      IMGAPI_PUBLIC_KEY
  *      IMGAPI_PRIVATE_KEY
  *      IMGAPI_KEY_ID
@@ -317,6 +318,7 @@ function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, mantaInsecure,
                 if (!svc.metadata.IMGAPI_MANTA_URL ||
                     !svc.metadata.IMGAPI_MANTA_USER ||
                     !svc.metadata.IMGAPI_MANTA_INSECURE ||
+                    !svc.metadata.IMGAPI_MANTA_REMOTE ||
                     !svc.metadata.IMGAPI_PUBLIC_KEY ||
                     !svc.metadata.IMGAPI_PRIVATE_KEY ||
                     !svc.metadata.IMGAPI_KEY_ID)
@@ -343,6 +345,7 @@ function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, mantaInsecure,
                 IMGAPI_MANTA_URL: mantaUrl,
                 IMGAPI_MANTA_USER: config.ufds_admin_login,
                 IMGAPI_MANTA_INSECURE: mantaInsecure,
+                IMGAPI_MANTA_REMOTE: false,
                 IMGAPI_PRIVATE_KEY: key.priv,
                 IMGAPI_PUBLIC_KEY: key.pub,
                 IMGAPI_KEY_ID: key.id

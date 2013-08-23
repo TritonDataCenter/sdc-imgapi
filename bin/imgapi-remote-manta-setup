@@ -19,6 +19,7 @@
  *      IMGAPI_MANTA_URL
  *      IMGAPI_MANTA_USER
  *      IMGAPI_MANTA_INSECURE
+ *      IMGAPI_MANTA_REMOTE     Boolean. Is this manta remote?
  *      IMGAPI_PUBLIC_KEY
  *      IMGAPI_PRIVATE_KEY
  *      IMGAPI_KEY_ID
@@ -175,6 +176,7 @@ function main() {
                 IMGAPI_MANTA_URL: mantaUrl,
                 IMGAPI_MANTA_USER: mantaUser,
                 IMGAPI_MANTA_INSECURE: opts.insecure,
+                IMGAPI_MANTA_REMOTE: true,
                 IMGAPI_PRIVATE_KEY: key.priv,
                 IMGAPI_PUBLIC_KEY: key.pub,
                 IMGAPI_KEY_ID: key.id
