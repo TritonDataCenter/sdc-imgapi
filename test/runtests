@@ -166,6 +166,7 @@ if [[ "$opt_mode" == "dc" ]]; then
         CFG_FILE=$TOP/test/imgapi-config-local-dc.json
         export IMGAPI_URL=http://localhost:$(json port <$CFG_FILE)
     else
+        export PATH=/opt/smartdc/bin:$PATH
         CFG_FILE=$TOP/etc/imgapi.config.json
         [[ ! -f "$CFG_FILE" ]] && fatal "'$CFG_FILE' does not exist"
         export UFDS_URL=$(json ufds.url <$CFG_FILE)
