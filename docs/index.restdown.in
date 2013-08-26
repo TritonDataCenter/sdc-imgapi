@@ -197,7 +197,7 @@ The work required to be able to do SDC builds in JPC.
 (2 weeks, very rough time estimate) KVM image support.
 
 - [done, OS-2410, trent]: kvm support for 'imgadm create'
-- [IMAGE-???, trent/derek/...] smartos-vmtools.git
+- [IMGAPI-274, trent/derek/...] smartos-vmtools.git
   I.e. a new repo collecting from current "prepare-image" scripts to provide
   tooling for customers to prepare a KVM VM to become an image. Lots of work
   and testing to be done here.
