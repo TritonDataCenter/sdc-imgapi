@@ -4,12 +4,13 @@
  *
  * Copyright (c) 2013, Joyent, Inc. All rights reserved.
  *
- * Setup this IMGAPI to use a given Manta for storage. Use this script if
- * you are setting up IMGAPI to use a remote Manta for storage.
+ * Setup this IMGAPI to use an "external" Manta for storage -- i.e. a Manta
+ * that does NOT share a master UFDS with this IMGAPI.
  *
- * Note: This is **not the preferred IMGAPI setup**. See the
- * 'imgapi-local-manta-setup' script in this same directory for the preferred
- * setup.
+ * The presumption is that this Manta is also remote (i.e. across the WAN).
+ * As such this is **not the preferred IMGAPI setup**. See the
+ * 'imgapi-manta-setup' script in this same directory for the preferred
+ * setup, if possible.
  *
  * This script will:
  *
@@ -19,7 +20,7 @@
  *      IMGAPI_MANTA_URL
  *      IMGAPI_MANTA_USER
  *      IMGAPI_MANTA_INSECURE
- *      IMGAPI_MANTA_REMOTE     Boolean. Is this manta remote?
+ *      IMGAPI_MANTA_REMOTE=true     Boolean. Is this manta remote?
  *      IMGAPI_PUBLIC_KEY
  *      IMGAPI_PRIVATE_KEY
  *      IMGAPI_KEY_ID
@@ -52,16 +53,16 @@ var bunyan = require('bunyan');
 var log; // set in `main()`
 
 var USAGE = (
-    'Setup IMGAPI in this SmartDataCenter to use a given manta\n'
+    'Setup IMGAPI in this SmartDataCenter to use a given external Manta\n'
     + 'for image storage. This will do the appropriate setup for all\n'
     + 'instances of IMGAPI in this DC. This is also re-runnable if it fails\n'
     + 'part way.\n'
     + '\n'
     + '**Note:** The preferred IMGAPI setup is using a *local* Manta. Please\n'
-    + 'use the "imgapi-local-manta-setup" script for that.\n'
+    + 'use the "imgapi-manta-setup" script for that.\n'
     + '\n'
     + 'Usage:\n'
-    + '    imgapi-remote-manta-setup [<options>] <manta-url> <manta-user> \\\n'
+    + '    imgapi-external-manta-setup [<options>] <manta-url> <manta-user> \\\n'
     + '        <path-to-priv-key> | bunyan\n'
     + '\n'
     + 'Options:\n'
@@ -120,7 +121,8 @@ function main() {
     }
     trace('opts', opts);
     if (opts._args.length !== 3) {
-        fatal('incorrect number of args', 1);
+        fatal('incorrect number of args (try ' +
+            '"imgapi-external-manta-setup --help")', 1);
     }
     var mantaUrl = opts._args[0];
     var mantaUser = opts._args[1];

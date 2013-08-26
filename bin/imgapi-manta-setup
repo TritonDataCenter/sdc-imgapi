@@ -4,22 +4,25 @@
  *
  * Copyright (c) 2013, Joyent, Inc. All rights reserved.
  *
- * Setup this IMGAPI to use a local Manta for storage. This is the preferred
- * IMGAPI setup: local Manta, uses the $ufds_admin_login (typically the
- * "admin" login) user.
+ * Setup this IMGAPI to use a Manta (for storage) that shares the same master
+ * UFDS as this IMGAPI. This IMGAPI+Manta setup (provide the Manta is local,
+ * i.e. not across the WAN) is the preferred setup.: local Manta, uses the
+ * $ufds_admin_login (typically the "admin" login) user.
  *
- * The *alternative* (e.g. using a remote Manta) is to use the
- * 'imgapi-remote-manta-setup' script in this same directory.
+ * The *alternative* (e.g. to have IMAGE use a Manta with a separate UFDS
+ * database) is to use the 'imgapi-external-manta-setup' script in this same
+ * directory.
  *
  * This script will:
  *
- * - Generate a new passphrase-less ssh-rsa "imgapi key", if necessary
+ * - Generate a new passphrase-less ssh-rsa "imgapi key", if necessary.
+ * - Add this key to the admin ($ufds_admin_login) user.
  * - Set the following metadata on the 'imgapi' service in SAPI:
  *
  *      IMGAPI_MANTA_URL
- *      IMGAPI_MANTA_USER
+ *      IMGAPI_MANTA_USER=$ufds_admin_login (typically "admin")
  *      IMGAPI_MANTA_INSECURE
- *      IMGAPI_MANTA_REMOTE     Boolean. Is this manta remote?
+ *      IMGAPI_MANTA_REMOTE             # Boolean. Is this manta remote?
  *      IMGAPI_PUBLIC_KEY
  *      IMGAPI_PRIVATE_KEY
  *      IMGAPI_KEY_ID
@@ -52,13 +55,13 @@ var bunyan = require('bunyan');
 var log; // set in `main()`
 
 var USAGE = (
-    'Setup IMGAPI in this SmartDataCenter to use the local Manta\n'
-    + 'for image storage. This will do the appropriate setup for all\n'
-    + 'instances of IMGAPI in this DC. This is also re-runnable if it fails\n'
-    + 'part way.\n'
+    'Setup IMGAPI in this SmartDataCenter to use a Manta sharing the same\n'
+    + 'master UFDS. Preferrably the Manta is local (i.e. not across the WAN).\n'
+    + 'This will do the appropriate setup for all instances of IMGAPI in this\n'
+    + 'DC. This is also re-runnable if it fails part way.\n'
     + '\n'
     + 'Usage:\n'
-    + '    imgapi-local-manta-setup <manta-url> [<options>] | bunyan\n'
+    + '    imgapi-manta-setup <manta-url> [<options>] | bunyan\n'
     + '\n'
     + 'where "<manta-url>" can be the special string "FIRST-LB" as a hack for\n'
     + 'development/staging to indicate the first local Manta LB.\n'
@@ -72,6 +75,14 @@ var OPTIONS = [
         names: ['help', 'h'],
         type: 'bool',
         help: 'Print this help and exit.'
+    },
+    {
+        names: ['remote', 'r'],
+        type: 'bool',
+        default: false,
+        help: 'Indicate that the Manta is remote, i.e. across the WAN. This '
+            + 'info is used by IMGAPI to attempt to intelligently cache image '
+            + 'files locally.'
     },
     {
         names: ['insecure', 'i'],
@@ -299,7 +310,7 @@ function getSdcApp(config, callback) {
  * @param callback {Function} `function (err, key)`
  */
 function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, mantaInsecure,
-                                      callback) {
+        mantaRemote, callback) {
     var sapi = new sdcClients.SAPI({
         url: 'http://' + config.sapi_service,
         log: log,
@@ -345,7 +356,7 @@ function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, mantaInsecure,
                 IMGAPI_MANTA_URL: mantaUrl,
                 IMGAPI_MANTA_USER: config.ufds_admin_login,
                 IMGAPI_MANTA_INSECURE: mantaInsecure,
-                IMGAPI_MANTA_REMOTE: false,
+                IMGAPI_MANTA_REMOTE: mantaRemote,
                 IMGAPI_PRIVATE_KEY: key.priv,
                 IMGAPI_PUBLIC_KEY: key.pub,
                 IMGAPI_KEY_ID: key.id
@@ -464,7 +475,7 @@ function main() {
 
         function (next) {
             ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl,
-                opts.insecure,
+                opts.insecure, opts.remote,
                 function (sErr, key_) {
                     key = key_;
                     next(sErr);
