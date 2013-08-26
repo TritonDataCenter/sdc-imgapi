@@ -9,8 +9,8 @@ UUID4=147ba2ea-a518-7f49-8f75-041243789044
 # 'external' network on us-beta-4
 NETWORKS='["213fb868-f613-46df-90db-b85c60ffaa05"]'
 
-if [[ ! -f $(TOP)/seed.ldif.in ]]; then
-    echo "$0: fatal error: '$(TOP)/seed.ldif.in' does not exist" >&2
+if [[ ! -f $TOP/seed.ldif.in ]]; then
+    echo "$0: fatal error: '$TOP/seed.ldif.in' does not exist" >&2
     exit 1
 fi
 sed -e "
@@ -19,6 +19,6 @@ sed -e "
     s|IN_UUID3|$UUID3|;
     s|IN_UUID4|$UUID4|;
     s|IN_NETWORKS|$NETWORKS|;
-    " $(TOP)/seed.ldif.in >/tmp/seed-packages.ldif
+    " $TOP/seed.ldif.in >/tmp/seed-packages.ldif
 sdc-ldap add -f /tmp/seed-packages.ldif
 
