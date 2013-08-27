@@ -42,13 +42,11 @@ shift;
 
 
 # Determine connection and auth info.
-UFDS_ADMIN_IPS=$(grep UFDS_ADMIN_IPS $TOP/../etc/zoneconfig | cut -d"'" -f 2)
-UFDS_HOST=${UFDS_ADMIN_IPS%%,*}
-ufds_dn=$(grep UFDS_LDAP_ROOT_DN $TOP/../etc/zoneconfig | cut -d"'" -f 2)
-ufds_pw=$(grep UFDS_LDAP_ROOT_PW $TOP/../etc/zoneconfig | cut -d"'" -f 2)
-UFDS_PORT=636
-if [[ -z "$UFDS_HOST" ]]; then
-    echo "Unable to find UFDS host." >&2
+UFDS_URL=$(json ufds.url </opt/smartdc/imgapi/etc/imgapi.config.json)
+ufds_dn=$(json ufds.bindDN </opt/smartdc/imgapi/etc/imgapi.config.json)
+ufds_pw=$(json ufds.bindPassword </opt/smartdc/imgapi/etc/imgapi.config.json)
+if [[ -z "$UFDS_URL" ]]; then
+    echo "Unable to find UFDS URL." >&2
     exit 1
 fi
 
@@ -61,9 +59,8 @@ fi
 # This is necessary for OpenLDAP commands to be able to use ldaps over SSL.
 export LDAPTLS_REQCERT=allow
 
-
-export ldap_opts="-H ldaps://$UFDS_HOST:$UFDS_PORT -x -D ${ufds_dn} -w ${ufds_pw}"
-export ldap_opts_masked="-H ldaps://$UFDS_HOST:$UFDS_PORT -x -D ${ufds_dn} -w ***"
+export ldap_opts="-H ${UFDS_URL} -x -D ${ufds_dn} -w ${ufds_pw}"
+export ldap_opts_masked="-H ${UFDS_URL} -x -D ${ufds_dn} -w ***"
 
 
 # Run the command.
