@@ -9,7 +9,7 @@
 
 dn: uuid=IN_UUID1, ou=packages, o=smartdc
 uuid: IN_UUID1
-owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+owner_uuid: IN_OWNER_UUID
 active: true
 cpu_cap: 200
 default: false
@@ -35,7 +35,7 @@ objectclass: sdcPackage
 
 dn: uuid=IN_UUID2, ou=packages, o=smartdc
 uuid: IN_UUID2
-owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+owner_uuid: IN_OWNER_UUID
 active: true
 cpu_cap: 200
 default: false
@@ -61,7 +61,7 @@ objectclass: sdcPackage
 
 dn: uuid=IN_UUID3, ou=packages, o=smartdc
 uuid: IN_UUID3
-owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+owner_uuid: IN_OWNER_UUID
 active: true
 cpu_cap: 100
 default: false
@@ -88,7 +88,7 @@ objectclass: sdcPackage
 
 dn: uuid=IN_UUID4, ou=packages, o=smartdc
 uuid: IN_UUID4
-owner_uuid: 7b315468-c6be-46dc-b99b-9c1f59224693
+owner_uuid: IN_OWNER_UUID
 active: true
 cpu_cap: 100
 default: false

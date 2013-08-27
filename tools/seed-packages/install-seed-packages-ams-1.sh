@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Usage:
-#   ./install-seed-packages-us-east-1.sh [-o <owner_uuid>]
+#   ./install-seed-packages-ams-1.sh [-o <owner_uuid>]
 #
 # The default <owner_uuid> is the Joyent_Dev user
 # (uuid 7b315468-c6be-46dc-b99b-9c1f59224693)
@@ -9,14 +9,14 @@
 
 TOP=$(cd $(dirname $0)/ >/dev/null; pwd)
 
-UUID1=92e2b20a-0c37-11e3-9605-63a778146273
-UUID2=9c1948c0-0c37-11e3-be34-5780f9789210
-UUID3=a3501ccc-0c37-11e3-965d-ef7e825515c9
-UUID4=b1575678-0c37-11e3-8a27-63052c0a42c1
+UUID1=13cb578f-ea98-e949-82bd-caca11346f7c
+UUID2=274eebf2-fc53-724c-ae39-2bdf50334712
+UUID3=94bb92fc-57a8-ac42-aa20-82dad16b8906
+UUID4=15d98def-6acf-ca47-b1ed-2254a0468c2d
 # The JPC 'Joyent_Dev' user.
 IN_OWNER_UUID=7b315468-c6be-46dc-b99b-9c1f59224693
 # The Joyent-SDC-Public and Joyent-SDC-Private network pools.
-NETWORKS='["9ec60129-9034-47b4-b111-3026f9b1a10f", "5983940e-58a5-4543-b732-c689b1fe4c08"]'
+NETWORKS='["1e7bb0e1-25a9-43b6-bb19-f79ae9540b39", "193d6804-256c-4e89-a4cd-46f045959993"]'
 
 # Options.
 while getopts "o:" opt
