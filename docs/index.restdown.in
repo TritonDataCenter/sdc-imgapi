@@ -890,7 +890,7 @@ The provisioner agent uses the local `imgadm` to lazily install the image
 if necessary (imgadm is configured to talk to the DC's local IMGAPI).
 
 
-## Use Case 5: User creates a custom image (node-smartdc)
+## Use Case 5: User creates a custom image (smartos)
 
 **Status**: Incomplete. See roadmap section above.
 
