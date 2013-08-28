@@ -890,9 +890,175 @@ The provisioner agent uses the local `imgadm` to lazily install the image
 if necessary (imgadm is configured to talk to the DC's local IMGAPI).
 
 
-## Use Case 5: User creates a custom image
+## Use Case 5: User creates a custom image (node-smartdc)
 
-**Status**: Incomplete. Current work is in IMGAPI-95 and related tickets.
+**Status**: Incomplete. See roadmap section above.
+
+Create a "proto" machine (i.e. the machine with the customizations on which
+our custom image will be based). Currently JPC requires that you use one
+of the "image-creation" packages for this "proto" machine.
+
+    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="g3-standard-2-smartos-image-creation"' 0.id)
+    $ image_id=$(./bin/sdc-listimages | json -c 'this.name=="base"' 0.id)
+    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name proto1
+    {
+      "id": "5817ecef-a54f-42c7-96e5-5968b8e7c7b1",
+      "name": "proto1",
+      "type": "smartmachine",
+      "state": "provisioning",
+      "image": "e3364212-05c0-11e3-9576-3f3ee9e951a7",
+      "ips": [],
+      "memory": 2048,
+      "disk": 67584,
+      "metadata": {
+        "root_authorized_keys": "ssh-rsa AAA..."
+      },
+      "tags": {},
+      "created": "2013-08-28T06:22:58.348Z",
+      "updated": "2013-08-28T06:22:58.348Z",
+      "dataset": "sdc:sdc:base:13.2.0",
+      "firewall_enabled": false,
+      "package": "g3-standard-2-smartos-image-creation"
+    }
+
+
+SSH in, customize and *prepare* the machine once "./bin/sdc-getmachine UUID"
+reports "state=running":
+
+    $ machine_id=$(./bin/sdc-listmachines | json -c 'this.name=="proto1"' 0.id)
+    $ machine_ip=$(./bin/sdc-getmachine $machine_id | json primaryIp)
+    $ ssh root@$machine_ip
+
+    # Make one or more "customizations" to be able to verify later. E.g.:
+    $ echo "I was here" >/etc/motd
+    # Prepare image and shutdown for image creation:
+    $ sm-prepare-image -y
+
+Now back on your local machine. Create the image (--machine, --name and
+--imageVersion are required):
+
+    $ ./bin/sdc-createimagefrommachine --machine $machine_id \
+        --name 'my-custom-image-1' --imageVersion 1.0.0 \
+        --description "This is just a throwaway tester image" \
+        --tags '{"foo": "bar"}'
+    {
+      "id": "1793ed05-03db-421b-b38d-f76e84d85679",
+      "name": "my-custom-image-1",
+      "version": "1.0.0",
+      "type": "smartmachine",
+      "requirements": {},
+      "description": "This is just a throwaway tester image",
+      "tags": {
+        "foo": "bar"
+      }
+    }
+
+After a while it will have gone to either state=failed or state=active.
+(Note: IMGAPI-267 is a bug where it can get stuck in state=creating.
+You should expect image creation to be pretty quick. Less than a minute
+certainly.)
+
+    $ ./bin/sdc-getimage eac686e8-3bad-4c91-b22d-c197b543cb29
+    {
+      "id": "eac686e8-3bad-4c91-b22d-c197b543cb29",
+      "name": "my-custom-image-1",
+      "version": "1.0.3",
+      "os": "smartos",
+      "type": "smartmachine",
+      "requirements": {},
+      "description": "This is just a throwaway tester image",
+      "tags": {
+        "foo": "bar"
+      },
+      "published_at": "2013-08-28T07:45:44.599Z",
+      "owner": "950cf163-b314-4ee8-ab46-08c884b9387c",
+      "public": false,
+      "state": "active"
+    }
+
+Now you should be able to create a machine using this image UUID (and
+now using any package, no longer restricted to the 'image creation'
+packages).
+
+    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="g3-standard-0.25-smartos"' 0.id)
+    $ image_id=eac686e8-3bad-4c91-b22d-c197b543cb29
+    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name custom1
+
+
+## Use Case 5: User creates a custom image (windows)
+
+See the previous section for more explanation. This only explains steps that
+differ for Windows VMs/images.
+
+There are currently three windows flavours:
+
+    $ sdc-imgadm list os=windows
+    UUID                                  NAME              VERSION  FLAGS  OS       PUBLISHED
+    5f101d16-90ac-11e2-b9c2-877979ff6041  ws2008std-r2-sp1  2.0.2    P      windows  2013-03-19T20:11:08Z
+    13328c9a-9173-11e2-a9a5-2ff43d306c21  ws2008ent-r2-sp1  2.0.2    P      windows  2013-03-20T18:59:47Z
+    95f6c9a6-a2bd-11e2-b753-dbf2651bf890  ws2012std         1.0.1    P      windows  2013-04-11T21:04:37Z
+
+Each of these has a slightly different prepare-image batch file script. See
+below. For this example we'll use Windows 2008 Standard.
+
+Create the proto VM:
+
+    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="g3-standard-4-kvm-image-creation"' 0.id)
+    $ image_id=$(./bin/sdc-listimages | json -c 'this.name=="ws2008std-r2-sp1"' 0.id)
+    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name proto2
+
+Get the IP and administrator password via:
+
+    $ machine_id=$(./bin/sdc-listmachines | json -c 'this.name=="proto2"' 0.id)
+    $ ./bin/sdc-getmachine --credentials $machine_id
+
+Then get in via Remote Desktop using the ip and administrator password. Note
+that it can take a number of minutes after the Windows VM is running to get
+in. Troubleshooting: If this still fails after a number of minutes, please
+try creating a new proto VM. If *that* still fails, then we should dig in on
+the VNC console to see if Windows crashed or is hung in interactive startup.
+
+Once you are in, make a customization to verify later, e.g. create a text file
+on the desktop.
+
+Then prepare the VM for image creation by downloading the appropriate batch
+file for your Windows flavor and running it in cmd.exe:
+
+- Windows 2008 Server Standard: https://us-east.manta.joyent.com/derek/public/prepare-image.ws2008std.bat
+- Windows 2008 Server Enterprise: https://us-east.manta.joyent.com/derek/public/prepare-image.ws2008ent.bat
+- Windows 2012 Server Standard: https://us-east.manta.joyent.com/derek/public/prepare-image.ws2012std.bat
+
+This should shutdown the VM. Now on your local machine again, create the image
+(I suggest using a reasonably identifiable "name" to assist with debugging):
+
+    $ ./bin/sdc-createimagefrommachine --machine $machine_id \
+        --name 'trent-custom-win2008' --imageVersion 1.0.0
+    {
+        "id": "...",
+        ...
+    }
+
+After a while it will have gone to either state=failed or state=active.
+(Note: IMGAPI-267 is a bug where it can get stuck in state=creating.
+You should expect image creation to be pretty quick. Less than a minute
+certainly.)
+
+    $ ./bin/sdc-getimage $uuid
+    ...
+
+Now you should be able to create a machine using this image UUID (and
+now using any package with sufficient RAM for Windows, no longer restricted to
+the 'image creation' packages).
+
+    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="sdc_4096"' 0.id)
+    $ image_id=$uuid
+    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name customwin1
+
+
+
+## Use Case 5: User creates a custom image (raw cloudapi)
+
+**Status**: Incomplete. See roadmap section above.
 
 An example using raw cloudapi (using the `sdc-cloudapi` tool in the 'sdc' zone
 that allows the *admin* user to talk to CloudAPI). This example is run in COAL,
