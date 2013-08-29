@@ -28,6 +28,7 @@
         }
     },
     "wfapi": {
+        "forceMd5Check": true,
         "workflows": ["create-from-vm", "import-remote-image"],
         "url": "http://{{{WORKFLOW_SERVICE}}}"
     },

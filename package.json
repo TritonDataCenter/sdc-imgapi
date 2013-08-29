@@ -21,7 +21,7 @@
     "dashdash": "1.3.2",
     "passwd": "0.0.11",
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#490b549",
-    "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#fcf2781",
+    "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#152a013",
     "memorystream": "0.2.0"
   },
   "optionalDependencies": {
