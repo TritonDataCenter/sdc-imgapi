@@ -42,9 +42,9 @@ shift;
 
 
 # Determine connection and auth info.
-UFDS_URL=$(json ufds.url </opt/smartdc/imgapi/etc/imgapi.config.json)
-ufds_dn=$(json ufds.bindDN </opt/smartdc/imgapi/etc/imgapi.config.json)
-ufds_pw=$(json ufds.bindPassword </opt/smartdc/imgapi/etc/imgapi.config.json)
+UFDS_URL=$(json ufds.url <$TOP/etc/imgapi.config.json)
+ufds_dn=$(json ufds.bindDN <$TOP/etc/imgapi.config.json)
+ufds_pw=$(json ufds.bindPassword <$TOP/etc/imgapi.config.json)
 if [[ -z "$UFDS_URL" ]]; then
     echo "Unable to find UFDS URL." >&2
     exit 1
