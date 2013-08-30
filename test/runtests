@@ -19,6 +19,7 @@ fi
 set -o errexit
 set -o pipefail
 
+PATH=/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgapi/node_modules/.bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 
 
 #---- support functions
@@ -175,17 +176,17 @@ if [[ "$opt_mode" == "dc" ]]; then
         if [[ $(zonename) == "global" ]]; then
             export IMGAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.IMGAPI_SERVICE)"
         else
-            export IMGAPI_URL=http://$(/usr/sbin/ifconfig net0 | grep inet | awk '{print $2}')
+            export IMGAPI_URL=http://localhost
         fi
         export IMGAPI_PORT=$(json port <$CFG_FILE)
         if [[ -n "$IMGAPI_PORT" && "$IMGAPI_PORT" != "80" ]]; then
             export IMGAPI_URL=$IMGAPI_URL:$IMGAPI_PORT
         fi
-        export UFDS_ADMIN_UUID="$(sdc-sapi /applications?name=sdc | json -H 0.metadata.ufds_admin_uuid)"
-        export VMAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.VMAPI_SERVICE)"
-        export NAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.NAPI_SERVICE)"
-        export CNAPI_URL="http://$(sdc-sapi /applications?name=sdc | json -H 0.metadata.CNAPI_SERVICE)"
-        export IMGAPI_HAS_MANTA="$(sdc-imgapi /state | json -H -e 'this.hasManta = ~this.storageTypes.indexOf("manta")' hasManta)"
+        export UFDS_ADMIN_UUID="$(json adminUuid <$CFG_FILE)"
+        export VMAPI_URL=http://"$(json vmapi_service <$CFG_FILE)"
+        export CNAPI_URL=http://"$(json cnapi_service <$CFG_FILE)"
+        export NAPI_URL=http://"$(json napi_service <$CFG_FILE)"
+        export IMGAPI_HAS_MANTA="$(curl $IMGAPI_URL/state | json -H -e 'this.hasManta = ~this.storageTypes.indexOf("manta")' hasManta)"
     fi
 else
     # "public" mode

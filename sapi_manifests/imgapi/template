@@ -35,5 +35,10 @@
 
     "// imgapi-manta-setup": "The following vars used by 'imgapi-*-manta-setup'.",
     "sapi_service": "{{{SAPI_SERVICE}}}",
-    "ufds_admin_login": "{{{ufds_admin_login}}}"
+    "ufds_admin_login": "{{{ufds_admin_login}}}",
+
+    "// test": "The following vars used by the test suite",
+    "vmapi_service": "{{{VMAPI_SERVICE}}}",
+    "cnapi_service": "{{{CNAPI_SERVICE}}}",
+    "napi_service": "{{{NAPI_SERVICE}}}"
 }
