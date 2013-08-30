@@ -48,7 +48,7 @@ RELTMPDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(NODEUNIT) $(REPO_DEPS)
+all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
 
 # Node hack for images.joyent.com and updates.joyent.com
@@ -145,6 +145,11 @@ release: all public-docs
 	cp -r \
 		$(TOP)/tools/seed-packages \
 		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/tools/
+	mkdir -p $(RELTMPDIR)/root/opt/smartdc/sdc-boot/scripts
+	cp $(TOP)/sdc-boot/*.sh \
+	    $(RELTMPDIR)/root/opt/smartdc/sdc-boot/
+	cp $(TOP)/deps/sdc-scripts/*.sh \
+	    $(RELTMPDIR)/root/opt/smartdc/sdc-boot/scripts/
 	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/build/node \
