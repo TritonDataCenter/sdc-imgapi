@@ -145,11 +145,9 @@ release: all public-docs
 	cp -r \
 		$(TOP)/tools/seed-packages \
 		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/tools/
-	mkdir -p $(RELTMPDIR)/root/opt/smartdc/sdc-boot/scripts
-	cp $(TOP)/sdc-boot/*.sh \
-	    $(RELTMPDIR)/root/opt/smartdc/sdc-boot/
-	cp $(TOP)/deps/sdc-scripts/*.sh \
-	    $(RELTMPDIR)/root/opt/smartdc/sdc-boot/scripts/
+	mkdir -p $(RELTMPDIR)/root/opt/smartdc/sdc-boot
+	cp -R $(TOP)/deps/sdc-scripts/* $(RELTMPDIR)/root/opt/smartdc/sdc-boot/
+	cp -R $(TOP)/sdc-boot/* $(RELTMPDIR)/root/opt/smartdc/sdc-boot/
 	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/build/node \
@@ -230,3 +228,5 @@ else
 endif
 include ./tools/mk/Makefile.smf.targ
 include ./tools/mk/Makefile.targ
+
+sdc-scripts: deps/sdc-scripts/.git
