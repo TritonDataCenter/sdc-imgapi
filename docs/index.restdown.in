@@ -2035,7 +2035,7 @@ in Manta can be exported, locally stored images are not supported.
 
 ### Returns
 
-A manta location response object. This object provides properties that allow the
+A Manta location response object. It provides the properties that allow the
 IMGAPI user to retrieve the image file and manifest from Manta: manta_url,
 image_path, manifest_path.
 
