@@ -10,6 +10,8 @@ PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 
 role=imgapi
 
+CONFIG_AGENT_LOCAL_MANIFESTS_DIRS=/opt/smartdc/$role
+
 # Include common utility functions (then run the boilerplate)
 source /opt/smartdc/sdc-boot/lib/util.sh
 sdc_common_setup
