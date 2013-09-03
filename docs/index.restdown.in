@@ -129,7 +129,7 @@ cloudapi are incremental.
 
 ## M3: Working with mixed CNs
 
-(2 weeks) Working with mixed CNs: some with sufficient support, some not.
+*Done.* Working with mixed CNs: some with sufficient support, some not.
 This means documenting usage in a DC (e.g. JPC) for a subset of packages for
 proto VMs.
 
@@ -143,44 +143,78 @@ proto VMs.
   images to the platform with OS-2401
 - [done, AGENT-644, orlando] *6.5* provisioner agent support for incremental images
 - [done, RELENG-496, john] Set up staging to more closely reflect JPC
-- [RELENG-497, john] sdc-system-tests tests for image
+- [done, RELENG-497, john] sdc-system-tests tests for image
   creation in the mixed CN environment in staging
 - [done, IMGAPI-262, trent/ops] Add a 'img_mgmt: true' trait on the seed
   packages and the designated CNs for image creation: to ensure that CN is
   *only* used for image creation.
-- [trent] Docs/tooling for managing these packages. My plan here is to just
-  come up with oneliners for these and document them in a section of the
-  [IMGAPI Operator Guide](https://mo.joyent.com/docs/imgapi/master/#operator-guide).
-    - update min_platform for a new required fix: 'sdc-ldap' can't search fields
-      with an underscore, so might really want that 'sdc-ufds' replacement.
-      Or sdc-packageadm.
-    - list available CNs matching that platform
-    - list available capacity (a quick hack script for this if we don't have
-      a more complete "Capacity Aware Packages" answer by then)
-    - list all VMs provisioned with these packages. Consider them "dirty" if
-      they have a long life?
 
 
 ## M4: more basics
 
-(2 weeks) The remaining scraps from M1 to help clarify required remaining work.
+*Done.* The remaining scraps from M1 to help clarify required remaining work.
 
 - [done, IMGAPI-250, andres]: state=error|creating|... for better UX for
   cloudapi's CreateImageFromMachine
 - [done, IMGAPI-256, andres] imgapi zone should tune TCP for talking to Manta
 - [done, IMGAPI-252, andres] placeholder images shall have a one week lifespan
 - [done, IMGAPI-257, andres] get $dcname in the Manta storage of images
-- [mostly done, PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to
-  exposed fields in GetImage and ListImages. (Note: Specifically doc that 'public'
-  is not updatable or settable right now. Don't want user-created *public*
-  images in JPC right now. For now guard that in PUBAPI.)
-- [partly done, PUBAPI-675, trent] ability for sdc-listImages to filter on
+- [done, PUBAPI-675, trent] ability for sdc-listImages to filter on
   public/private images
-- [PUBAPI-660, john] node-smartdc: add sdc-createimagefrommachine,
-  sdc-deleteimage, sdc-updateimage
+- [done, PUBAPI-660, john] node-smartdc: add sdc-createimagefrommachine,
+  sdc-deleteimage
 
 
-## M5: supporting SDC image builds
+## M5: KVM image support
+
+(2 weeks, very rough time estimate) KVM image support.
+
+- [done, OS-2410, trent]: kvm support for 'imgadm create'
+- [IMGAPI-274, trent/derek/...] prepare-image scripts (smartos-vmtools2.git)
+  CentOS needs polish. Ubuntu needs writing. 3 windows flavours from Derek need
+  testing. Need a place/plan to release the prepare-image scripts for Linuxes.
+- [IMGAPI-269, trent]: name linux-prepare-image
+- [IMGAPI-270, trent]: include shutdown into prepare-image script
+- [IMGAPI-271, trent]: 'curl .../foo.sh | sh' oneliner for prepare-image usage.
+  Is this the plan for releasing this script to Linuxes?
+- [RELENG-498, trent]: tests for image creation and provisioning of kvm images
+
+
+## M6: customer moving images between DCs
+
+(1 week, likely will fall easily out of M5) Will need to have MigrateImage
+(or whatever name we choose) solved for a customer making a custom image in
+DC1 availalbe for provisioning in DC2.
+
+- IMGAPI-278: CopyRemoteImage
+- PORTAL-??? Does the portal deal properly with a customer's image only existing
+  in a subset of DCs?
+
+
+## M7: automated snapshot and prepare image
+
+TODO: fill this in with current plans for automating much of the image creation
+process.
+
+We plan to have "sdc-createimagefrommachine" handle all of steps 3-6: snapshot,
+run prepare-image inside the customer's VM, shutdown, create image, rollback.
+This involves:
+
+- Adding an "operator-script" concept to vmadm. This is similar to the
+  "user-script": it is run at boot. This isn't exposed to customers via
+  cloudapi, obviously.
+- Updating Joyent images to get and run that operator-script on every boot.
+  New images will support it and packages will be provided to retroactively
+  add that to current packages.
+- `imgadm create` will use the operator-script to run the "prepare image"
+  script in the customer's VM: set operator-script, reboot,
+  rm operator-script
+- Improving metadata-agent and adding `mdata-put` to support the operator-script
+  being able to call OUT of the VM to let `imgadm create` reliably know
+  if the prepare image script worked.
+
+
+## M8: supporting SDC image builds
 
 The work required to be able to do SDC builds in JPC.
 
@@ -191,23 +225,7 @@ The work required to be able to do SDC builds in JPC.
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
 
 
-
-## M6: KVM image support
-
-(2 weeks, very rough time estimate) KVM image support.
-
-- [done, OS-2410, trent]: kvm support for 'imgadm create'
-- [IMGAPI-274, trent/derek/...] smartos-vmtools.git
-  I.e. a new repo collecting from current "prepare-image" scripts to provide
-  tooling for customers to prepare a KVM VM to become an image. Lots of work
-  and testing to be done here.
-- [RELENG-498, trent]: tests for image creation and provisioning of kvm images
-- IMGAPI-269
-- IMGAPI-270
-- IMGAPI-271
-
-
-## M7: remote streaming
+## M9: remote streaming
 
 **Note:** Presuming a first JPC rollout *to us-east only*, this milestone is
 not necessary for the end-of-Aug cut.
@@ -250,16 +268,7 @@ Create a followable metric (via SDC log analysis) to track GetImageFile
 times to help improve this caching.
 
 
-## M8: customer moving images between DCs
-
-**Note:** Presuming a first JPC rollout *to us-east only*, this milestone is
-not necessary for the end-of-Aug cut.
-
-(1 week, likely will fall easily out of M5) Will need to have MigrateImage
-(or whatever name we choose) solved for a customer making a custom image in
-DC1 availalbe for provisioning in DC2.
-
-## M9: capacity handling
+## M10: capacity handling
 
 **Note:** This milestone probably not required for shipping img mgmt in JPC.
 
@@ -272,7 +281,8 @@ DC1 availalbe for provisioning in DC2.
 - How well does IMGAPI fail when its local dir for images files runs out
   of space? Test it.
 
-## M10: tracking usage and billing
+
+## M11: tracking usage and billing
 
 This is underspecified. Some notes:
 
@@ -287,11 +297,32 @@ This is underspecified. Some notes:
   it. Separate billing line items for this? Grace value? Zonetracker should
   track this? Usage API work to store that data.
 
-## M11: misc
+
+## M12: misc
 
 A collection of tickets that should be address for robustness, UX, etc. but
 aren't strictly required for a starting rollout.
 
+- [trent] Docs/tooling for managing the 'image-creation' packages. My plan here
+  is to just come up with oneliners for these and document them in a section of
+  the
+  [IMGAPI Operator Guide](https://mo.joyent.com/docs/imgapi/master/#operator-guide).
+    - update min_platform for a new required fix: 'sdc-ldap' can't search fields
+      with an underscore, so might really want that 'sdc-ufds' replacement.
+      Or sdc-packageadm.
+    - list available CNs matching that platform
+    - list available capacity (a quick hack script for this if we don't have
+      a more complete "Capacity Aware Packages" answer by then)
+    - list all VMs provisioned with these packages. Consider them "dirty" if
+      they have a long life?
+- [PUBAPI-???, john] UpdateImage, sdc-updateimage
+- [mostly done, PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to
+  exposed fields in GetImage and ListImages. (Note: Specifically doc that 'public'
+  is not updatable or settable right now. Don't want user-created *public*
+  images in JPC right now. For now guard that in PUBAPI.)
+- PORTAL-??? How will public images from others be handled?
+- JPC-???/PUBAPI-??? capi_limits plugin can't currently handle public images
+  from others where can have 'name' collisions.
 - [OS-2203, trent] provision fails when import in progress: imgadm import must
   coordinate
 - [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
@@ -301,10 +332,10 @@ aren't strictly required for a starting rollout.
   just doc this.
 - [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
   future proofing.
-- [PUBAPI-???, trent] What about exposing adding an image icon via cloudapi?
 - [PUBAPI-683, trent] would like CreateImageFromMachine response to include
   state=creating
-
+- [PUBAPI-687, trent] on image creation failure, include an 'error' string
+  with some meaning failure context
 
 <!-- #endif -->
 
@@ -1441,7 +1472,7 @@ Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO
 <!-- #ifdef PRIVATE -->
 ||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
 ||[ExportImage](#ExportImage)||POST /images/:uuid?action=export||Exports an image to the specified Manta path.||
-||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
+||[CopyRemoteImage](#CopyRemoteImage)||POST /images/$uuid?action=copy-remote&dc=us-west-1||**NYI (IMGAPI-278)** Copy one's own image from another DC in the same cloud.||
 ||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
 ||- - -||- - -|| - - - ||
