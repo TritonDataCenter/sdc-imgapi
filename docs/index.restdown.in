@@ -1440,6 +1440,7 @@ Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO
 ||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
 <!-- #ifdef PRIVATE -->
 ||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
+||[ExportImage](#ExportImage)||POST /images/:uuid?action=export||Exports an image to the specified Manta path.||
 ||[MigrateImage](#MigrateImage)||POST /images/$uuid?action=migrate&dc=us-west-1||**NYI** Migrate one of "my" images from another DC.||
 ||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
@@ -2019,6 +2020,55 @@ from an existing VM:
       "image_uuid": "4e88c673-f3ab-4a55-9f5d-b54379cf2d8a",
       "job_uuid": "4c831bba-68ed-4fe8-a54b-a5b5acefd7ac"
     }
+
+
+## ExportImage (POST /images/:uuid?action=export)
+
+Exports an image to the specified Manta path. Only images that already live
+in Manta can be exported, locally stored images are not supported.
+
+### Inputs
+
+||**Field**||**Type**||**Required?**||**Notes**||
+||account||UUID||No\*||The account UUID on behalf of whom this request is being made. If given then the manta_path prefix must resolve to a location that is owned by the account. If not given then the manta_path prefix is assumed to (and must) resolve to a path that is owned by the admin user.||
+||manta_path||String||Yes\*||Manta path prefix where the image file and manifest should be exported to. If "manta_path" is a dir, then the files are saved to it. If the basename of "PATH" is not a dir, then "PATH.imgmanifest" and "PATH.zfs[.EXT]" are created.||
+
+### Returns
+
+A manta location response object. This object provides properties that allow the
+IMGAPI user to retrieve the image file and manifest from Manta: manta_url,
+image_path, manifest_path.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool:
+
+    $ sdc-imgapi /images/a93fda38-80aa-11e1-b8c1-8b1f33cd9007?action=export&manta_path=/user/stor/imgapi -X POST
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 200
+    Date: Fri, 30 Aug 2013 00:19:11 GMT
+    Server: IMGAPI/1.1.1
+    x-request-id: cac4f490-1109-11e3-a1a5-012c46265014
+    x-response-time: 1225
+    x-server-name: 9243385e-9975-4a74-a68e-ce601af89e76
+    Connection: keep-alive
+
+    {
+      "manta_url": "https://us-east.manta.joyent.com",
+      "image_path": "/user/stor/imgapi/smartos-1.6.2.zfs.bz2",
+      "manifest_path": "/user/stor/imgapi/smartos-1.6.2.imgmanifest"
+    }
+
+CLI tool:
+
+    $ sdc-imgadm export a93fda38-80aa-11e1-b8c1-8b1f33cd9007
+    Image a93fda38-80aa-11e1-b8c1-8b1f33cd9007 exported to Manta path /user/stor/imgapi
+
 
 <!-- #endif -->
 
