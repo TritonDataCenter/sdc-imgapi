@@ -173,8 +173,8 @@ proto VMs.
 - [IMGAPI-274, trent/derek/...] prepare-image scripts (smartos-vmtools2.git)
   CentOS needs polish. Ubuntu needs writing. 3 windows flavours from Derek need
   testing. Need a place/plan to release the prepare-image scripts for Linuxes.
-- [IMGAPI-269, trent]: name linux-prepare-image
-- [IMGAPI-270, trent]: include shutdown into prepare-image script
+- [done (TODO: close), IMGAPI-269, carlos]: name linux-prepare-image
+- [done I think (TODO check), IMGAPI-270, carlos]: include shutdown into prepare-image script
 - [IMGAPI-271, trent]: 'curl .../foo.sh | sh' oneliner for prepare-image usage.
   Is this the plan for releasing this script to Linuxes?
 - [RELENG-498, trent]: tests for image creation and provisioning of kvm images
@@ -182,9 +182,7 @@ proto VMs.
 
 ## M6: customer moving images between DCs
 
-(1 week, likely will fall easily out of M5) Will need to have MigrateImage
-(or whatever name we choose) solved for a customer making a custom image in
-DC1 availalbe for provisioning in DC2.
+(~1 week)
 
 - IMGAPI-278: CopyRemoteImage
 - PORTAL-??? Does the portal deal properly with a customer's image only existing
@@ -200,7 +198,7 @@ We plan to have "sdc-createimagefrommachine" handle all of steps 3-6: snapshot,
 run prepare-image inside the customer's VM, shutdown, create image, rollback.
 This involves:
 
-- Adding an "operator-script" concept to vmadm. This is similar to the
+- [OS-2482, joshw] Adding an "operator-script" concept to vmadm. This is similar to the
   "user-script": it is run at boot. This isn't exposed to customers via
   cloudapi, obviously.
 - Updating Joyent images to get and run that operator-script on every boot.
@@ -315,11 +313,7 @@ aren't strictly required for a starting rollout.
       a more complete "Capacity Aware Packages" answer by then)
     - list all VMs provisioned with these packages. Consider them "dirty" if
       they have a long life?
-- [PUBAPI-???, john] UpdateImage, sdc-updateimage
-- [mostly done, PUBAPI-659, trent]: UpdateImage, DeleteImage and tweaks to
-  exposed fields in GetImage and ListImages. (Note: Specifically doc that 'public'
-  is not updatable or settable right now. Don't want user-created *public*
-  images in JPC right now. For now guard that in PUBAPI.)
+- [PUBAPI-692, trent/john] UpdateImage, sdc-updateimage
 - PORTAL-??? How will public images from others be handled?
 - JPC-???/PUBAPI-??? capi_limits plugin can't currently handle public images
   from others where can have 'name' collisions.
@@ -332,10 +326,7 @@ aren't strictly required for a starting rollout.
   just doc this.
 - [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
   future proofing.
-- [PUBAPI-683, trent] would like CreateImageFromMachine response to include
-  state=creating
-- [PUBAPI-687, trent] on image creation failure, include an 'error' string
-  with some meaning failure context
+
 
 <!-- #endif -->
 
