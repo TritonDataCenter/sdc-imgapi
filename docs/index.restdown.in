@@ -191,25 +191,32 @@ proto VMs.
 
 ## M7: automated snapshot and prepare image
 
-TODO: fill this in with current plans for automating much of the image creation
-process.
-
 We plan to have "sdc-createimagefrommachine" handle all of steps 3-6: snapshot,
 run prepare-image inside the customer's VM, shutdown, create image, rollback.
 This involves:
 
-- [OS-2482, joshw] Adding an "operator-script" concept to vmadm. This is similar to the
-  "user-script": it is run at boot. This isn't exposed to customers via
-  cloudapi, obviously.
-- Updating Joyent images to get and run that operator-script on every boot.
-  New images will support it and packages will be provided to retroactively
-  add that to current packages.
-- `imgadm create` will use the operator-script to run the "prepare image"
-  script in the customer's VM: set operator-script, reboot,
-  rm operator-script
-- Improving metadata-agent and adding `mdata-put` to support the operator-script
-  being able to call OUT of the VM to let `imgadm create` reliably know
-  if the prepare image script worked.
+- [done, OS-2482, joshw] "sdc:operator-script" metadata var pulling from
+  `internal_metadata['operator-script']`
+- [TOOLS-292, jclulow] mdata-put, improved mdata-*
+- [OS-???, trent] `imgadm create -s prepare-image-script` and snapshotting
+- [IMGAPI-???, CNAPI-???, AGENT-???, trent] House the prepare-image scripts in
+  IMGAPI and pass those through to the 'imgadm create' call.
+- [OS-???] mdata:fetch/mdata:execute updates for operator-script
+  for SmartOS guests.
+- updates to all image guest tools supporting sdc:operator-script and mdata-put:
+    - [IMAGE-???] New version of the guest tools for Linux (operator-script,
+      mdata-put, remove prepare-image).
+    - [IMAGE-???] New version of guest tools for Windows. (TODO: move to
+      separate milestone for Windows support.)
+    - New batch of images with those guest tools.
+    - Package builds of the guest tools with which customers can upgrade
+      proto VMs while we still have pre-"new Images with the latest guest
+      tools" in play.
+    - Q: Are the "guest tools" per
+      https://hub.joyent.com/wiki/display/doc/About+the+SDC+Guest+Tools
+      actually the ones being installed by the Solns group? No release since
+      2011, so guessing not.
+- [OS-2484, trent] incr image of incr image should use the first's origin
 
 
 ## M8: supporting SDC image builds
