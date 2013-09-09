@@ -145,9 +145,9 @@ release: all public-docs
 	cp -r \
 		$(TOP)/tools/seed-packages \
 		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/tools/
-	mkdir -p $(RELTMPDIR)/root/opt/smartdc/sdc-boot
-	cp -R $(TOP)/deps/sdc-scripts/* $(RELTMPDIR)/root/opt/smartdc/sdc-boot/
-	cp -R $(TOP)/sdc-boot/* $(RELTMPDIR)/root/opt/smartdc/sdc-boot/
+	mkdir -p $(RELTMPDIR)/root/opt/smartdc/boot
+	cp -R $(TOP)/deps/sdc-scripts/* $(RELTMPDIR)/root/opt/smartdc/boot/
+	cp -R $(TOP)/boot/* $(RELTMPDIR)/root/opt/smartdc/boot/
 	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/build/node \
