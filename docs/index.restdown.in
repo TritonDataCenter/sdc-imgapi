@@ -191,6 +191,8 @@ proto VMs.
 
 ## M7: automated snapshot and prepare image
 
+**ETA? Don't have a feel for that yet.**
+
 We plan to have "sdc-createimagefrommachine" handle all of steps 3-6: snapshot,
 run prepare-image inside the customer's VM, shutdown, create image, rollback.
 This involves:

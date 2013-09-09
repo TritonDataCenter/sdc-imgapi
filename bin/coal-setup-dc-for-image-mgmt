@@ -112,6 +112,7 @@ EOP
 }
 
 function install_base_image {
+    # TODO: Change to base 13.2.0.
     local uuid=f669428c-a939-11e2-a485-b790efc0f0c1
     sdc-imgadm get $uuid >/dev/null 2>/dev/null && return
     echo "# Install base image"
@@ -126,6 +127,14 @@ function hack_imgapi_to_allow_local_custom_images {
         sed -e '1 a\
             "allowLocalCreateImageFromVm": true,' -i .bak $manifest
         svcadm -z $imgapi_zone restart config-agent
+    fi
+}
+
+function add_image_creation_packages {
+    local existing=$(sdc-ldap s '(&(objectclass=sdcpackage)(name=*-image-creation))' | wc -l | awk '{print $1}')
+    if [[ "$existing" == "0" ]]; then
+        local imgapi_zone=$(vmadm lookup -1 alias=imgapi0)
+        /zones/$imgapi_zone/root/opt/smartdc/imgapi/tools/seed-packages/install-seed-packages-coal.sh
     fi
 }
 
@@ -148,6 +157,7 @@ hack_dapi_for_headnode_provisioning
 # TODO: how to offer alternative to hook up to remote Manta?
 hack_imgapi_to_allow_local_custom_images
 add_external_nic_to_some_core_zones
+add_image_creation_packages
 install_base_image
 
 
