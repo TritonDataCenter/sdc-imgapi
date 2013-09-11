@@ -2751,6 +2751,52 @@ CLI tool:
 
     $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -S https://images.joyent.com
     Imported image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 (base, 1.8.4, state=active)
+
+
+## ListImageJobs (GET /images/:uuid/jobs)
+
+List all jobs created for an image.
+
+### Inputs
+
+||**Field**||**Type**||**Description**||
+||task||String||List all jobs of the given task. Currently, task can be any of the following values: 'create-from-vm', 'import-remote-image'.||
+||execution||String||Filter jobs that match the given execution state. It can be any of: 'running', 'succeeded', 'failed', 'canceled' or 'queued'.||
+
+### Returns
+
+An array of image job objects.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+    $ sdc-imgapi /images/0084dad6-05c1-11e3-9476-8f8320925eea/jobs?execution=succeeded
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 3253
+    Date: Wed, 11 Sep 2013 23:13:52 GMT
+    Server: IMGAPI/1.1.1
+    x-request-id: d2924780-1b37-11e3-895c-876b1f3f0171
+    x-response-time: 23
+    x-server-name: f62ea923-eec8-4c0a-b9e0-fe4feec3bd3e
+    Connection: keep-alive
+
+    [
+      {
+        "execution": "succeeded",
+        "chain_results": [
+          {
+            "result": "No origin (skipping origin image import)",
+            "error": "",
+            "name": "origin_import_image",
+            "started_at": "2013-09-11T23:12:36.993Z",
+            "finished_at": "2013-09-11T23:12:37.086Z"
+          },
+    ...
+
 <!-- #endif -->
 
 
