@@ -314,13 +314,6 @@ test('CreateImage', function (t) {
     }
     function deleteIcon(next) {
         self.client.deleteImageIcon(uuid, vader, function (err, image, res) {
-            t.ifError(err, err);
-            t.ok(!(image.icon), 'no icon');
-            next();
-        });
-    }
-    function deleteIcon(next) {
-        self.client.deleteImageIcon(uuid, vader, function (err, image, res) {
             t.ok(err);
             t.equal(err.body.code, 'NotImageOwner');
             self.client.deleteImageIcon(uuid, luke, function (err2, image2) {
