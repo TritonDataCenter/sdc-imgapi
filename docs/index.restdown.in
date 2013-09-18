@@ -170,13 +170,11 @@ proto VMs.
 (2 weeks, very rough time estimate) KVM image support.
 
 - [done, OS-2410, trent]: kvm support for 'imgadm create'
-- [IMGAPI-274, trent/derek/...] prepare-image scripts (smartos-vmtools2.git)
-  CentOS needs polish. Ubuntu needs writing. 3 windows flavours from Derek need
-  testing. Need a place/plan to release the prepare-image scripts for Linuxes.
-- [done (TODO: close), IMGAPI-269, carlos]: name linux-prepare-image
-- [done I think (TODO check), IMGAPI-270, carlos]: include shutdown into prepare-image script
-- [IMGAPI-271, trent]: 'curl .../foo.sh | sh' oneliner for prepare-image usage.
-  Is this the plan for releasing this script to Linuxes?
+- [done, IMGAPI-274, trent/derek/carlos] first stab at prepare-image scripts
+  (currently in smartos-vmtools2.git)
+- [done, IMGAPI-269, carlos]: name linux-prepare-image
+- [done, IMGAPI-270, carlos]: include shutdown into prepare-image script
+- [done, IMGAPI-271, trent]: 'curl .../foo.sh | sh' oneliner for prepare-image usage.
 - [RELENG-498, trent]: tests for image creation and provisioning of kvm images
 
 
@@ -208,8 +206,6 @@ This involves:
 - updates to all image guest tools supporting sdc:operator-script and mdata-put:
     - [IMAGE-???] New version of the guest tools for Linux (operator-script,
       mdata-put, remove prepare-image).
-    - [IMAGE-???] New version of guest tools for Windows. (TODO: move to
-      separate milestone for Windows support.)
     - New batch of images with those guest tools.
     - Package builds of the guest tools with which customers can upgrade
       proto VMs while we still have pre-"new Images with the latest guest
@@ -305,7 +301,17 @@ This is underspecified. Some notes:
   track this? Usage API work to store that data.
 
 
-## M12: misc
+## M12: windows support
+
+TODO: pull in Windows-specific steps from preceding milestones
+
+- Windows prepare-image support
+- windows image creation testing
+- (somewhat indep) status/ETA of console support in portal
+- [IMAGE-???] New version of guest tools for Windows.
+
+
+## M13: misc
 
 A collection of tickets that should be address for robustness, UX, etc. but
 aren't strictly required for a starting rollout.
