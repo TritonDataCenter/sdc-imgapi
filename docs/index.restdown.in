@@ -165,9 +165,9 @@ proto VMs.
   sdc-deleteimage
 
 
-## M5: KVM image support
+## M5: Linux KVM image support
 
-(2 weeks, very rough time estimate) KVM image support.
+*Done.*
 
 - [done, OS-2410, trent]: kvm support for 'imgadm create'
 - [done, IMGAPI-274, trent/derek/carlos] first stab at prepare-image scripts
@@ -175,7 +175,7 @@ proto VMs.
 - [done, IMGAPI-269, carlos]: name linux-prepare-image
 - [done, IMGAPI-270, carlos]: include shutdown into prepare-image script
 - [done, IMGAPI-271, trent]: 'curl .../foo.sh | sh' oneliner for prepare-image usage.
-- [RELENG-498, trent]: tests for image creation and provisioning of kvm images
+- [done, RELENG-498, john]: tests for image creation and provisioning of kvm images
 
 
 ## M6: customer moving images between DCs
@@ -222,9 +222,9 @@ This involves:
 The work required to be able to do SDC builds in JPC.
 
 - [done, MANTA-1638, mark] This blocks IMGAPI-249
-  *Note: not sure if deployed.*
+  *Note: not yet deployed.*
 - [done, IMGAPI-249, andres] ExportImage endpoint
-- [PUBAPI-674, trent]: ExportImage in cloudapi
+- [done, PUBAPI-674, andres]: ExportImage in cloudapi
 - [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
 
 

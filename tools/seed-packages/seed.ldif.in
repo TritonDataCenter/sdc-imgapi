@@ -21,7 +21,8 @@ max_swap: 4096
 name: g3-standard-2-smartos-image-creation
 common_name: Standard 2
 quota: 67584
-min_platform: {"7.0": "20130828T193955Z"}
+min_platform: {"7.0": "20130917T001310Z"}
+traits: {"img_mgmt": true}
 parent: g3-standard-2-smartos
 networks: IN_NETWORKS
 version: 1.0.0
@@ -47,7 +48,8 @@ max_swap: 8192
 name: g3-standard-4-smartos-image-creation
 common_name: Standard 4
 quota: 134144
-min_platform: {"7.0": "20130828T193955Z"}
+min_platform: {"7.0": "20130917T001310Z"}
+traits: {"img_mgmt": true}
 parent: g3-standard-4-smartos
 networks: IN_NETWORKS
 version: 1.0.0
@@ -73,7 +75,8 @@ max_swap: 4096
 name: g3-standard-2-kvm-image-creation
 common_name: Standard 2
 quota: 67584
-min_platform: {"7.0": "20130828T193955Z"}
+min_platform: {"7.0": "20130917T001310Z"}
+traits: {"img_mgmt": true}
 parent: g3-standard-2-kvm
 vcpus: 1
 networks: IN_NETWORKS
@@ -100,7 +103,8 @@ max_swap: 8192
 name: g3-standard-4-kvm-image-creation
 common_name: Standard 4
 quota: 134144
-min_platform: {"7.0": "20130828T193955Z"}
+min_platform: {"7.0": "20130917T001310Z"}
+traits: {"img_mgmt": true}
 parent: g3-standard-4-kvm
 vcpus: 1
 networks: IN_NETWORKS
