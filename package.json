@@ -11,7 +11,7 @@
     "restify": "git+ssh://git@github.com:mcavage/node-restify.git#3c3a0f9",
     "bunyan": "0.21.4",
     "async": "0.2.9",
-    "node-uuid": "1.4.0",
+    "libuuid": "0.1.2",
     "nopt": "2.0.0",
     "expiring-lru-cache": "2.1.0",
     "assert-plus": "0.1.4",

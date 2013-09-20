@@ -13,7 +13,7 @@ var dns = require('dns');
 var https = require('https');
 var async = require('async');
 var restify = require('restify');
-var genUuid = require('node-uuid');
+var genUuid = require('libuuid');
 
 //var IMGAPI = require('sdc-clients').IMGAPI;   // temp broken by TOOLS-211
 var IMGAPI = require('sdc-clients/lib/imgapi');
@@ -48,14 +48,18 @@ var CAN_RUN_TEST = (process.env.VMAPI_URL !== undefined &&
                     process.env.NAPI_URL !== undefined &&
                     process.env.CNAPI_URL !== undefined &&
                     process.env.UFDS_ADMIN_UUID !== undefined &&
-                    process.env.IMGAPI_HAS_MANTA === true);
+                    (process.env.IMGAPI_HAS_MANTA === true ||
+                        process.env.IMGAPI_HAS_MANTA === 'true'));
 
-var MANIFEST = {
-    name: 'custom-image',
-    version: '1.0.0',
-    uuid: genUuid(),
-    owner: process.env.UFDS_ADMIN_UUID
-};
+function createManifest() {
+    var uuid = genUuid.create();
+    return {
+        name: 'custom-image-' + uuid,
+        version: '1.0.0',
+        uuid: uuid,
+        owner: process.env.UFDS_ADMIN_UUID
+    };
+}
 
 function waitForState(vmapi, state, callback) {
     var TIMEOUT = 90;
@@ -130,7 +134,7 @@ before(function (next) {
         },
         function createVm(cb) {
             var payload = {
-                alias: 'imgapi-test-' + genUuid(),
+                alias: 'imgapi-test-' + genUuid.create(),
                 owner_uuid: process.env.UFDS_ADMIN_UUID,
                 image_uuid: SMARTOS,
                 networks: NETWORK,
@@ -166,7 +170,8 @@ before(function (next) {
 
 if (CAN_RUN_TEST)
 test('CreateImageFromVm should not work for an nonexistent VM', function (t) {
-    this.client.createImageFromVmAndWait(MANIFEST, { vm_uuid: genUuid() },
+    this.client.createImageFromVmAndWait(createManifest(),
+        { vm_uuid: genUuid.create() },
       function (err, image) {
         t.ok(err, 'got expected error');
         t.end();
@@ -176,7 +181,7 @@ test('CreateImageFromVm should not work for an nonexistent VM', function (t) {
 
 if (CAN_RUN_TEST)
 test('CreateImageFromVm should not work for a running VM', function (t) {
-    this.client.createImageFromVmAndWait(MANIFEST, { vm_uuid: VM },
+    this.client.createImageFromVmAndWait(createManifest(), { vm_uuid: VM },
       function (err, image) {
         t.ok(err, 'got expected error');
         t.end();
@@ -207,7 +212,8 @@ test('CreateImageFromVm should create the image', function (t) {
             });
         },
         function createFromVm(cb) {
-            self.client.createImageFromVmAndWait(MANIFEST, { vm_uuid: VM },
+            self.client.createImageFromVmAndWait(createManifest(),
+                { vm_uuid: VM },
               function (err, image) {
                 if (err) {
                     return cb(err);
