@@ -159,3 +159,22 @@ putprobe $account "{
         }
     }
 }"
+
+# Probe: Monitor failres of images being created. This will detect when an
+# image's state is  being update with an error message
+putprobe $account "{
+    \"skipauthz\": true,
+    \"group\": \"$group_uuid\",
+    \"name\": \"imgapi image creation failure\",
+    \"type\": \"bunyan-log-scan\",
+    \"agent\": \"$zonename\",
+    \"config\": {
+        \"smfServiceName\": \"imgapi\",
+        \"fields\": {
+            \"route\": \"updateimage\"
+        },
+        \"match\": {
+            \"pattern\": \"error\"
+        }
+    }
+}"
