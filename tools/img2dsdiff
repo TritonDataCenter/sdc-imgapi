@@ -36,12 +36,7 @@ TOP = realpath(dirname(dirname(__file__)))
 IMG_UUID_SKIPS = [
     # sngl:0.99.0 is only for images.joyent.com. Only works on recent
     # (pre-6.5) platforms so don't want it exposed on datasets.jo.
-    '4bf9530a-7ae5-11e2-bb4e-3bad5fbc3de9',
-
-    # freebsd guy. Do we really want this on datasets.jo? It has
-    # "jpc" as the creator_name in the URN. That's not really right
-    # for datasets.jo (nor for images.jo for that matter).
-    'df8d2ee6-d87f-11e2-b257-2f02c6f6ce80',
+    '4bf9530a-7ae5-11e2-bb4e-3bad5fbc3de9'
 ]
 
 
