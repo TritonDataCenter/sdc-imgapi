@@ -29,8 +29,7 @@ IMG_UUID_SKIPS = [
     # sngl:0.99.0 is only for images.joyent.com. Only works on recent
     # (pre-6.5) platforms so don't want it exposed on datasets.jo.
     '4bf9530a-7ae5-11e2-bb4e-3bad5fbc3de9',
-    # freebsd 1.0.0, etc. skip for now. Should be added to DSAPI eventually.
-    'df8d2ee6-d87f-11e2-b257-2f02c6f6ce80',
+
     '274bc2bc-d919-11e2-b797-83245409fbeb',
     '48489174-e351-11e2-88c0-a31eb2b342ee',
     'bae3f528-e01f-11e2-b2cb-1360087a7d5f',
