@@ -1159,17 +1159,17 @@ hence the packages, etc. are not practical JPC examples:
 
         sdc-vmapi /vms/$(vmadm lookup -1 alias=imgapi0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
         {
-            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
+            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)", "primary": true}]
         }
         EOP
         sdc-vmapi /vms/$(vmadm lookup -1 alias=sdc0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
         {
-            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
+            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)", "primary": true}]
         }
         EOP
         sdc-vmapi /vms/$(vmadm lookup -1 alias=workflow0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
         {
-            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)"}]
+            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)", "primary": true}]
         }
         EOP
         sleep 20  # workflow takes a while to come back

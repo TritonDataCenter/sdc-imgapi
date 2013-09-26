@@ -101,7 +101,7 @@ function add_external_nic_to_some_core_zones {
             echo "# Add external nic to $alias"
             sdc-vmapi /vms/$zone_uuid?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob || true
             {
-                "networks": [{"uuid": "$external_uuid"}]
+                "networks": [{"uuid": "$external_uuid", "primary": true}]
             }
 EOP
             echo ""
