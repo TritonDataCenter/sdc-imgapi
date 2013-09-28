@@ -26,6 +26,7 @@ sed -e "
     s|IN_UUID4|$UUID4|;
     s|IN_NETWORKS|$NETWORKS|;
     /IN_OWNER_UUID/d;
+    /^traits/d;
     " $TOP/seed.ldif.in >/tmp/seed-packages.ldif
 sdc-ldap add -f /tmp/seed-packages.ldif
 

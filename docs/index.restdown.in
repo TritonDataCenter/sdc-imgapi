@@ -3005,6 +3005,7 @@ top-level keys in the factory settings. For example: if providing
 ||adminUuid||String||-||The UUID of the admin user in this SDC.||
 ||placeholderImageLifespanDays||Number||7||The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database.||
 ||allowLocalCreateImageFromVm||Boolean||false||Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing.||
+||minImageCreationPlatform||Array||see defaults.json||The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm).||
 ||ufds.url||String||-||LDAP URL to connect to UFDS. Required if `mode === 'dc'`.||
 ||ufds.bindDN||String||-||UFDS root dn. Required if `mode === 'dc'`.||
 ||ufds.bindPassword||String||-||UFDS root dn password. Required if `mode === 'dc'`.||

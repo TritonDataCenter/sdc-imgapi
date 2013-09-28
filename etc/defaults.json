@@ -3,5 +3,6 @@
     "maxSockets": 100,
     "logLevel": "debug",
     "placeholderImageLifespanDays": 7,
-    "allowLocalCreateImageFromVm": false
+    "allowLocalCreateImageFromVm": false,
+    "minImageCreationPlatform": ["7.0", "20130917T001310Z"]
 }

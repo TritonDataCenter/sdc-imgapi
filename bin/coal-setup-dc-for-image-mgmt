@@ -75,17 +75,18 @@ function hack_dapi_for_headnode_provisioning {
     # TODO: don't change if already done
     echo "# Hack DAPI to allow headnode provisioning"
     local config_path=/zones/$dapi_zone/root/opt/smartdc/dapi/sapi_manifests/dapi/template
-json -f $config_path -e '
-  this.allocationDescription = this.allocationDescription.filter(
-    function (e) {
-      return !~[
-        "hard-filter-min-ram",
-        "hard-filter-min-disk",
-        "hard-filter-min-cpu",
-        "hard-filter-headnode"
-      ].indexOf(e);
-    })
-  ' > $config_path.new
+    # XXX reservoir changes broke this!
+    json -f $config_path -e '
+      this.allocationDescription = this.allocationDescription.filter(
+        function (e) {
+          return !~[
+            "hard-filter-min-ram",
+            "hard-filter-min-disk",
+            "hard-filter-min-cpu",
+            "hard-filter-headnode"
+          ].indexOf(e);
+        })
+      ' > $config_path.new
     mv $config_path.new $config_path
     svcadm -z $dapi_zone restart config-agent
 }
@@ -131,7 +132,7 @@ function hack_imgapi_to_allow_local_custom_images {
 }
 
 function add_image_creation_packages {
-    local existing=$(sdc-ldap s '(&(objectclass=sdcpackage)(name=*-image-creation))' | wc -l | awk '{print $1}')
+    local existing=$(sdc-ldap s '(&(objectclass=sdcpackage)(name=*-image-creation)(active=true))' | wc -l | awk '{print $1}')
     if [[ "$existing" == "0" ]]; then
         local imgapi_zone=$(vmadm lookup -1 alias=imgapi0)
         /zones/$imgapi_zone/root/opt/smartdc/imgapi/tools/seed-packages/install-seed-packages-coal.sh
