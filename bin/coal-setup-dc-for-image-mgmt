@@ -75,18 +75,12 @@ function hack_dapi_for_headnode_provisioning {
     # TODO: don't change if already done
     echo "# Hack DAPI to allow headnode provisioning"
     local config_path=/zones/$dapi_zone/root/opt/smartdc/dapi/sapi_manifests/dapi/template
-    # XXX reservoir changes broke this!
-    json -f $config_path -e '
-      this.allocationDescription = this.allocationDescription.filter(
-        function (e) {
-          return !~[
-            "hard-filter-min-ram",
-            "hard-filter-min-disk",
-            "hard-filter-min-cpu",
-            "hard-filter-headnode"
-          ].indexOf(e);
-        })
-      ' > $config_path.new
+    sed -e "
+        s:hard-filter-headnode:identity:g;
+        s:hard-filter-min-ram:identity:g;
+        s:hard-filter-min-disk:identity:g;
+        s:hard-filter-min-cpu:identity:g;
+        " $config_path >$config_path.new
     mv $config_path.new $config_path
     svcadm -z $dapi_zone restart config-agent
 }
