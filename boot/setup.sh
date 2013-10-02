@@ -28,6 +28,20 @@ echo '[[ -f $HOME/.mantaprofile ]] && source $HOME/.mantaprofile' >>/root/.profi
 # Install Amon monitor and probes for IMGAPI.
 TRACE=1 /opt/smartdc/imgapi/bin/imgapi-amon-install
 
+# Log rotation.
+# TODO(HEAD-1365): look at current JPC log sizes for reasonable size limit.
+sdc_logadm_add amon-agent /var/svc/log/*amon-agent*.log 1g
+sdc_logadm_add config-agent /var/svc/log/*config-agent*.log 1g
+sdc_logadm_add registrar /var/svc/log/*registrar*.log 1g
+sdc_logadm_add $role /var/svc/log/*imgapi*.log 1g
+# TODO(HEAD-1365): Once ready for all sdc zones, move this to sdc_setup_complete
+#   and make sdc_cron_logadm "internal".
+# Move the smf_logs entry to run last (after the entries we just added) so that
+# the default '-C 3' doesn't defeat our attempts to save out.
+logadm -r smf_logs
+logadm -w smf_logs -C 3 -c -s 1m '/var/svc/log/*.log'
+sdc_cron_logadm
+
 # All done, run boilerplate end-of-setup
 sdc_setup_complete
 
