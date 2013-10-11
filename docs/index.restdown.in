@@ -189,32 +189,44 @@ proto VMs.
 
 ## M7: automated snapshot and prepare image
 
-**ETA? Don't have a feel for that yet.**
-
 We plan to have "sdc-createimagefrommachine" handle all of steps 3-6: snapshot,
 run prepare-image inside the customer's VM, shutdown, create image, rollback.
 This involves:
 
 - [done, OS-2482, joshw] "sdc:operator-script" metadata var pulling from
   `internal_metadata['operator-script']`
-- [TOOLS-292, jclulow] mdata-put, improved mdata-*
-- [OS-???, trent] `imgadm create -s prepare-image-script` and snapshotting
-- [IMGAPI-???, CNAPI-???, AGENT-???, trent] House the prepare-image scripts in
-  IMGAPI and pass those through to the 'imgadm create' call.
-- [OS-???] mdata:fetch/mdata:execute updates for operator-script
-  for SmartOS guests.
-- updates to all image guest tools supporting sdc:operator-script and mdata-put:
-    - [IMAGE-???] New version of the guest tools for Linux (operator-script,
-      mdata-put, remove prepare-image).
-    - New batch of images with those guest tools.
-    - Package builds of the guest tools with which customers can upgrade
-      proto VMs while we still have pre-"new Images with the latest guest
-      tools" in play.
+- [done, OS-2515, josh] mdata:fetch/mdata:execute updates for running
+  operator-script for SmartOS guests.
+- [1-2 weeks, TOOLS-292, jclulow] mdata-put, improved mdata-*
+  "I have to finish mdata-put, then make sure the plumbing to get the metadata
+  off-box and into VMAPI works"
+- [2w?, OS-???, trent] `imgadm create -s prepare-image-script` and snapshotting
+- [3d, IMGAPI-???, CNAPI-???, AGENT-???, trent] House the prepare-image scripts
+  in IMGAPI and pass those through to the 'imgadm create' call.
+- [1w, IMAGE-???, trent/carlos] centos guest tools: run operator-script,
+  mdata-put, mdata-list remove prepare-image. This is the first one so
+  padding the ETA here.
     - Q: Are the "guest tools" per
       https://hub.joyent.com/wiki/display/doc/About+the+SDC+Guest+Tools
       actually the ones being installed by the Solns group? No release since
       2011, so guessing not.
-- [OS-2484, trent] incr image of incr image should use the first's origin
+- [2d?, IMAGE-???, carlos] ubuntu guest tools: run operator-script, mdata-put,
+  mdata-list, remove prepare-image
+- [3d?, IMAGE-???, carlos?] debian guest tools: run operator-script, mdata-put,
+  mdata-list, remove prepare-image
+- [3d?, IMAGE-???, carlos?] freebsd guest tools: run operator-script, mdata-put,
+  mdata-list, remove prepare-image
+- [1w, IMAGE-???, trent/carlos] Package builds of the guest tools with which
+  customers can upgrade proto VMs while we still have pre-"new Images with the
+  latest guest tools" in play.
+- [IMAGE-???, carlos' team] New releases of *all* non-Windows images with the
+  new guest tools.
+- [2d, OS-2484, trent] incr image of incr image should use the first's origin
+
+
+Notes:
+
+- min_platform for img creation: OS-2482
 
 
 ## M8: supporting SDC image builds
@@ -309,6 +321,7 @@ TODO: pull in Windows-specific steps from preceding milestones
 - windows image creation testing
 - (somewhat indep) status/ETA of console support in portal
 - [IMAGE-???] New version of guest tools for Windows.
+- [jclulow] mdata-* tools support for Windows
 
 
 ## M13: misc
