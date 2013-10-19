@@ -154,7 +154,8 @@ test('CreateImage', function (t) {
             uuid: uuid,
             file: filePath,
             compression: fileCompression,
-            sha1: sha1
+            sha1: sha1,
+            dataset_guid: '9080214691143124906'
         };
         self.client.addImageFile(fopts, luke, function (err, image, res) {
             t.ifError(err, err);
@@ -162,6 +163,7 @@ test('CreateImage', function (t) {
             t.equal(image.files.length, 1, 'image.files');
             t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
             t.equal(image.files[0].size, size, 'image.files.0.size');
+            t.ok(image.files[0].dataset_guid, 'optional dataset_guid');
             next(err);
         });
     }
