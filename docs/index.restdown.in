@@ -634,7 +634,9 @@ uploaded. A "file" entry has the following fields:
 ||sha1||SHA-1 hex digest of the file content. Used for upload/download corruption checking.||
 ||size||Number of bytes. Maximum 20GiB. This maximum is meant to be a "you'll never hit it" cap, the purpose is to inform cache handling in IMGAPI servers.||
 ||compression||The type of file compression used by the file. One of 'bzip2', 'gzip', 'none'.||
-||dataset_guid||Optional. The guid (Global Unique Identifier) for the image file dataset.||
+<!-- #ifdef PRIVATE -->
+||dataset_guid||Optional. The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`).||
+<!-- #endif -->
 
 Example:
 
@@ -2138,7 +2140,9 @@ for provisioning, `state == "active"`.
 <!-- #endif -->
 ||[compression](#manifest-files)||UUID||Yes||-||The type of compression used for the file content. One of 'none', 'gzip' or 'bzip2'.||
 ||[sha1](#manifest-files)||SHA-1 Hash||No||-||SHA-1 of the uploaded file to allow the server to check for data corruption.||
-||dataset_guid||GUID||No||-||The guid (Global Unique Identifier) for the image file dataset.||
+<!-- #ifdef PRIVATE -->
+||dataset_guid||GUID||No||-||The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`).||
+<!-- #endif -->
 ||(file content in the body)||binary||Yes||-||The image file content.||
 
 ### Returns
