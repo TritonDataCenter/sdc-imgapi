@@ -197,18 +197,12 @@ This involves:
   `internal_metadata['operator-script']`
 - [done, OS-2515, josh] mdata:fetch/mdata:execute updates for running
   operator-script for SmartOS guests.
-- [1-2 weeks, TOOLS-292, OS-2547, jclulow] mdata-put, improved mdata-*
-  "I have to finish mdata-put, then make sure the plumbing to get the metadata
-  off-box and into VMAPI works"
-- [2w?, OS-2550, trent] `imgadm create -s prepare-image-script` and snapshotting
+- [done, TOOLS-292, OS-2547, jclulow] mdata-put, improved mdata-*
+- [1w, OS-2550, trent] `imgadm create -s prepare-image-script` and snapshotting
 - [3d, IMGAPI-303, CNAPI-331, AGENT-674, trent] House the prepare-image scripts
   in IMGAPI and pass those through to the 'imgadm create' call.
-- [1w, IMAGE-370, trent/carlos] centos guest tools: operator-script, mdata-put, remove prepare-image
-  This is the first one so padding the ETA here.
-    - Q: Are the "guest tools" per
-      https://hub.joyent.com/wiki/display/doc/About+the+SDC+Guest+Tools
-      actually the ones being installed by the Solns group? No release since
-      2011, so guessing not.
+- [1w, IMAGE-370, trent/carlos] centos guest tools: operator-script, mdata-put,
+  remove prepare-image This is the first one so padding the ETA here.
 - [2d?, IMAGE-371, carlos] ubuntu guest tools: operator-script, mdata-put, ...
 - [3d?, IMAGE-372, carlos?] debian guest tools: operator-script, mdata-put, ...
 - [3d?, IMAGE-373, carlos?] freebsd guest tools: operator-script, mdata-put, ...
