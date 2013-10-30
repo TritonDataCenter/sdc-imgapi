@@ -1,0 +1,481 @@
+#!/bin/bash
+# Copyright (c) 2013 Joyent Inc., All rights reserved.
+#
+# Script that will prepare a Linux guest of a SmartOS hypervisor for
+# image creation. Supported distros: CentOS, Debian, and Ubuntu.
+#
+# Current status:
+# - This is a fork of smartos-vmtools2.git:src/linux/linux-prepare-image
+#   to make it suitable for use in 'imgadm create -s prepare-image-script'
+#   autoprep (OS-2550)
+# - Currently somewhat hacked and only tested against a ubuntu 2.4.2 Joyent
+#   image with manually tweaked guest tools.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+LOG=/tmp/prepare-image.log
+echo "hi from trent at $(date)" >>$LOG
+#XXX
+
+trap 'errexit $?' EXIT
+
+function fatal
+{
+    echo "prepare-image: fatal error: $*"
+    exit 1
+}
+
+function errexit
+{
+    if [[ $1 -eq 0 ]]; then
+        exit 0
+    fi
+    echo "error exit status $1" >>$LOG
+    /lib/smartdc/mdata-put prepare-image:state error
+    cat $LOG | tail -n20 | /lib/smartdc/mdata-put prepare-image:error
+    fatal "error exit status $1"
+}
+
+
+DEBUG=0
+
+# location of binaries that functions use
+LOGGER=`which logger 2> /dev/null`
+PING_BIN=`which ping 2> /dev/null`
+UNAME_BIN=`which uname 2> /dev/null`
+MOUNT_BIN=`which mount 2> /dev/null`
+
+MDATA_GET_BIN='/lib/smartdc/mdata-get'
+SEND_ARP_UPDATES_BIN='/lib/smartdc/send-arp-updates'
+
+# location of common files
+JOYENT_PRODUCT_FILE='/lib/smartdc/product'
+USER_SCRIPT_FILE='/var/run/smartdc/user-script'
+USER_SCRIPT_LOCKFILE='/var/lock/smartdc/user-script.lock'
+
+# Common functions used by scripts /lib/smartdc
+
+lib_smartdc_fatal() {
+  echo " "
+  printf "(fatal) %s\n" "$@"
+  echo " "
+  echo " "
+  $LOGGER "(fatal) - $0 - $@"
+  exit 1
+}
+
+lib_smartdc_info() {
+  printf "(info) %s\n" "$@"
+  $LOGGER "(info) - $0 - $@"
+}
+
+lib_smartdc_debug() {
+  if [[ $DEBUG -gt 0 ]]; then
+    printf "(debug) %s\n" "$@"
+    $LOGGER "(debug) - $0 - $@"
+  fi
+}
+
+lib_smartdc_check_root() {
+  if [[ $EUID != 0 ]] ; then
+    echo " "
+    echo " "
+    echo "ERROR: You must be root to run $0"
+    echo " "
+    echo " "
+    exit 1
+  fi
+}
+
+# initilize warning string
+WARNING=""
+
+addwarn() {
+  WARNING="${WARNING}(warning) $@\n"
+}
+
+warn() {
+  printf "(warn) %s\n" "$@"
+}
+
+check_for_smartdc() {
+# Joyent installs a custom install of Node.JS and smartdc
+# This checks to ensure that this is installed
+
+  lib_smartdc_info "checking for JPC install of the JPC Cloud API utilties Node.JS SmartDC"
+  if [[ ! -d /opt/local/smartdc ]] ; then
+     lib_smartdc_info "MISSING /opt/local/smartdc - JPC Cloud API utilties Node.JS SmartDC NOT installed"
+     addwarn "Missing install of JPC Cloud API utilties Node.JS SmartDC in /opt/local/smartdc"
+     addwarn "This is not fatal and your system will run ok"
+     addwarn "Install info is at: http://wiki.joyent.com/wiki/display/jpc2/About+Using+the+Cloud+API#AboutUsingtheCloudAPI-InstallNode.js"
+  else
+    # make sure that /opt/local/smartdc is owned by root
+    lib_smartdc_info "settng /opt/local/smartdc to be owned by root:root"
+    chown -R root:root /opt/local
+    chown -R root:root /opt/local/smartdc
+
+    if [[ ! -f /opt/local/smartdc/bin/node ]]; then
+       lib_smartdc_info "MISSING /opt/local/smartdc/bin/node - JPC Cloud API utilties Node.JS SmartDC NOT installed"
+       addwarn "Missing node binary of JPC Cloud API utilties Node.JS SmartDC in /opt/local/smartdc/bin/node"
+       addwarn "This is not fatal and your system will run ok"
+       addwarn "Install info is at: http://wiki.joyent.com/wiki/display/jpc2/About+Using+the+Cloud+API#AboutUsingtheCloudAPI-InstallNode.js"
+    else
+       NODE_VERSION=`/opt/local/smartdc/bin/node -v`;
+       lib_smartdc_info "JPC Cloud API utilties Node.JS ( ${NODE_VERSION} ) installed"
+       if [[ ! -f /opt/local/smartdc/lib/node_modules/smartdc/package.json ]]; then
+          lib_smartdc_info "MISSING SmartDC NPM install of JPC Cloud API utilties Node.JS - SmartDC NOT installed"
+          addwarn "Missing SmartDC NPM install of JPC Cloud API utilties Node.JS SmartDC in /opt/local/smartdc/lib/node_modules/smartdc/"
+          addwarn "This is not fatal and your system will run ok"
+          addwarn "Install info is at: http://wiki.joyent.com/wiki/display/jpc2/About+Using+the+Cloud+API#AboutUsingtheCloudAPI-InstallNode.js"
+       else
+          SMARTDC_VERSION=`grep \"version\" /opt/local/smartdc/lib/node_modules/smartdc/package.json | cut -d: -f2 | tr -d \s | tr -d \" | tr -d \, 2> /dev/null`
+          lib_smartdc_info "JPC Cloud API SmartDC utilties ( ${SMARTDC_VERSION} ) installed"
+       fi
+    fi
+  fi
+}
+
+cleanup_logs() {
+  lib_smartdc_info "cleaning up logs"
+  find /var/log -type f | xargs rm -f
+
+  # create wtmp - this solves an issue where syslog would not start
+  # with out wtmp being created
+  touch /var/log/wtmp
+  chmod 664 /var/log/wtmp
+}
+
+
+
+cleanup_root() {
+  lib_smartdc_info "cleaning up root account"
+  rm -f /root/.bash_history
+  history -c
+  history -w
+  rm -f /root/.bash_history
+  history -c
+  history -w
+  rm -f /root/.bash_history
+  rm -f /root/.lesshst
+  rm -f /root/.viminfo
+
+  lib_smartdc_info "Removing password for root"
+  passwd -d root
+}
+
+cleanup_other_users() {
+  lib_smartdc_info "cleaning up other user account"
+
+  # looks for list of users that should not be on system
+  USERLIST='joyent'
+  FILELIST='passwd passwd- shadow shadow-'
+  for user in $USERLIST; do
+     for file in $FILELIST; do
+        local passwd=$(grep "^${user}:" /etc/${file} | awk -F ':' '{print $2}')
+        if [[ -n $passwd ]] ; then
+          lib_smartdc_info "$user user exist in /etc/${file}. This is a potential vulnerability"
+          lib_smartdc_fatal "Need to remove $user user."
+        fi
+     done
+
+     if [[ -d "/home/$user" ]] ; then
+       lib_smartdc_info "/home/$user exist. This is a potential vulnerability"
+       lib_smartdc_fatal "Need to remove /home/$user."
+     fi
+
+     GROUPFILELIST='gshadow gshadow- group'
+     for groupfile in $GROUPFILELIST; do
+        out=$(grep $user /etc/${groupfile} || true)
+        if [[ -n $out ]]; then
+           addwarn "$user user exist /etc/${groupfile}. This is a potential vulnerability and user should be removed."
+        fi
+     done
+  done
+
+  # check for passwords set for any other user
+  local USERLIST=$(grep -E "^[[:alpha:]]+:[^\*\!\:]" /etc/shadow | awk -F ':' '{print $1}')
+  for user in $USERLIST; do
+    addwarn "$user user exist with password set in /etc/shadow. This is a potential vulnerability"
+  done
+
+  local USERLIST=$(grep -E "^[[:alpha:]]+:[^\*\!\:]" /etc/shadow- | awk -F ':' '{print $1}')
+  for user in $USERLIST; do
+    addwarn "$user user exist with password set. This is a potential vulnerability"
+  done
+}
+
+cleanup_ssh() {
+  lib_smartdc_info "cleaning up ssh"
+  find /etc/ssh -type f -name "ssh_host_*" | xargs rm -f
+
+  # remove /root/.ssh files
+  # if you need these files on provisioning please use config management
+  FILELIST='authorized_keys known_hosts id_dsa id_dsa.pub id_rsa id_rsa.pub ssh_config'
+  for FILE in $FILELIST; do
+     if [ -f "/root/.ssh/$FILE" ]; then
+        rm -r /root/.ssh/$FILE
+     fi
+  done
+}
+
+cleanup_disks() {
+  lib_smartdc_info "removing /dev/vdb entries from fstab"
+  sed -i '/^\/dev\/vdb/d' /etc/fstab
+}
+
+cleanup_metadata() {
+  lib_smartdc_info "cleaning up meta data"
+  rm -f $USER_SCRIPT_FILE
+  rm -f $USER_SCRIPT_LOCKFILE
+}
+
+cleanup_hostname() {
+  lib_smartdc_info "removing hostname"
+  rm -f /etc/hostname
+  touch /etc/hostname
+}
+
+# CentOS specific commands go here
+prepare_centos() {
+  lib_smartdc_info "cleaning up network devices"
+
+  if [[ -f /etc/udev/rules.d/70-persistent-net.rules ]] ; then
+    rm -f /etc/udev/rules.d/70-persistent-net.rules
+  fi
+
+  find /etc/sysconfig/network-scripts -name "ifcfg-eth*" | xargs rm -f
+
+  if [[ -d /var/lib/dhcp3 ]] ; then
+    find /var/lib/dhcp3 -type f -name "*.leases" | xargs rm -f
+  elif [[ -d /var/lib/dhcp ]] ; then
+    find /var/lib/dhcp -type f -name "*.leases" | xargs rm -f
+  elif [[ -d /var/lib/dhclient ]] ; then
+    find /var/lib/dhclient -type f | xargs rm -f
+  fi
+
+  # Create a eth0, eth1 and loopback by default
+  if [[ -d /etc/sysconfig/network-scripts ]] ; then
+    echo "# Created by Joyent $0" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    echo "DEVICE=\"eth0\"" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    echo "ONBOOT=\"yes\"" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+    echo "BOOTPROTO=\"dhcp\"" >> /etc/sysconfig/network-scripts/ifcfg-eth0
+
+    echo "# Created by Joyent $0" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+    echo "DEVICE=\"eth1\"" >>  /etc/sysconfig/network-scripts/ifcfg-eth1
+    echo "ONBOOT=\"yes\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+    echo "BOOTPROTO=\"dhcp\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
+
+    echo "# Created by Joyent $0" > /etc/sysconfig/network-scripts/ifcfg-lo
+    echo "DEVICE=lo" >> /etc/sysconfig/network-scripts/ifcfg-lo
+    echo "IPADDR=127.0.0.1" >> /etc/sysconfig/network-scripts/ifcfg-lo
+    echo "NETMASK=255.0.0.0" >> /etc/sysconfig/network-scripts/ifcfg-lo
+    echo "NETWORK=127.0.0.0" >> /etc/sysconfig/network-scripts/ifcfg-lo
+    echo "BROADCAST=127.255.255.255" >> /etc/sysconfig/network-scripts/ifcfg-lo
+    echo "ONBOOT=yes" >> /etc/sysconfig/network-scripts/ifcfg-lo
+    echo "NAME=loopback" >> /etc/sysconfig/network-scripts/ifcfg-lo
+  fi
+
+  lib_smartdc_info "cleaning up package cache"
+  out=$(yum clean all 2>&1 > /dev/null)
+
+  if [[ -z `which arping` ]] ; then
+    addwarn "arping not found!"
+    addwarn "to install arping run 'yum install iputils'."
+  fi
+
+  local rpmbin=$(which rpm 2>/dev/null)
+  if [[ -e ${rpmbin} ]] ; then
+    out=$($rpmbin -qa acpid)
+    if [[ -z ${out} ]]; then
+      addwarn "ACPID not found. Lifecycle management will be degraded!"
+      addwarn "To install acpid run 'yum install acpid'."
+    fi
+  fi
+
+  if [ ! -e /proc/acpi/event ] ; then
+    addwarn "ACPI-support not handling in /proc, acpid handler does not exists at /proc/acpi/event"
+  fi
+
+  if [ ! -f /etc/acpi/events/powerbtn-acpi-support ] ; then
+    addwarn "ACPI-support not handling power button, acpid handler does not exists at /etc/acpi/events/powerbtn-acpi-support"
+  fi
+
+  # check for logging when API power button press happens
+  if [ ! -f /etc/acpi/events/powerbtn-acpi-support ]; then
+      addwarn "ACPID powerbutton pressed file not found"
+      addwarn "Need to have this for API shutdown,reboot and restart to work"
+  else
+    out=$(grep "^action=/lib/smartdc/redhat-powerbtn-acpi-support.sh$" /etc/acpi/events/powerbtn-acpi-support | wc -l)
+    if [[ ${out} -eq 0 ]]; then
+      addwarn "ACPID powerbutton pressed not configured for Joyent API in /etc/acpi/events/powerbtn-acpi-support"
+    fi
+  fi
+
+  # make sure locale is set to prevent error when system is SSH'ed into
+  localedef --no-archive -i en_US -f UTF-8 en_US.UTF-8
+
+}
+
+# Debian/Ubuntu specific commands go here
+prepare_ubuntu() {
+    lib_smartdc_info "cleaning up network devices"
+    if [[ -f /etc/udev/rules.d/70-persistent-net.rules ]] ; then
+        rm -f /etc/udev/rules.d/70-persistent-net.rules
+    fi
+
+    if [[ -d /var/lib/dhcp3 ]] ; then
+        find /var/lib/dhcp3 -type f -name "*.leases" | xargs rm -f
+    elif [[ -d /var/lib/dhcp ]] ; then
+        find /var/lib/dhcp -type f -name "*.leases" | xargs rm -f
+    fi
+
+    if [[ -f /etc/network/interfaces ]] ; then
+        rm -f /etc/network/interfaces
+        out=$(dpkg-reconfigure ifupdown 2>&1 > /dev/null)
+        echo "" >> /etc/network/interfaces
+        echo "auto eth0" >> /etc/network/interfaces
+        echo "iface eth0 inet dhcp" >> /etc/network/interfaces
+        echo "auto eth1" >> /etc/network/interfaces
+        echo "iface eth1 inet dhcp" >> /etc/network/interfaces
+    fi
+
+    if [[ -z `which arping` ]] ; then
+      addwarn "arping not found!"
+      addwarn "to install arping run 'apt-get install arping'."
+    fi
+
+    local dpkgbin=$(which dpkg 2>/dev/null)
+    if [[ -e ${dpkgbin} ]] ; then
+        out=$($dpkgbin -l acpid | grep ^ii | wc -l)
+        if [[ ${out} == "0" ]]; then
+            addwarn "ACPID not found. Lifecycle management will be degraded!"
+            addwarn "To install acpid run 'apt-get install acpid'."
+        fi
+    fi
+
+    if [ ! -e /proc/acpi/event ] ; then
+        addwarn "ACPI-support not handling in /proc, acpid handler does not exists at /proc/acpi/event"
+    fi
+
+    if [ ! -f /etc/acpi/events/powerbtn-acpi-support ] ; then
+        addwarn "ACPI-support not handling power button, acpid handler does not exists at /etc/acpi/events/powerbtn-acpi-support"
+    fi
+
+    # make sure logging is enabled for acpid
+    out=$(grep "^OPTIONS=" /etc/default/acpid | cut -d "=" -f2 | grep "\-\-logevents" | wc -l)
+    if [[ ${out} -eq 0 ]]; then
+        addwarn "ACPID logging is not enabled in /etc/default/acpid"
+        addwarn "this should be enabled so that acpi events are logged"
+    fi
+
+    out=$(grep "^MODULES=" /etc/default/acpid | cut -d "=" -f2 | grep -i "all" | wc -l)
+    if [[ ${out} -eq 0 ]]; then
+        addwarn "ACPID all module loading not enabled in /etc/default/acpid"
+        addwarn "this should be enabled to ensure that API shutdown,reboot and restart to work"
+    fi
+
+    # check for logging when API power button press happens
+    if [ ! -f /etc/acpi/events/powerbtn-acpi-support ]; then
+        addwarn "ACPID powerbutton pressed file not found"
+        addwarn "Need to have this for API shutdown,reboot and restart to work"
+    else
+        out=$(grep "^action=/lib/smartdc/debian-powerbtn-acpi-support.sh$" /etc/acpi/events/powerbtn-acpi-support | wc -l)
+        if [[ ${out} -eq 0 ]]; then
+            addwarn "ACPID powerbutton pressed not configured for Joyent API in /etc/acpi/events/powerbtn-acpi-support"
+        fi
+    fi
+}
+
+# makes sure that all is in /lib/smartdc and configured for production
+check_lib_smartdc() {
+  DISTRO=$1
+
+  # Make sure debugging is off on all scripts
+  for OUT in `grep -e "^DEBUG=" /lib/smartdc/*`; do
+    FILENAME=`echo $OUT | cut -d ':' -f 1`
+    DEBUG_LEVEL=`echo $OUT | cut -d '=' -f 2`
+    if [ $DEBUG_LEVEL -gt 0 ]; then
+       addwarn "Debug level is set to $DEBUG_LEVEL in $FILENAME"
+    fi
+  done
+
+  # Check that all files are in /lib/smartdc
+  # this is updaed as files change locations
+  FILELIST=''
+  if [[ $DISTRO == "centos" ]]; then
+    FILELIST='redhat-powerbtn-acpi-support.sh format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg mdata-get run-user-script send-arp-updates set-root-authorized-keys'
+  elif [[ $DISTRO == "ubuntu" ]]; then
+    FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg mdata-get run-user-script send-arp-updates set-root-authorized-keys'
+  elif [[ $DISTRO == "debian" ]]; then
+    FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg mdata-get run-user-script send-arp-updates set-root-authorized-keys'
+  fi
+  for FILE in $FILELIST; do
+     if [ ! -f "/lib/smartdc/$FILE" ]; then
+        lib_smartdc_fatal "Missing needed file - /lib/smartdc/$FILE"
+     fi
+  done
+
+  # Check for symlinks in /etc
+  LINKLIST='product'
+    for LINK in $LINKLIST; do
+     if [ ! -L "/etc/$LINK" ]; then
+        lib_smartdc_fatal "Missing sym link - /etc/$LINK"
+     fi
+  done
+
+  # Make sure that call in /etc/rc.local to /lib/smartdc/joyent_rc.local
+  OUT=`grep -e "^(/lib/smartdc/joyent_rc.local)" /etc/rc.local`
+  if [ -z $OUT ]; then
+     lib_smartdc_fatal "Missing call in /etc/rc.local to /lib/smartdc/joyent_rc.local"
+  fi
+
+  # make sure that /lib/smartdc is owned by root
+  lib_smartdc_info "settng /lib/smartdc to be owned by root:root"
+  chown -R root:root /lib/smartdc
+}
+
+#---- mainline
+
+echo "linux-prepare-image start at $(date)" >>$LOG
+/lib/smartdc/mdata-put prepare-image:state running
+
+# Make sure user is root
+PRODUCT_FILE=/etc/product
+if [[ ! -f $PRODUCT_FILE ]]; then
+    lib_smartdc_fatal "Unknown Distribution...exiting"
+fi
+TARGET_DISTRO=`grep -w Image $PRODUCT_FILE | awk '{print $2;}'`
+
+if [ $TARGET_DISTRO == "centos" ] ; then
+    prepare_centos
+elif [ $TARGET_DISTRO == "ubuntu" ] ; then
+    prepare_ubuntu
+elif [ $TARGET_DISTRO == "debian" ] ; then
+    prepare_ubuntu
+fi
+
+check_lib_smartdc
+check_for_smartdc
+cleanup_logs
+cleanup_disks
+cleanup_ssh
+cleanup_root
+cleanup_other_users
+cleanup_metadata
+cleanup_hostname
+
+printf "${WARNING}"
+history -c
+history -w
+
+
+/lib/smartdc/mdata-put prepare-image:state success
+sleep 3
+shutdown -h now

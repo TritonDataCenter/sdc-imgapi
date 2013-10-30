@@ -1,0 +1,51 @@
+#!/bin/bash
+# vim: set ts=4 sw=4 et:
+#
+# Copyright (c) 2013 Joyent Inc., All rights reserved.
+#
+# A prepare-image script for `imgadm create -s prepare-image-script ...`
+# for SmartOS zones. See the "PREPARE IMAGE SCRIPTS" section of `man imgadm`
+# and OS-2550 for details.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
+LOG=/tmp/prepare-image.log
+
+
+function fatal
+{
+    echo "prepare-image: fatal error: $*"
+    exit 1
+}
+
+function errexit
+{
+    if [[ $1 -eq 0 ]]; then
+        exit 0
+    fi
+    echo "error exit status $1" >>$LOG
+    /usr/sbin/mdata-put prepare-image:state error
+    cat $LOG | tail -n20 | /usr/sbin/mdata-put prepare-image:error
+    fatal "error exit status $1"
+}
+
+
+trap 'errexit $?' EXIT
+
+echo "smartos-prepare-image start at $(date)" >>$LOG
+/usr/sbin/mdata-put prepare-image:state running
+yn_start=y yn_nfs=y yn_subips=y yn_halt=n /opt/local/bin/sm-prepare-image >>$LOG 2>&1
+/usr/sbin/mdata-put prepare-image:state success
+/usr/sbin/shutdown -y -g0 -i5 >>$LOG 2>&1
+
+# Work around for OS-2575.
+sleep 5
+echo "halting it now..." >>$LOG 2>&1
+halt -l >>$LOG 2>&1
