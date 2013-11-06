@@ -24,8 +24,9 @@ CLEAN_FILES += ./node_modules
 
 NODE_PREBUILT_VERSION=v0.8.25
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_CC_VERSION=4.6.2
 	NODE_PREBUILT_TAG=zone
+	# Allow building on a SmartOS image other than smartos-1.6.3.
+	NODE_PREBUILT_IMAGE=01b2c898-945f-11e1-a523-af1afbe22822
 endif
 IMAGES_JOYENT_COM_NODE=/root/opt/node-0.8.25
 UPDATES_JOYENT_COM_NODE=/root/opt/node-0.8.25
