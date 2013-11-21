@@ -26,9 +26,6 @@ echo "" >>/root/.profile
 echo "export PATH=/opt/smartdc/$role/build/node/bin:/opt/smartdc/$role/node_modules/.bin:\$PATH" >>/root/.profile
 echo '[[ -f $HOME/.mantaprofile ]] && source $HOME/.mantaprofile' >>/root/.profile
 
-# Install Amon monitor and probes for IMGAPI.
-TRACE=1 /opt/smartdc/imgapi/bin/imgapi-amon-install
-
 LOCAL_STOR_DIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.dir)
 if [[ ! -d $LOCAL_STOR_DIR ]]; then
     mkdir -p $LOCAL_STOR_DIR
