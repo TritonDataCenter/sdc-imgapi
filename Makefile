@@ -41,7 +41,7 @@ endif
 include ./tools/mk/Makefile.smf.defs
 
 RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-RELTMPDIR       := /tmp/$(STAMP)
+RELSTAGEDIR       := /tmp/$(STAMP)
 
 
 
@@ -127,10 +127,10 @@ clean:: clean-docs
 .PHONY: release
 release: all public-docs
 	@echo "Building $(RELEASE_TARBALL)"
-	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)
-	mkdir -p $(RELTMPDIR)/site
-	touch $(RELTMPDIR)/site/.do-not-delete-me
-	mkdir -p $(RELTMPDIR)/root
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(RELSTAGEDIR)/site
+	touch $(RELSTAGEDIR)/site/.do-not-delete-me
+	mkdir -p $(RELSTAGEDIR)/root
 	cp -r \
 		$(TOP)/bin \
 		$(TOP)/main.js \
@@ -141,21 +141,21 @@ release: all public-docs
 		$(TOP)/sapi_manifests \
 		$(TOP)/smf \
 		$(TOP)/test \
-		$(RELTMPDIR)/root/opt/smartdc/$(NAME)
-	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/tools
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/tools
 	cp -r \
 		$(TOP)/tools/seed-packages \
-		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/tools/
-	mkdir -p $(RELTMPDIR)/root/opt/smartdc/boot
-	cp -R $(TOP)/deps/sdc-scripts/* $(RELTMPDIR)/root/opt/smartdc/boot/
-	cp -R $(TOP)/boot/* $(RELTMPDIR)/root/opt/smartdc/boot/
-	mkdir -p $(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/tools/
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/boot
+	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
+	cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/build/node \
 		$(TOP)/build/public-docs \
-		$(RELTMPDIR)/root/opt/smartdc/$(NAME)/build
-	(cd $(RELTMPDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
-	@rm -rf $(RELTMPDIR)
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
+	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
+	@rm -rf $(RELSTAGEDIR)
 
 .PHONY: publish
 publish: release
