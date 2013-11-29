@@ -81,6 +81,7 @@ elif [[ "$opt_mode" == "dc" ]]; then
     dns+=" uuid=583287ae-366b-11e2-aea4-bf6c552eb39b,ou=images,o=smartdc"
 
     for dn in $dns; do
+        dn=$(echo $dn | sed 's/,/, /g')
         if [[ -n "$($TOP/test/sdc-ldap search -b "$dn")" ]]; then
             echo "Deleting '$dn'."
             $TOP/test/sdc-ldap rm "$dn"
