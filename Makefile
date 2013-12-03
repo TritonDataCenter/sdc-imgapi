@@ -145,6 +145,7 @@ release: all public-docs
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/tools
 	cp -r \
 		$(TOP)/tools/seed-packages \
+		$(TOP)/tools/prepare-image \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/tools/
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/boot
 	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/

@@ -35,6 +35,10 @@ rsync -av ${TOP}/ \
     --exclude /doc/ \
     --exclude /tools/ \
     --exclude /tmp/
+rsync -av ${TOP}/tools/seed-packages/ \
+    $NODE:/zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/tools/seed-packages/
+rsync -av ${TOP}/tools/prepare-image/ \
+    $NODE:/zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/tools/prepare-image/
 
 state=$(ssh ${NODE} svcs -z ${IMGAPI_ZONE} -H -o state imgapi)
 if [[ "$state" == "maintenance" ]]; then

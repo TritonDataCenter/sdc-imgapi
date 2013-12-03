@@ -198,8 +198,8 @@ This involves:
 - [done, OS-2515, josh] mdata:fetch/mdata:execute updates for running
   operator-script for SmartOS guests.
 - [done, TOOLS-292, OS-2547, jclulow] mdata-put, improved mdata-*
-- [1w, OS-2550, trent] `imgadm create -s prepare-image-script` and snapshotting
-- [3d, IMGAPI-303, CNAPI-331, AGENT-674, trent] House the prepare-image scripts
+- [done, 1w, OS-2550, trent] `imgadm create -s prepare-image-script` and snapshotting
+- [done, 3d, IMGAPI-303, CNAPI-331, AGENT-674, trent] House the prepare-image scripts
   in IMGAPI and pass those through to the 'imgadm create' call.
 - [1w, IMAGE-370, trent/carlos] centos guest tools: operator-script, mdata-put,
   remove prepare-image This is the first one so padding the ETA here.
@@ -213,6 +213,9 @@ This involves:
 - [IMAGE-375, carlos' team] New releases of all (non-Windows) KVM images with
   the new guest tools.
 - [2d, OS-2484, trent] incr image of incr image should use the first's origin
+
+Polish:
+- PUBAPI-760
 
 
 Notes:
@@ -548,10 +551,14 @@ prevent very old failures swamping data.
 
 ## Manifest: error
 
-An error object with "message" and (possibly) "code" fields given error details
-on failure of some asynchronous image action. Currently this is used during
-[CreateImageFromVm](#CreateImageFromVm). It is only present with `state ==
-'failed'`.
+An object providing details on failure of some asynchronous image action.
+Currently this is used during [CreateImageFromVm](#CreateImageFromVm). It is
+only present with `state == 'failed'`. Error fields are as follows:
+
+||**Field**||**Always Present?**||**Details**||
+||message||Yes||String description of the error.||
+||code||No||A "CamelCase" string error code.||
+||stack||No||A stack trace giving context for the error. This is generally considered internal implementation detail, only there to assist with debugging and error classification.||
 
 
 ## Manifest: disabled
