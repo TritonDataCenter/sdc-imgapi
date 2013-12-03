@@ -34,9 +34,11 @@ log = logging.getLogger('img2dsdiff')
 
 TOP = realpath(dirname(dirname(__file__)))
 IMG_UUID_SKIPS = [
-    # sngl:0.99.0 is only for images.joyent.com. Only works on recent
-    # (pre-6.5) platforms so don't want it exposed on datasets.jo.
-    '4bf9530a-7ae5-11e2-bb4e-3bad5fbc3de9'
+]
+IMG_NAME_SKIPS = [
+    # sngl images are only for images.joyent.com. Only works on recent
+    # (post-6.5) platforms so don't want it exposed on datasets.jo.
+    'sngl'
 ]
 
 
@@ -168,15 +170,16 @@ def img2dsdiff():
         #print "--", uuid
         if uuid in ds_uuids and uuid not in img_uuids:
             diffs.append({
-                "uuid": uuid, 
+                "uuid": uuid,
                 "action": "delete",
                 "msg": "Only in datasets.joyent.com: image %s (%s %s)" % (
                     uuid, datasets[uuid]["name"], datasets[uuid]["version"])
             })
         elif uuid not in ds_uuids and uuid in img_uuids:
-            if uuid not in IMG_UUID_SKIPS:
+            if (uuid not in IMG_UUID_SKIPS
+                    and images[uuid]["name"] not in IMG_NAME_SKIPS):
                 diffs.append({
-                    "uuid": uuid, 
+                    "uuid": uuid,
                     "action": "add",
                     "image": images[uuid],
                     "msg": "Only in images.joyent.com: image %s (%s %s)" % (
@@ -217,7 +220,7 @@ def img2dsdiff():
             if diff_str:
                 diffs.append({
                     "uuid": uuid,
-                    "action": "diff", 
+                    "action": "diff",
                     "msg": diff_str
                 })
     return diffs
