@@ -53,6 +53,7 @@ var bunyan = require('bunyan');
 var log; // set in `main()`
 
 var USAGE = (
+    /* BEGIN JSSTYLED */
     'Setup IMGAPI in this SmartDataCenter to use a given external Manta\n'
     + 'for image storage. This will do the appropriate setup for all\n'
     + 'instances of IMGAPI in this DC. This is also re-runnable if it fails\n'
@@ -67,6 +68,7 @@ var USAGE = (
     + '\n'
     + 'Options:\n'
     + '%s\n'
+    /* END JSSTYLED */
 );
 
 var OPTIONS = [
@@ -189,7 +191,7 @@ function main() {
                 log.info({metadata: md}, 'metadata added to imgapi service');
                 next();
             });
-        },
+        }
     ], function (err) {
         if (err) {
             fatal(err, 1);

@@ -94,7 +94,7 @@ var OPTIONS = [
 ];
 
 
-var config = require('../etc/imgapi.config.json');
+var CONFIG = require('../etc/imgapi.config.json');
 
 
 
@@ -162,7 +162,7 @@ function getMantaUrl(mantaUrl, sdcApp, callback) {
                 return callback(new Error(
                     'no external IP on the first Manta LB'));
             }
-            var mantaUrl = 'https://' + ip;
+            mantaUrl = 'https://' + ip;
             callback(null, mantaUrl);
         });
     });
@@ -457,15 +457,15 @@ function main() {
 
     async.series([
         function (next) {
-            log.info('get "sdc" SAPI app')
-            getSdcApp(config, function (err, sdcApp_) {
+            log.info('get "sdc" SAPI app');
+            getSdcApp(CONFIG, function (err, sdcApp_) {
                 sdcApp = sdcApp_;
                 next(err);
             });
         },
 
         function (next) {
-            log.info('determine manta URL')
+            log.info('determine manta URL');
             getMantaUrl(mantaUrl, sdcApp, function (mErr, mantaUrl_) {
                 mantaUrl = mantaUrl_;
                 log.info({mantaUrl: mantaUrl}, 'mantaUrl');
@@ -474,7 +474,7 @@ function main() {
         },
 
         function (next) {
-            ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl,
+            ensureImgapiSapiServiceSetup(CONFIG, sdcApp, mantaUrl,
                 opts.insecure, opts.remote,
                 function (sErr, key_) {
                     key = key_;
@@ -491,7 +491,7 @@ function main() {
         },
 
         function (next) {
-            ensureKeyOnAdminUser(config, ufdsMasterClient, key, sdcApp, next);
+            ensureKeyOnAdminUser(CONFIG, ufdsMasterClient, key, sdcApp, next);
         },
 
         function (next) {
