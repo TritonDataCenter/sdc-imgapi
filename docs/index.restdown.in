@@ -201,6 +201,7 @@ This involves:
 - [done, 1w, OS-2550, trent] `imgadm create -s prepare-image-script` and snapshotting
 - [done, 3d, IMGAPI-303, CNAPI-331, AGENT-674, trent] House the prepare-image scripts
   in IMGAPI and pass those through to the 'imgadm create' call.
+- [1d, IMGAPI-312, trent] min_platform to curr platform for smartos images
 - [1w, IMAGE-370, trent/carlos] centos guest tools: operator-script, mdata-put,
   remove prepare-image This is the first one so padding the ETA here.
 - [2d?, IMAGE-406, IMAGE-371, carlos] ubuntu guest tools: operator-script, mdata-put, ...
