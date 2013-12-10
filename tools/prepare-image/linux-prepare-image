@@ -1,28 +1,28 @@
 #!/bin/bash
-# Copyright (c) 2013 Joyent Inc., All rights reserved.
+# Copyright (c) 2013 Joyent Inc. All rights reserved.
 #
-# Script that will prepare a Linux guest of a SmartOS hypervisor for
-# image creation. Supported distros: CentOS, Debian, and Ubuntu.
+# A prepare-image script for `imgadm create -s prepare-image-script ...`
+# for a Linux guest of a SmartOS hypervisor. See the "PREPARE IMAGE SCRIPTS"
+# section of `man imgadm` and Joyent's OS-2550 for details.
 #
-# Current status:
-# - This is a fork of smartos-vmtools2.git:src/linux/linux-prepare-image
-#   to make it suitable for use in 'imgadm create -s prepare-image-script'
-#   autoprep (OS-2550)
-# - Currently somewhat hacked and only tested against a ubuntu 2.4.2 Joyent
-#   image with manually tweaked guest tools.
+# Intended supported distros: CentOS (not yet tested), Debian (not yet tested),
+# and Ubuntu.
 #
 
-if [[ -n "$TRACE" ]]; then
-    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
-    set -o xtrace
-fi
 set -o errexit
 set -o pipefail
 
+# Trace logging to /tmp/prepare-image-trace.log to be partially passed back
+# as prepare-image:error. Note that I would have used 'prepare-image:trace'
+# but deployed `imgadm` is already looking for the former.
+TRACELOG=/tmp/prepare-image-trace.log
+touch $TRACELOG
+exec 4<> $TRACELOG
+export PS4='[\D{%FT%TZ}] :${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+export BASH_XTRACEFD=4
+set -o xtrace
+
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
-LOG=/tmp/prepare-image.log
-echo "hi from trent at $(date)" >>$LOG
-#XXX
 
 trap 'errexit $?' EXIT
 
@@ -34,17 +34,22 @@ function fatal
 
 function errexit
 {
+    set +o xtrace
+    set +o errexit
+    set +o pipefail
     if [[ $1 -eq 0 ]]; then
         exit 0
     fi
-    echo "error exit status $1" >>$LOG
+    echo "error exit status $1"
     /lib/smartdc/mdata-put prepare-image:state error
-    cat $LOG | tail -n20 | /lib/smartdc/mdata-put prepare-image:error
+    cat $TRACELOG | tail -n50 | /lib/smartdc/mdata-put prepare-image:error
+    sleep 5  # TODO: need time to get mdata-put complete?
     fatal "error exit status $1"
 }
 
 
-DEBUG=0
+# TODO: make this unnecessary
+DEBUG=1
 
 # location of binaries that functions use
 LOGGER=`which logger 2> /dev/null`
@@ -59,6 +64,7 @@ SEND_ARP_UPDATES_BIN='/lib/smartdc/send-arp-updates'
 JOYENT_PRODUCT_FILE='/lib/smartdc/product'
 USER_SCRIPT_FILE='/var/run/smartdc/user-script'
 USER_SCRIPT_LOCKFILE='/var/lock/smartdc/user-script.lock'
+
 
 # Common functions used by scripts /lib/smartdc
 
@@ -158,10 +164,10 @@ cleanup_root() {
   lib_smartdc_info "cleaning up root account"
   rm -f /root/.bash_history
   history -c
-  history -w
+  history -w || true
   rm -f /root/.bash_history
   history -c
-  history -w
+  history -w || true
   rm -f /root/.bash_history
   rm -f /root/.lesshst
   rm -f /root/.viminfo
@@ -443,7 +449,6 @@ check_lib_smartdc() {
 
 #---- mainline
 
-echo "linux-prepare-image start at $(date)" >>$LOG
 /lib/smartdc/mdata-put prepare-image:state running
 
 # Make sure user is root
@@ -473,9 +478,12 @@ cleanup_hostname
 
 printf "${WARNING}"
 history -c
-history -w
+history -w || true
 
 
 /lib/smartdc/mdata-put prepare-image:state success
+# Successful, but we still emit tail of trace log for info.
+cat $TRACELOG | tail -n50 | /lib/smartdc/mdata-put prepare-image:error || true
+#sleep 10 #XXX
 sleep 3
 shutdown -h now

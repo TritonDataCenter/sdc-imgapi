@@ -215,13 +215,10 @@ This involves:
   the new guest tools.
 - [2d, OS-2484, trent] incr image of incr image should use the first's origin
 
-Polish:
-- PUBAPI-760
-
-
 Notes:
+- mini-platform upgrade dep really wanted: OS-2657
+- polish PUBAPI-760
 
-- min_platform for img creation: OS-2482
 
 
 ## M8: supporting SDC image builds
