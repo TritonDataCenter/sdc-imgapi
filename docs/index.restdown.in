@@ -3397,6 +3397,9 @@ Caveats/Limitations:
   run to do that, and the updated image creation docs will show how to do that.
   I'm working no those this week.
 
+  We'll also have new Linux images soonish that will include the new Linux
+  guest tools.
+
 - We don't support image creation for machines created from images other than:
   smartos images, CentOS images, Ubuntu images. Eventually others (like debian
   and freebsd) will be added.
