@@ -202,23 +202,46 @@ This involves:
 - [done, 3d, IMGAPI-303, CNAPI-331, AGENT-674, trent] House the prepare-image scripts
   in IMGAPI and pass those through to the 'imgadm create' call.
 - [1d, IMGAPI-312, trent] min_platform to curr platform for smartos images
-- [1w, IMAGE-370, trent/carlos] centos guest tools: operator-script, mdata-put,
+- [1w, IMAGE-370, trent] centos guest tools: operator-script, mdata-put,
   remove prepare-image This is the first one so padding the ETA here.
-- [2d?, IMAGE-406, IMAGE-371, carlos] ubuntu guest tools: operator-script, mdata-put, ...
-  Only IMAGE-371 if we'll support the old IMAGE-371 tools.
-- [3d?, IMAGE-372, carlos?] debian guest tools: operator-script, mdata-put, ...
-- [3d?, IMAGE-373, carlos?] freebsd guest tools: operator-script, mdata-put, ...
-- [1w, IMAGE-374, trent/carlos] Package builds of the guest tools with which
+- [1w, IMAGE-374, trent] Package builds of the guest tools with which
   customers can upgrade proto VMs while we still have pre-"new Images with the
   latest guest tools" in play.
-- [IMAGE-375, carlos' team] New releases of all (non-Windows) KVM images with
+- [2d?, IMAGE-406, IMAGE-371, trent] ubuntu guest tools: operator-script, mdata-put, ...
+  Only IMAGE-371 if we'll support the old IMAGE-371 tools.
+- [3d?, IMAGE-372, ?] debian guest tools: operator-script, mdata-put, ...
+- [3d?, IMAGE-373, ?] freebsd guest tools: operator-script, mdata-put, ...
+- [IMAGE-375, ?] New releases of all (non-Windows) KVM images with
   the new guest tools.
 - [2d, OS-2484, trent] incr image of incr image should use the first's origin
 
 Notes:
-- mini-platform upgrade dep really wanted: OS-2657
-- polish PUBAPI-760
 
+- mini-platform upgrade dep really wanted: OS-2657
+- Want better error from IMGAPI here than InvalidParameterError:
+    Create image Hecuba (version 20131210T182429Z) failed: InvalidParameterError: cannot create an image from VM 8a2fb785-adf6-43b9-a84b-e46c59ec4d59 because it resides on a server of insufficient version, min version is 7.0/20130917T001310Z (did you use a suitable image-creation package?)
+    smrt trojan: error (InvalidParameter): cannot create an image from VM 8a2fb785-adf6-43b9-a84b-e46c59ec4d59 because it resides on a server of insufficient version, min version is 7.0/20130917T001310Z (did you use a suitable image-creation package?)
+  Instead have a InsufficientPlatformVersion error code (or something).
+- polish PUBAPI-760
+- portal support: allow a "dry run" call to CreateImageFromMachine to validate
+  fields?
+- error reporting polishing:
+    - attempt to image a machine on a 6.5 node
+    - attempt to image a machine with no origin
+- cloudapi polishing:
+    - cloudapi: a disabled image should still be shown via cloudapi's ListImages
+      if the caller is the owner of the image. Right?
+        e.g. image 5053e8fa-47bb-c4a3-baca-8aa92509cc5c in my COAL right now
+        for admin user.
+      "Failed" ones show, so this is totally incongruous
+      Do "creating" ones show? E.g. on that gets *stuck* in creating (which
+      only happens due to a bug in the create-from-vm workflow)?
+      Note that "sdc-listimages" *has* a --state state option, and says
+      default is "all", but it isn't including disabled ones.
+      Might then want cloudapi internally to use _loadInactiveImages instead
+      of _loadDisabledImages because that isn't the right separation.
+    - TODO: cloudapi tickets for UpdateImage (also see older emails/tickets on this)
+    - PUBAPI-760 CreateMachine does not ensure given image uuid is *active*
 
 
 ## M8: supporting SDC image builds
@@ -3205,5 +3228,183 @@ confirm this with the help of the netstat command:
     127.0.0.1.8081             *.*                0      0 128000      0 LISTEN
           *.443                *.*                0      0 128000      0 LISTEN
 
+
+# Portal Guide
+
+This is a short guide to portal developers wanting to integrate image mgmt.
+
+The main cloudapi endpoints you'll be using for this are:
+- [CreateImageFromMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateImageFromMachine)
+- [GetImage](https://mo.joyent.com/docs/cloudapi/master/#GetImage)
+- [DeleteImage](https://mo.joyent.com/docs/cloudapi/master/#DeleteImage)
+- UpdateImage (not yet exposed via cloudapi)
+
+You'll need to be using a recentish node-smartdc.git and calling the client with
+an Api-Version header that gets the 7.1 version of the API at least. E.g. in my
+test code my cloudapi client is created like this:
+
+    self._cloudapi = smartdc.createClient({
+        url: prof.url,
+        account: prof.account,
+        version: '*',    // <--- asking for latest version
+        noCache: true,
+        rejectUnauthorized: Boolean(prof.rejectUnauthorized),
+        sign: sign,
+        logLevel: this.log && this.log.level()
+    });
+
+The process for a user to create an image is to call CreateImageFromMachine
+with one of their machines that is setup the way they want it. This call also
+takes image manifest data: name, version, description, etc. Minimally the
+API requires 'machine', 'name' and 'version'. So presumably the "Create Image"
+flow in portal would include a form with all the CreateImageFromMachine
+fields.
+
+The initial call to CreateImageFromMachine will return a "placeholder" image
+object with the image UUID (the `id` field) and a `state` of "creating", e.g.:
+
+    {
+        "id": "62306cd7-7b8a-c5dd-d44e-8491c83b9974",
+        "name": "Priam",
+        "version": "1.2.3",
+        "requirements": {},
+        "owner": "930896af-bf8c-48d4-885c-6573a94b1853",
+        "public": false,
+        "state": "creating"
+    }
+
+There is some basic validation of the CreateImageFromMachine inputs. An error
+response example:
+
+    HTTP/1.1 422 Unprocessable Entity
+    content-type: application/json
+    content-length: 413
+    access-control-allow-origin: *
+    access-control-allow-headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, Api-Version, Response-Time
+    access-control-allow-methods: GET, HEAD, POST
+    access-control-expose-headers: Api-Version, Request-Id, Response-Time
+    connection: Keep-Alive
+    content-md5: Q9a1XQBHShbKgT7ADF6Tgw==
+    date: Wed, 11 Dec 2013 19:02:40 GMT
+    server: Joyent SmartDataCenter 7.1.0
+    api-version: 7.1.0
+    request-id: ceb8a270-6296-11e3-9c6e-ad55ae466bcb
+    response-time: 277
+    x-request-id: ceb8a270-6296-11e3-9c6e-ad55ae466bcb
+    x-api-version: 7.1.0
+    x-response-time: 277
+
+    {
+      "message": "invalid image data: name, version",
+      "statusCode": 422,
+      "body": {
+        "code": "ValidationFailed",
+        "message": "invalid image data: name, version",
+        "errors": [
+          {
+            "field": "name",
+            "code": "Invalid",
+            "message": "image name has invalid characters (only alpha-numeric characters and \" \", \".\", \"-\", \"_\" and \"/\" are allowed)"
+          },
+          {
+            "field": "version",
+            "code": "Invalid",
+            "message": "image version has invalid characters (only alpha-numeric characters and \".\", \"-\", \"_\" and \"/\" are allowed)"
+          }
+        ]
+      },
+      "restCode": "ValidationFailed",
+      "name": "ValidationFailedError"
+    }
+
+That `errors` array format is documented here:
+<https://mo.joyent.com/docs/eng/master/#error-handling>. Presumably this could
+be used for form validation.
+
+The image state can be retrieved with GetImage using the `id` from the original
+call. The placeholder image will also show up in ListImages if the `state=all`
+parameter is used. The image states are:
+
+- `failed`: The image creation failed. There will be an `error` object of the
+  form:
+
+        ...
+        "error": {
+            "code": "SomeCamelCaseErrorCode",
+            "message": "some description of the error"
+        },
+        ...
+
+  For example:
+
+        {
+            "id": "d4ac3751-64f1-6929-ee92-fe01e14743b7",
+            "name": "Briseis",
+            "version": "1.2.3",
+            "requirements": {},
+            "owner": "930896af-bf8c-48d4-885c-6573a94b1853",
+            "public": false,
+            "state": "failed",
+            "error": {
+                "code": "PrepareImageDidNotRun",
+                "message": "prepare-image script did not indicate it was run (old guest tools in VM 670e2535-9f3a-494f-d066-a280f4ab0d85?)"
+            }
+        }
+
+  The possible errors codes are documented in
+  [GetImage](https://mo.joyent.com/docs/cloudapi/master/#GetImage).
+  XXX Not yet documented.
+
+  Note: I hope to eventually have a URL to a troubleshooting page for each
+  `error.code`. The URL will be in the error.message or perhaps in a separate
+  `error.url`. It might be interesting for portal to link to that if present.
+
+- `creating`: Still creating.
+
+- `unactivated`: The image has been created on the CN and is in the process
+  of being published to IMGAPI.
+
+- `active`: The image has been successfully created and is ready for use.
+
+
+ListImages shows all images to which a user has access. Images that the user
+*owns*, i.e. for which the `owner` field is the user's UUID, can be deleted
+by that user via DeleteImage.
+
+Caveats/Limitations:
+
+- Existing machines created *before* the img mgmt feature is released *might*
+  not support image creation. That sucks a little for portal providing a "create
+  image" link next to machines. The reasons pre-existing machines might be
+  un-imageable are: (a) they reside on a CN running a too old platform (the
+  JPC reboot should fix that by ~Feb); (b) they were migrated (our current and
+  old migrator script broke a image link at the ZFS level that image mgmt
+  requires). I'll work to provide clear `error.code`s for those cases, but they
+  will still be async errors after an attempt to create an image.
+
+  Theoretically we could mark each machine's "internal_metadata" in VMAPI with
+  whether they fall under this category. But I need to defer that until after
+  the initial rush.
+
+  For now, perhaps the portal could start by not allowing image creation on
+  machines with a created_at before $(date we release img mgmt to JPC).
+  Dev Note: This presumes the migrator script is fixed (SYSOPS-6491) for future
+  migrations.
+
+- Image creation for a Linux machine will fail with `PrepareImageDidNotRun`
+  (that will take ~5 minutes to timeout to that error) until they've done a one
+  time upgrade of their Linux guest tools. We'll have a one-liner for them to
+  run to do that, and the updated image creation docs will show how to do that.
+  I'm working no those this week.
+
+- We don't support image creation for machines created from images other than:
+  smartos images, CentOS images, Ubuntu images. Eventually others (like debian
+  and freebsd) will be added.
+
+Please ping me (Trent Mick <trent.mick@joyent.com>) if you need something from
+the API to reasonably integrate this into portal. The current relevant roadmap
+section is [M7 above](#m7-automated-snapshot-and-prepare-image). It includes
+some rough notes on planned and desireable polishing, some of this touch on
+the portal.
 
 <!-- #endif -->
