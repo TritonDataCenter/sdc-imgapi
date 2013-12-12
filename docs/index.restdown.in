@@ -3348,7 +3348,6 @@ parameter is used. The image states are:
 
   The possible errors codes are documented in
   [GetImage](https://mo.joyent.com/docs/cloudapi/master/#GetImage).
-  XXX Not yet documented.
 
   Note: I hope to eventually have a URL to a troubleshooting page for each
   `error.code`. The URL will be in the error.message or perhaps in a separate
