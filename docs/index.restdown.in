@@ -217,17 +217,15 @@ This involves:
 
 Notes:
 
-- mini-platform upgrade dep really wanted: OS-2657
-- Want better error from IMGAPI here than InvalidParameterError:
-    Create image Hecuba (version 20131210T182429Z) failed: InvalidParameterError: cannot create an image from VM 8a2fb785-adf6-43b9-a84b-e46c59ec4d59 because it resides on a server of insufficient version, min version is 7.0/20130917T001310Z (did you use a suitable image-creation package?)
-    smrt trojan: error (InvalidParameter): cannot create an image from VM 8a2fb785-adf6-43b9-a84b-e46c59ec4d59 because it resides on a server of insufficient version, min version is 7.0/20130917T001310Z (did you use a suitable image-creation package?)
-  Instead have a InsufficientPlatformVersion error code (or something).
-- polish PUBAPI-760
-- portal support: allow a "dry run" call to CreateImageFromMachine to validate
-  fields?
 - error reporting polishing:
     - attempt to image a machine on a 6.5 node
     - attempt to image a machine with no origin
+    - attempt to image an unsupported image
+    - Want better error from IMGAPI here than InvalidParameterError:
+        Create image Hecuba (version 20131210T182429Z) failed: InvalidParameterError: cannot create an image from VM 8a2fb785-adf6-43b9-a84b-e46c59ec4d59 because it resides on a server of insufficient version, min version is 7.0/20130917T001310Z (did you use a suitable image-creation package?)
+        smrt trojan: error (InvalidParameter): cannot create an image from VM 8a2fb785-adf6-43b9-a84b-e46c59ec4d59 because it resides on a server of insufficient version, min version is 7.0/20130917T001310Z (did you use a suitable image-creation package?)
+      Instead have a InsufficientPlatformVersion error code (or something).
+- mini-platform upgrade dep really wanted: OS-2657
 - cloudapi polishing:
     - cloudapi: a disabled image should still be shown via cloudapi's ListImages
       if the caller is the owner of the image. Right?
@@ -242,6 +240,9 @@ Notes:
       of _loadDisabledImages because that isn't the right separation.
     - TODO: cloudapi tickets for UpdateImage (also see older emails/tickets on this)
     - PUBAPI-760 CreateMachine does not ensure given image uuid is *active*
+- polish PUBAPI-760
+- portal support: allow a "dry run" call to CreateImageFromMachine to validate
+  fields?
 
 
 ## M8: supporting SDC image builds
@@ -3295,9 +3296,6 @@ response example:
     x-response-time: 277
 
     {
-      "message": "invalid image data: name, version",
-      "statusCode": 422,
-      "body": {
         "code": "ValidationFailed",
         "message": "invalid image data: name, version",
         "errors": [
@@ -3312,9 +3310,6 @@ response example:
             "message": "image version has invalid characters (only alpha-numeric characters and \".\", \"-\", \"_\" and \"/\" are allowed)"
           }
         ]
-      },
-      "restCode": "ValidationFailed",
-      "name": "ValidationFailedError"
     }
 
 That `errors` array format is documented here:
@@ -3377,10 +3372,10 @@ Caveats/Limitations:
   not support image creation. That sucks a little for portal providing a "create
   image" link next to machines. The reasons pre-existing machines might be
   un-imageable are: (a) they reside on a CN running a too old platform (the
-  JPC reboot should fix that by ~Feb); (b) they were migrated (our current and
+  JPC reboot should fix that by ~Feb), error code
+  `InsufficientServerVersionError`; (b) they were migrated (our current and
   old migrator script broke a image link at the ZFS level that image mgmt
-  requires). I'll work to provide clear `error.code`s for those cases, but they
-  will still be async errors after an attempt to create an image.
+  requires), XXX error code for this.
 
   Theoretically we could mark each machine's "internal_metadata" in VMAPI with
   whether they fall under this category. But I need to defer that until after
