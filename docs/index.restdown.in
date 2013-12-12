@@ -582,6 +582,14 @@ only present with `state == 'failed'`. Error fields are as follows:
 ||code||No||A "CamelCase" string error code.||
 ||stack||No||A stack trace giving context for the error. This is generally considered internal implementation detail, only there to assist with debugging and error classification.||
 
+Possible `error.code` values from current SmartDataCenter and SmartOS:
+
+|| **error.code** || **Details** ||
+|| PrepareImageDidNotRun || This typically means that the target KVM VM (e.g. Linux) has old guest tools that pre-date the image creation feature. Guest tools can be upgraded with installers at <https://download.joyent.com/pub/guest-tools/>. Other possibilities are: a boot time greater than the 5 minute timeout or a bug or crash in the image preparation script. ||
+e800094d-560e-e418-9e30-e541d18fda7d
+|| VmHasNoOrigin || Origin image data could not be found for the VM. Either the link to the image from which the VM was created has been broken (e.g. via 'zfs promote' or migration, see SYSOPS-6491) or there is some problem in either the 'image_uuid' value from `vmadm get` or in imgadm's DB of manifest info for that image. ||
+
+
 
 ## Manifest: disabled
 
@@ -3370,14 +3378,19 @@ Caveats/Limitations:
 - Existing machines created *before* the img mgmt feature is released *might*
   not support image creation. That sucks a little for portal providing a "create
   image" link next to machines. The reasons pre-existing machines might be
-  un-imageable are: (a) they reside on a CN running a too old platform (the
-  JPC reboot should fix that by ~Feb), error code
-  `InsufficientServerVersionError`; (b) they were migrated (our current and
-  old migrator script broke a image link at the ZFS level that image mgmt
-  requires), XXX error code for this.
+  un-imageable are:
+
+  1. They reside on a CN running a too old platform. The JPC reboot should fix
+     that by ~Feb. This case will error on the CreateImageFromMachine call
+     with error code `InsufficientServerVersionError`.
+
+  2. They were migrated. Our current and old migrator script broke a image link
+     at the ZFS level that image mgmt requires. This will be an async error,
+     but fairly quick, with an `error.code = "VmHasNoOrigin"` on the failed
+     image.
 
   Theoretically we could mark each machine's "internal_metadata" in VMAPI with
-  whether they fall under this category. But I need to defer that until after
+  whether they fall under this category 2. But I need to defer that until after
   the initial rush.
 
   For now, perhaps the portal could start by not allowing image creation on
