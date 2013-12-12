@@ -22,7 +22,7 @@ export PS4='[\D{%FT%TZ}] :${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 export BASH_XTRACEFD=4
 set -o xtrace
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/lib/smartdc
 
 
 #---- error handling
@@ -44,8 +44,8 @@ function errexit
         exit 0
     fi
     echo "error exit status $1"
-    /lib/smartdc/mdata-put prepare-image:state error
-    cat $TRACELOG | tail -n50 | /lib/smartdc/mdata-put prepare-image:error
+    /usr/sbin/mdata-put prepare-image:state error
+    cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error
     sleep 5  # TODO: need time to get mdata-put complete?
     fatal "error exit status $1"
 }
@@ -176,13 +176,14 @@ function prepare_ubuntu() {
 function check_lib_smartdc() {
     local DISTRO=$1
 
+    # TODO: add file checks for mdata-* in /usr/sbin and mdata-get *link* in /lib/smartdc
     local FILELIST=''
     if [[ $DISTRO == "centos" ]]; then
-        FILELIST='redhat-powerbtn-acpi-support.sh format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg mdata-get run-user-script send-arp-updates set-root-authorized-keys'
+        FILELIST='redhat-powerbtn-acpi-support.sh format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg run-user-script send-arp-updates set-root-authorized-keys'
     elif [[ $DISTRO == "ubuntu" ]]; then
-        FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg mdata-get run-user-script send-arp-updates set-root-authorized-keys'
+        FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg run-user-script send-arp-updates set-root-authorized-keys'
     elif [[ $DISTRO == "debian" ]]; then
-        FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg mdata-get run-user-script send-arp-updates set-root-authorized-keys'
+        FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg run-user-script send-arp-updates set-root-authorized-keys'
     fi
     for name in $FILELIST; do
         if [ ! -f "/lib/smartdc/$name" ]; then
@@ -209,7 +210,7 @@ function check_lib_smartdc() {
 
 #---- mainline
 
-/lib/smartdc/mdata-put prepare-image:state running
+/usr/sbin/mdata-put prepare-image:state running
 
 # TODO: change to using lsb_* info
 PRODUCT_FILE=/etc/product
@@ -238,8 +239,8 @@ history -c
 history -w || true
 
 
-/lib/smartdc/mdata-put prepare-image:state success
+/usr/sbin/mdata-put prepare-image:state success
 # Successful, but we still emit tail of trace log for info.
-cat $TRACELOG | tail -n50 | /lib/smartdc/mdata-put prepare-image:error || true
+cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error || true
 sleep 3
 shutdown -h now

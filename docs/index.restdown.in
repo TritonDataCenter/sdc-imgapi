@@ -349,7 +349,7 @@ aren't strictly required for a starting rollout.
       a more complete "Capacity Aware Packages" answer by then)
     - list all VMs provisioned with these packages. Consider them "dirty" if
       they have a long life?
-- [PUBAPI-692, trent/john] UpdateImage, sdc-updateimage
+- [PUBAPI-692, trent/andres] UpdateImage, sdc-updateimage
 - PORTAL-??? How will public images from others be handled?
 - JPC-???/PUBAPI-??? capi_limits plugin can't currently handle public images
   from others where can have 'name' collisions.
