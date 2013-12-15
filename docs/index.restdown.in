@@ -195,7 +195,7 @@ This involves:
 
 - [done, OS-2482, joshw] "sdc:operator-script" metadata var pulling from
   `internal_metadata['operator-script']`
-- [done, OS-2515, josh] mdata:fetch/mdata:execute updates for running
+- [done, OS-2515, joshw] mdata:fetch/mdata:execute updates for running
   operator-script for SmartOS guests.
 - [done, TOOLS-292, OS-2547, jclulow] mdata-put, improved mdata-*
 - [done, 1w, OS-2550, trent] `imgadm create -s prepare-image-script` and snapshotting
@@ -207,9 +207,10 @@ This involves:
 - [done, 1w, IMAGE-374, trent/jclulow] Package builds of the guest tools with which
   customers can upgrade proto VMs while we still have pre-"new Images with the
   latest guest tools" in play.
-- [done, 2d?, IMAGE-406, IMAGE-371, trent] ubuntu guest tools
+- [done, IMAGE-371, trent/jclulow] Old ubuntu guest tools
 - [???, IMAGE-375, christopher/carlos/trent] New releases of all (non-Windows)
   KVM images with the new guest tools.
+- [IMAGE-406, ..., jclulow] Canonical Ubuntu guest tools
 - [2d, OS-2484, trent] incr image of incr image should use the first's origin
 - [3d?, IMAGE-372, ?] debian guest tools: operator-script, mdata-put, ...
 - [3d?, IMAGE-373, ?] freebsd guest tools: operator-script, mdata-put, ...
