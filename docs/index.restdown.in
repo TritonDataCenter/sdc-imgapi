@@ -202,18 +202,17 @@ This involves:
 - [done, 3d, IMGAPI-303, CNAPI-331, AGENT-674, trent] House the prepare-image scripts
   in IMGAPI and pass those through to the 'imgadm create' call.
 - [done, 1d, IMGAPI-312, trent] min_platform to curr platform for smartos images
-- [1w, IMAGE-370, trent] centos guest tools: operator-script, mdata-put,
+- [done, 1w, IMAGE-370, trent] centos guest tools: operator-script, mdata-put,
   remove prepare-image.
-- [1w, IMAGE-374, trent] Package builds of the guest tools with which
+- [done, 1w, IMAGE-374, trent/jclulow] Package builds of the guest tools with which
   customers can upgrade proto VMs while we still have pre-"new Images with the
   latest guest tools" in play.
-- [2d?, IMAGE-406, IMAGE-371, trent] ubuntu guest tools: operator-script, mdata-put, ...
-  Only IMAGE-371 if we'll support the old IMAGE-371 tools.
+- [done, 2d?, IMAGE-406, IMAGE-371, trent] ubuntu guest tools
+- [???, IMAGE-375, christopher/carlos/trent] New releases of all (non-Windows)
+  KVM images with the new guest tools.
+- [2d, OS-2484, trent] incr image of incr image should use the first's origin
 - [3d?, IMAGE-372, ?] debian guest tools: operator-script, mdata-put, ...
 - [3d?, IMAGE-373, ?] freebsd guest tools: operator-script, mdata-put, ...
-- [IMAGE-375, ?] New releases of all (non-Windows) KVM images with
-  the new guest tools.
-- [2d, OS-2484, trent] incr image of incr image should use the first's origin
 
 Notes:
 
