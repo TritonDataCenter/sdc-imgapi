@@ -580,6 +580,7 @@ Possible `error.code` values from current SmartDataCenter and SmartOS:
 || PrepareImageDidNotRun || This typically means that the target KVM VM (e.g. Linux) has old guest tools that pre-date the image creation feature. Guest tools can be upgraded with installers at <https://download.joyent.com/pub/guest-tools/>. Other possibilities are: a boot time greater than the 5 minute timeout or a bug or crash in the image preparation script. ||
 e800094d-560e-e418-9e30-e541d18fda7d
 || VmHasNoOrigin || Origin image data could not be found for the VM. Either the link to the image from which the VM was created has been broken (e.g. via 'zfs promote' or migration, see SYSOPS-6491) or there is some problem in either the 'image_uuid' value from `vmadm get` or in imgadm's DB of manifest info for that image. ||
+|| NotSupported || Indicates an error due to functionality that isn't currently supported. One example is that custom image creation of a VM based on a custom image isn't currently supported. ||
 
 
 
