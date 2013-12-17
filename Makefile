@@ -146,6 +146,7 @@ release: all public-docs
 	cp -r \
 		$(TOP)/tools/seed-packages \
 		$(TOP)/tools/prepare-image \
+		$(TOP)/tools/get-image-dataset-guid.sh \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/tools/
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/boot
 	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
