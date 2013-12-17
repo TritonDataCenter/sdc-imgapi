@@ -13,8 +13,7 @@ set -o pipefail
 
 #---- globals, config
 
-IMGAPI_URL=http://127.0.0.1
-CURL_ARGS="--connect-timeout 10 -sS"
+CURL_ARGS="--connect-timeout 10 -sS -k"
 
 #---- support functions
 
@@ -28,8 +27,9 @@ function fatal () {
 
 TOP=$(cd $(dirname $0)/../; pwd)
 
-image_uuid=$1
-compression=$2
+imgapi_url=$1
+image_uuid=$2
+compression=$3
 
 if [[ -z "$image_uuid" || -z "$compression" ]]; then
     fatal "No Image UUID or Image file compression given"
@@ -44,7 +44,7 @@ elif [[ "$compression" != "none" ]]; then
 fi
 
 toguid=$(
-    curl ${CURL_ARGS} --url "${IMGAPI_URL}/images/${image_uuid}/file" \
+    curl ${CURL_ARGS} --url "${imgapi_url}/images/${image_uuid}/file" \
     | ${DECOMPRESS} \
     | zstreamdump \
 	| grep "toguid = " | awk '{ print $3 }'
