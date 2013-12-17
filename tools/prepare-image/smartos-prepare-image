@@ -16,36 +16,60 @@ set -o errexit
 set -o pipefail
 
 PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
-LOG=/tmp/prepare-image.log
+
+TRACELOG=/tmp/prepare-image-trace.log
+touch $TRACELOG
+exec 4<> $TRACELOG
+export PS4='[\D{%FT%TZ}] :${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+export BASH_XTRACEFD=4
+set -o xtrace
 
 
 function fatal
 {
-    echo "prepare-image: fatal error: $*"
+    echo "smartos-prepare-image: fatal error: $*"
     exit 1
 }
 
 function errexit
 {
+    set +o xtrace
+    set +o errexit
+    set +o pipefail
     if [[ $1 -eq 0 ]]; then
         exit 0
     fi
-    echo "error exit status $1" >>$LOG
+    echo "error exit status $1"
     /usr/sbin/mdata-put prepare-image:state error
-    cat $LOG | tail -n20 | /usr/sbin/mdata-put prepare-image:error
+    cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error
+    sleep 5  # TODO: need time to get mdata-put complete?
     fatal "error exit status $1"
 }
 
 
 trap 'errexit $?' EXIT
 
-echo "smartos-prepare-image start at $(date)" >>$LOG
+echo "smartos-prepare-image start at $(date)"
 /usr/sbin/mdata-put prepare-image:state running
-yn_start=y yn_nfs=y yn_subips=y yn_halt=n /opt/local/bin/sm-prepare-image >>$LOG 2>&1
+
+# 'sm-prepare-image' in recent base images removes /.zonecontrol/metadata.sock
+# in part of its effort to support images using it to work on SDC 6.5. This
+# deletion breaks the 'mdata-put' later in this script and this image creation
+# process doesn't care about SDC 6.5. So, just delete it. An eventual better
+# answer is to have smtools.git's mdata-fetch script not consider the presence
+# of /.zonecontrol/metadata.sock significant on 6.5 platforms.
+sed '/rm.*metadata.sock/d' /opt/local/bin/sm-prepare-image >/tmp/sm-prepare-image.custom
+chmod +x /tmp/sm-prepare-image.custom
+DEBUG=1 yn_start=y yn_nfs=y yn_subips=y yn_halt=n /tmp/sm-prepare-image.custom 2>&1
+
 /usr/sbin/mdata-put prepare-image:state success
-/usr/sbin/shutdown -y -g0 -i5 >>$LOG 2>&1
+# Successful, but we still emit tail of trace log for info.
+cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error || true
+sleep 3
+
+/usr/sbin/shutdown -y -g0 -i5
 
 # Work around for OS-2575.
 sleep 5
-echo "halting it now..." >>$LOG 2>&1
-halt -l >>$LOG 2>&1
+echo "halting it now..."
+halt -l
