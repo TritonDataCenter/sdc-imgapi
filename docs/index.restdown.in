@@ -208,6 +208,7 @@ This involves:
   customers can upgrade proto VMs while we still have pre-"new Images with the
   latest guest tools" in play.
 - [done, IMAGE-371, trent/jclulow] Old ubuntu guest tools
+- [done, DOC-501, trent] img mgmt v2 user docs
 - [???, IMAGE-375, christopher/carlos/trent] New releases of all (non-Windows)
   KVM images with the new guest tools.
 - [IMAGE-406, ..., jclulow] Canonical Ubuntu guest tools
@@ -218,6 +219,9 @@ This involves:
 Notes:
 
 - mini-platform upgrade dep really wanted: OS-2657
+- node-smartdc polishing: error reporting on sdc-createimagefrommachine sucks.
+  See the example at <http://wiki.joyent.com/wiki/display/jpc2/Troubleshooting+Image+Creation>
+- polish, error case in JPC: IMGAPI-320
 - cloudapi polishing:
     - cloudapi: a disabled image should still be shown via cloudapi's ListImages
       if the caller is the owner of the image. Right?
