@@ -6,7 +6,7 @@
   "private": true,
   "dependencies": {
     "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#e540f31",
-    "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#c426fc3",
+    "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#898499d",
     "ldapjs": "0.5.7",
     "restify": "git+ssh://git@github.com:mcavage/node-restify.git#0d7b4ba",
     "bunyan": "0.21.4",
