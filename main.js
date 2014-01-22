@@ -99,10 +99,15 @@ function loadConfigSync(configPath) {
     assert.ok(['public', 'private', 'dc'].indexOf(config.mode) !== -1,
         'invalid config.mode');
     if (config.mode === 'dc') {
+        // Temporary while migrations get un on all DCs
         assert.object(config.ufds, 'config.ufds');
         assert.string(config.ufds.url, 'config.ufds.url');
         assert.string(config.ufds.bindDN, 'config.ufds.bindDN');
         assert.string(config.ufds.bindPassword, 'config.ufds.bindPassword');
+        // New database
+        assert.object(config.moray, 'config.moray');
+        assert.string(config.moray.host, 'config.moray.host');
+        assert.number(config.moray.port, 'config.moray.port');
     }
     assert.object(config.storage, 'config.storage');
     if (config.storage.manta) {
@@ -124,7 +129,8 @@ function loadConfigSync(configPath) {
     if (!config.database.type) {
         config.database.type = 'ufds';
     }
-    assert.notEqual(['ufds', 'local'].indexOf(config.database.type), -1,
+    assert.notEqual(['ufds', 'local', 'moray'].
+        indexOf(config.database.type), -1,
         'config.database.type not "ufds" or "local"');
     if (config.database.type === 'local') {
         assert.string(config.database.dir, 'config.database.dir');
