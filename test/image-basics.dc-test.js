@@ -361,16 +361,6 @@ test('CreateImage', function (t) {
             next();
         });
     }
-    function purgeImage(next) {
-        self.client.deleteImage(uuid, luke, {purge: true}, function (err, res) {
-            t.ifError(err, err);
-            if (err) {
-                return next(err);
-            }
-            t.equal(res.statusCode, 204, 'res.statusCode 204');
-            next();
-        });
-    }
 
     async.series(
         [
@@ -395,8 +385,7 @@ test('CreateImage', function (t) {
             deleteIcon,
             setError,
             exportImage,
-            deleteImage,
-            purgeImage
+            deleteImage
         ],
         function (err) {
             t.end();
