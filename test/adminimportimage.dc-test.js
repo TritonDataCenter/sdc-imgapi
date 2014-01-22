@@ -252,7 +252,7 @@ test('AdminImportImage from local .imgmanifest', function (t) {
         });
     }
     function deleteImage(next) {
-        self.client.deleteImage(uuid, { purge: true }, function (err, res) {
+        self.client.deleteImage(uuid, function (err, res) {
             t.ifError(err, err);
             if (err) {
                 return next(err);
@@ -391,7 +391,7 @@ test('AdminImportImage from local .dsmanifest', function (t) {
         });
     }
     function deleteImage(next) {
-        self.client.deleteImage(uuid, { purge: true }, function (err, res) {
+        self.client.deleteImage(uuid, function (err, res) {
             t.ifError(err, err);
             if (err) {
                 return next(err);
@@ -530,7 +530,7 @@ test('AdminImportImage zvol from local .dsmanifest', function (t) {
         });
     }
     function deleteImage(next) {
-        self.client.deleteImage(uuid, { purge: true }, function (err, res) {
+        self.client.deleteImage(uuid, function (err, res) {
             t.ifError(err, err);
             if (err) {
                 return next(err);
@@ -686,7 +686,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
         });
     }
     function deleteImage(next) {
-        self.client.deleteImage(uuid, { purge: true }, function (err, res) {
+        self.client.deleteImage(uuid, function (err, res) {
             t.ifError(err, err);
             if (err) {
                 return next(err);
@@ -842,7 +842,7 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
         });
     }
     function deleteImage(next) {
-        self.client.deleteImage(uuid, { purge: true }, function (err, res) {
+        self.client.deleteImage(uuid, function (err, res) {
             t.ifError(err, err);
             if (err) {
                 return next(err);
@@ -923,7 +923,7 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
         });
     }
     function deleteImage(next) {
-        self.client.deleteImage(uuid, { purge: true }, function (err, res) {
+        self.client.deleteImage(uuid, function (err, res) {
             t.ifError(err, err);
             if (err) {
                 return next(err);
