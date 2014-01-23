@@ -17,7 +17,7 @@
             "retries": 2,
             "minTimeout": 500
         }
-    }
+    },
     "database": {
         "type": "moray"
     },
