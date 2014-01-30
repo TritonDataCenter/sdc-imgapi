@@ -32,6 +32,12 @@ if [[ ! -d $LOCAL_STOR_DIR ]]; then
     chown nobody:nobody $LOCAL_STOR_DIR
 fi
 
+LOCAL_ARCHIVE_DIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.archiveDir)
+if [[ ! -d $LOCAL_ARCHIVE_DIR ]]; then
+    mkdir -p $LOCAL_ARCHIVE_DIR
+    chown nobody:nobody $LOCAL_ARCHIVE_DIR
+fi
+
 $(/opt/local/bin/gsed -i"" -e "s/@@PREFIX@@/\/opt\/smartdc\/imgapi/g" /opt/smartdc/imgapi/smf/manifests/imgapi.xml)
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi.xml
 
