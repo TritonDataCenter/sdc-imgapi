@@ -239,6 +239,7 @@ function createAndStartTheApp(next) {
             return next(err);
         theApp = app;  // `theApp` is intentionally global
         theApp.setupPlaceholderCleanupInterval();
+        theApp.setupRemoteArchiveInterval();
         theApp.listen(function () {
             var addr = theApp.server.address();
             log.info('Image API listening on <http://%s:%s>.',
