@@ -23,7 +23,8 @@
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#490b549",
     "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#152a013",
     "moray": "git+ssh://git@git.joyent.com:node-moray.git#f0f072",
-    "memorystream": "0.2.0"
+    "memorystream": "0.2.0",
+    "posix-getopt": "1.0.0"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0",

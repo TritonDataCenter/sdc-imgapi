@@ -85,6 +85,19 @@ if [[ -n "$opt_local" ]]; then
     done
 elif [[ "$opt_mode" == "dc" ]]; then
     $TOP/test/sdc-ldap modify -f $TOP/test/test-data.ldif
+
+    # Load each ldif image into moray with putobject
+    CFG_FILE=$TOP/etc/imgapi.config.json
+    test_images=$TOP/test/test-data.json
+    num_test_images=$(json length <$test_images)
+    i=0
+    while [[ $i < $num_test_images ]]; do
+        image=$(json $i <$test_images)
+        uuid=$(echo "$image" | json uuid)
+        echo "Adding $uuid"
+        MORAY_URL=moray://$(json moray.host <$CFG_FILE) $TOP/test/putobject -d "$image" imgapi_images $uuid
+        i=$(($i + 1))
+    done
 else
     echo "# No test data is loaded for images.joyent.com test."
 fi
