@@ -176,6 +176,9 @@ function prepare_ubuntu() {
 function check_lib_smartdc() {
     local DISTRO=$1
 
+    # Per IMAGE-446 we need to remove the firstboot guard file for a new image.
+    rm -f /lib/smartdc/.firstboot-complete-do-not-delete
+
     # TODO: add file checks for mdata-* in /usr/sbin and mdata-get *link* in /lib/smartdc
     local FILELIST=''
     if [[ $DISTRO == "centos" ]]; then
@@ -187,14 +190,16 @@ function check_lib_smartdc() {
     fi
     for name in $FILELIST; do
         if [ ! -f "/lib/smartdc/$name" ]; then
-            fatal "Missing needed file - /lib/smartdc/$name"
+            fatal "Missing /lib/smartdc/$name"
         fi
     done
 
-    LINKLIST='product'
-    for LINK in $LINKLIST; do
-        if [ ! -L "/etc/$LINK" ]; then
-            fatal "Missing symlink - /etc/$LINK"
+    # In the centos/2.6.0 image '/etc/product' went from being a symlink to just
+    # a file.
+    local etc_files='product'
+    for name in $etc_files; do
+        if [ ! -f "/etc/$name" ]; then
+            fatal "Missing /etc/$name"
         fi
     done
 
