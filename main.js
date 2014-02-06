@@ -118,8 +118,10 @@ function loadConfigSync(configPath) {
     }
     if (config.storage.local) {
         var local = config.storage.local;
-        assert.string(local.dir, 'config.storage.local.dir');
-        assert.string(local.archiveDir, 'config.storage.local.archiveDir');
+        // Deprecated
+        assert.optionalString(local.dir, 'config.storage.local.dir');
+        // New single baseDir
+        assert.optionalString(local.baseDir, 'config.storage.local.baseDir');
     }
     assert.object(config.database, 'config.database');
     if (!config.database.type) {

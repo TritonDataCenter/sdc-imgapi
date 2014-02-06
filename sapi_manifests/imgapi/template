@@ -24,8 +24,7 @@
         },
 {{/IMGAPI_MANTA_URL}}
         "local": {
-            "dir": "{{{LOCAL_DB_DIR}}}",
-            "archiveDir": "{{{LOCAL_ARCHIVE_DIR}}}"
+            "baseDir": "{{{STORAGE_LOCAL_BASEDIR}}}"
         }
     },
     "wfapi": {

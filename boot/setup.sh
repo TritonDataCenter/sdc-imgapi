@@ -26,16 +26,10 @@ echo "" >>/root/.profile
 echo "export PATH=/opt/smartdc/$role/build/node/bin:/opt/smartdc/$role/node_modules/.bin:\$PATH" >>/root/.profile
 echo '[[ -f $HOME/.mantaprofile ]] && source $HOME/.mantaprofile' >>/root/.profile
 
-LOCAL_STOR_DIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.dir)
-if [[ ! -d $LOCAL_STOR_DIR ]]; then
-    mkdir -p $LOCAL_STOR_DIR
-    chown nobody:nobody $LOCAL_STOR_DIR
-fi
-
-LOCAL_ARCHIVE_DIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.archiveDir)
-if [[ ! -d $LOCAL_ARCHIVE_DIR ]]; then
-    mkdir -p $LOCAL_ARCHIVE_DIR
-    chown nobody:nobody $LOCAL_ARCHIVE_DIR
+STORAGE_LOCAL_BASEDIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.baseDir)
+if [[ ! -d $STORAGE_LOCAL_BASEDIR ]]; then
+    mkdir -p $STORAGE_LOCAL_BASEDIR
+    chown nobody:nobody $STORAGE_LOCAL_BASEDIR
 fi
 
 $(/opt/local/bin/gsed -i"" -e "s/@@PREFIX@@/\/opt\/smartdc\/imgapi/g" /opt/smartdc/imgapi/smf/manifests/imgapi.xml)
