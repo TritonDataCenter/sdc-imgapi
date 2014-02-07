@@ -3158,6 +3158,7 @@ and restart the imgapi server:
 
     svcadm restart config-agent
 
+and then wait up to 30s for the imgapi server to be restarted.
 
 
 ## HOWTO: Dig into IMGAPI's Manta storage
