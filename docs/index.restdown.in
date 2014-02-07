@@ -3126,9 +3126,43 @@ TODO: sdc-healthcheck, sdc-webinfo
 ||imgapi||in each "imgapi" zone||[Bunyan](https://github.com/trentm/node-bunyan)||`` sdc-login imgapi; tail -f `svcs -L imgapi` | bunyan ``||
 
 
-## Examples
+## HOWTO: Enable custom image creation without Manta
 
-1. Dig into IMGAPI's Manta storage (if this IMGAPI is setup to use Manta):
+By default, an IMGAPI in SDC only allows custom image creation (via the
+CreateImageFromVm endpoint) if it is configured with Manta storage for
+custom image files. However for *test* SDC standups you can hack IMGAPI
+to allow local custom image storage.
+
+The symptom of needing to do this from cloudapi or the node-smartdc CLI is:
+
+    $ sdc-createimagefrommachine --machine 3d68ee48-d1fa-685c-9c33-e23064141138 --imageVersion 1.0.0 --name image1 --description "Does this work"
+    sdc-createimagefrommachine: error (NotAvailable): custom image creation is not currently available
+
+
+First turn on the "allowLocalCreateImageFromVm" config var:
+
+    [root@6dc941ae-eecd-40d5-8876-54fa50a2687c (mxpa:imgapi0) /opt/smartdc/imgapi/sapi_manifests/imgapi]# diff -u template.orig template
+    --- template.orig       2014-02-07 19:50:39.333663790 +0000
+    +++ template    2014-02-07 19:50:53.650995828 +0000
+    @@ -4,6 +4,7 @@
+        "mode": "dc",
+        "datacenterName": "{{{datacenter_name}}}",
+        "adminUuid": "{{{ufds_admin_uuid}}}",
+    +   "allowLocalCreateImageFromVm": true,
+        "ufds": {
+            "url": "ldaps://{{{UFDS_SERVICE}}}",
+            "bindDN": "{{{ufds_ldap_root_dn}}}",
+
+Then restart config-agent *in the imgapi zone* to have it regen the config file
+and restart the imgapi server:
+
+    svcadm restart config-agent
+
+
+
+## HOWTO: Dig into IMGAPI's Manta storage
+
+If this IMGAPI is setup to use Manta.
 
         HN=stage2    # my SDC headnode login
 
@@ -3164,6 +3198,10 @@ TODO: sdc-healthcheck, sdc-webinfo
 
 ## Configuring IMGAPI for HTTPS
 
+This section is for setting up an IMGAPI that lives *outside* of an SDC
+installation. Examples of this are for <https://images.joyent.com> and
+<https://updates.joyent.com>.
+
 On SmartOS, IMGAPI can be deployed to support HTTPS with the use of Stud
 (https://github.com/bumptech/stud) as a SSL/TLS termination proxy. Because of the
 way Stud works we need to put an additional reverse proxy between Stud and IMGAPI:
@@ -3171,7 +3209,7 @@ HAProxy. The only caveat here is that the latest version of HAProxy doesn't
 fully understand the traffic coming from Stud, so we use a patched version of
 the package.
 
-### Prerrequisites and Assumptions
+### Prerequisites and Assumptions
 
 * IMGAPI running on an Image with at least a 2012Q2 release of pkgsrc
 * IMGAPI running on port 8080 if using configuration defaults
