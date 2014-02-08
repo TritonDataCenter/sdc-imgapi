@@ -56,20 +56,6 @@ function provision_cloudapi {
 EOM
 }
 
-function cloudapi_turn_on_img_mgmt_feature {
-    local cloudapi_svc=$(sdc-sapi /services?name=cloudapi | json -H 0.uuid)
-    local have_feature=$(sapiadm get $cloudapi_svc \
-        | json -e 'this.good = Boolean(~(metadata.CLOUDAPI_BLEEDING_EDGE_FEATURES || []).indexOf("img_mgmt"))' good)
-    [[ $have_feature == "true" ]] && return;
-    echo "# Enable 'img_mgmt' feature in cloudapi"
-    echo '{
-        "metadata": {
-            "CLOUDAPI_BLEEDING_EDGE_FEATURES": ["img_mgmt"],
-            "CLOUDAPI_BLEEDING_EDGE_LOGIN_WHITELIST": ["admin"]
-        }
-    }' | sapiadm update $cloudapi_svc
-}
-
 function hack_dapi_for_headnode_provisioning {
     local dapi_zone=$(vmadm lookup -1 alias=dapi0)
     # TODO: don't change if already done
@@ -146,7 +132,6 @@ echo "# Prepare this COAL DC for custom image management."
     || fatal "datacenter_name is not COAL, refusing to run"
 
 provision_cloudapi
-cloudapi_turn_on_img_mgmt_feature
 hack_dapi_for_headnode_provisioning
 # TODO: how to offer alternative to hook up to remote Manta?
 hack_imgapi_to_allow_local_custom_images
