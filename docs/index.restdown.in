@@ -235,13 +235,13 @@ Notes:
       Might then want cloudapi internally to use _loadInactiveImages instead
       of _loadDisabledImages because that isn't the right separation.
     - TODO: cloudapi tickets for UpdateImage (also see older emails/tickets on this)
-    - PUBAPI-760 CreateMachine does not ensure given image uuid is *active*
-- polish PUBAPI-760
 - portal support: allow a "dry run" call to CreateImageFromMachine to validate
   fields?
 
 
 ## M8: supporting SDC image builds
+
+*Done.*
 
 The work required to be able to do SDC builds in JPC.
 
@@ -249,7 +249,7 @@ The work required to be able to do SDC builds in JPC.
   *Note: not yet deployed.*
 - [done, IMGAPI-249, andres] ExportImage endpoint
 - [done, PUBAPI-674, andres]: ExportImage in cloudapi
-- [RELENG-492, john] get builds to work with slaves in us-east-1 JPC zones
+- [done, RELENG-492 et al] get builds to work with slaves in us-east-1 JPC zones
 
 
 ## M9: remote streaming
