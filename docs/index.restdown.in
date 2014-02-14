@@ -424,7 +424,7 @@ A summary of fields (details are provided below):
 ||[disabled](#manifest-disabled)||Boolean||Yes||No (\*)||Indicates if this image is available for provisioning.||
 ||[public](#manifest-public)||Boolean||Yes||Yes (\*)||Indicates if this image is publicly available.||
 ||[published_at](#manifest-published_at)||Date||Yes (if activated)||No||The date at which the image is activated). Set by the IMGAPI server.||
-||[type](#manifest-type)||String||Yes||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[type](#manifest-type)||String||Yes||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
 ||[os](#manifest-os)||String||Yes||Yes||The OS family this image provides. One of "smartos", "windows", "linux" or "other".||
 ||[origin](#manifest-origin)||UUID||No||No||The origin image UUID if this is an incremental image.||
 ||[files](#manifest-files)||Array||Yes (if activated)||No||An array with a single object describing the image file.||
@@ -628,9 +628,10 @@ Joyent-provided images from <https://images.joyent.com>.
 
 The type of the image file. Must be one of:
 
-||**OS**||**DESCRIPTION**||
+||**TYPE**||**DESCRIPTION**||
 ||zone-dataset||a ZFS dataset used to create a new SmartOS zone||
 ||zvol||a KVM virtual machine image||
+||other||an image that serves any other specific purpose||
 
 
 ## Manifest: os
@@ -1933,7 +1934,7 @@ provisioning.
 ||[eula](#manifest-eula)||URL||No||-||URL of the End User License Agreement (EULA) for the image.||
 ||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
 ||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
-||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
 ||[os](#manifest-os)||String||Yes||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
 ||[origin](#manifest-origin)||UUID||No||-||The origin image UUID if this is an incremental image.||
 ||[acl](#manifest-acl)||Array||No||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
@@ -2047,7 +2048,7 @@ The following is the list of fields that the new Image will inherit from the sou
 Image of the VM in question and therefore cannot be specified:
 
 ||**Field**||**Type**||**Notes**||
-||[type](#manifest-type)||String||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[type](#manifest-type)||String||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
 ||[os](#manifest-os)||String||The OS family this image provides. One of "smartos", "windows", and "linux".||
 ||[requirements](#manifest-requirements)||Object||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
 ||[users](#manifest-users)||Array||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
@@ -2638,7 +2639,7 @@ updated.
 ||[homepage](#manifest-homepage)||URL||-||Homepage URL where users can find more information about the image.||
 ||[eula](#manifest-eula)||URL||-||URL of the End User License Agreement (EULA) for the image.||
 ||[public](#manifest-public)||Boolean||false||Indicates if this image is publicly available.||
-||[type](#manifest-type)||String||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, or "zvol" for a virtual machine image.||
+||[type](#manifest-type)||String||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
 ||[os](#manifest-os)||String||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
 ||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
 ||[requirements](#manifest-requirements)||Object||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
@@ -3011,7 +3012,7 @@ The set of available storages is set in the configuration. E.g.:
             "keyId": "59:8a:63:3f:9d:5d:69:5f:cf:37:2e:0d:84:80:91:da"
         },
         "local": {
-            "dir": "/data/imgapi/images"
+            "baseDir": "/data/imgapi"
         }
     }
 
@@ -3062,7 +3063,7 @@ top-level keys in the factory settings. For example: if providing
 ||database.dir||String||-||The base directory for the database `database.type === 'local'`.||
 ||storage||Object||-||The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion.||
 ||storage.local||Object||-||Object holding config information for "local" disk storage.||
-||storage.local.dir||String||-||The base directory in which to store image files for "local" storage.||
+||storage.local.baseDir||String||-||The base directory in which to store image files and archived manifests for "local" storage.||
 ||storage.manta||Object||-||Object holding config information for Manta storage.||
 ||storage.manta.url||String||-||The Manta API URL.||
 ||storage.manta.insecure||Boolean||false||Ignore SSL certs on the Manta URL.||
