@@ -44,9 +44,8 @@ function errexit
         exit 0
     fi
     echo "error exit status $1"
-    /usr/sbin/mdata-put prepare-image:state error
     cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error
-    sleep 5  # TODO: need time to get mdata-put complete?
+    /usr/sbin/mdata-put prepare-image:state error
     fatal "error exit status $1"
 }
 
@@ -93,9 +92,10 @@ function cleanup_disks() {
 }
 
 function cleanup_metadata() {
-    # TODO: these still the used locations?
-    rm -f var/run/smartdc/user-script
-    rm -f var/lock/smartdc/user-script.lock
+    # These files are in the centos 2.6.0 image. Not in the ubuntu or
+    # ubuntu-certified images.
+    rm -f /var/run/smartdc/user-script
+    rm -f /var/lock/smartdc/user-script.lock
 }
 
 function cleanup_hostname() {
@@ -161,7 +161,10 @@ function prepare_ubuntu() {
         find /var/lib/dhcp -type f -name "*.leases" | xargs rm -f
     fi
 
-    if [[ -f /etc/network/interfaces ]] ; then
+    # Use DHCP.
+    # These are already configured in ubuntu-certified (presumably by
+    # cloud-init) in /etc/network/interfaces.d/eth{0,1}.cfg. Skip there.
+    if [[ -f /etc/network/interfaces && ! -d /etc/network/interfaces.d ]]; then
         rm -f /etc/network/interfaces
         out=$(dpkg-reconfigure ifupdown 2>&1 > /dev/null)
         echo "" >> /etc/network/interfaces
@@ -172,42 +175,14 @@ function prepare_ubuntu() {
     fi
 }
 
-# Makes sure that all is in /lib/smartdc and configured for production.
-function check_lib_smartdc() {
+# Makes sure that /lib/smartdc et al are sane.
+function prepare_lib_smartdc() {
     local DISTRO=$1
 
     # Per IMAGE-446 we need to remove the firstboot guard file for a new image.
     rm -f /lib/smartdc/.firstboot-complete-do-not-delete
 
-    # TODO: add file checks for mdata-* in /usr/sbin and mdata-get *link* in /lib/smartdc
-    local FILELIST=''
-    if [[ $DISTRO == "centos" ]]; then
-        FILELIST='redhat-powerbtn-acpi-support.sh format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg run-user-script send-arp-updates set-root-authorized-keys'
-    elif [[ $DISTRO == "ubuntu" ]]; then
-        FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg run-user-script send-arp-updates set-root-authorized-keys'
-    elif [[ $DISTRO == "debian" ]]; then
-        FILELIST='format-secondary-disk joyent_rc.local lib_smartdc_scripts.cfg run-user-script send-arp-updates set-root-authorized-keys'
-    fi
-    for name in $FILELIST; do
-        if [ ! -f "/lib/smartdc/$name" ]; then
-            fatal "Missing /lib/smartdc/$name"
-        fi
-    done
-
-    # In the centos/2.6.0 image '/etc/product' went from being a symlink to just
-    # a file.
-    local etc_files='product'
-    for name in $etc_files; do
-        if [ ! -f "/etc/$name" ]; then
-            fatal "Missing /etc/$name"
-        fi
-    done
-
-    OUT=`grep -e "^(/lib/smartdc/joyent_rc.local)" /etc/rc.local`
-    if [ -z $OUT ]; then
-        fatal "Missing call in /etc/rc.local to /lib/smartdc/joyent_rc.local"
-    fi
-
+    # Note: Not sure this is currently necessary.
     chown -R root:root /lib/smartdc
 }
 
@@ -224,15 +199,18 @@ if [[ ! -f $PRODUCT_FILE ]]; then
 fi
 TARGET_DISTRO=`grep -w Image $PRODUCT_FILE | awk '{print $2;}'`
 
+# Subtlety: the "Image" line in /etc/product in old ubuntu images has
+# "ubuntu" (lowercase). In the new ubuntu-certified images it is "Ubuntu"
+# (uppercase).
 if [ $TARGET_DISTRO == "centos" ] ; then
     prepare_centos
-elif [ $TARGET_DISTRO == "ubuntu" ] ; then
-    prepare_ubuntu
-elif [ $TARGET_DISTRO == "debian" ] ; then
+elif [[ $TARGET_DISTRO == "ubuntu" ||
+	$TARGET_DISTRO == "Ubuntu" ||
+	$TARGET_DISTRO == "debian" ]] ; then
     prepare_ubuntu
 fi
 
-check_lib_smartdc
+prepare_lib_smartdc
 cleanup_logs
 cleanup_disks
 cleanup_ssh
