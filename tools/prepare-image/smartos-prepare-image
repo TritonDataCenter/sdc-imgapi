@@ -40,9 +40,8 @@ function errexit
         exit 0
     fi
     echo "error exit status $1"
-    /usr/sbin/mdata-put prepare-image:state error
     cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error
-    sleep 5  # TODO: need time to get mdata-put complete?
+    /usr/sbin/mdata-put prepare-image:state error
     fatal "error exit status $1"
 }
 
