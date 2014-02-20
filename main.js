@@ -112,9 +112,8 @@ function loadConfigSync(configPath) {
         assert.string(manta.user, 'config.storage.manta.user');
         assert.string(manta.key, 'config.storage.manta.key');
         assert.string(manta.keyId, 'config.storage.manta.keyId');
-        if (manta.baseDir === undefined || manta.baseDir === '') {
-            manta.baseDir = 'imgapi';
-        }
+        assert.optionalString(manta.baseDir, 'config.storage.manta.baseDir');
+        manta.baseDir = manta.baseDir || 'imgapi';
 
         // If using Manta in dc mode, datacenterName is required in order to
         // follow a consistent images storage structure. baseDir is what comes
