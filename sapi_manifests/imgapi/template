@@ -20,7 +20,8 @@
             "key": "/root/.ssh/imgapi.id_rsa",
             "keyId": "{{IMGAPI_KEY_ID}}",
             "insecure": {{IMGAPI_MANTA_INSECURE}},
-            "remote": {{IMGAPI_MANTA_REMOTE}}
+            "remote": {{IMGAPI_MANTA_REMOTE}},
+            "baseDir": "{{{STORAGE_MANTA_BASEDIR}}}"
         },
 {{/IMGAPI_MANTA_URL}}
         "local": {

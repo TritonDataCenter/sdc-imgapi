@@ -14,6 +14,7 @@ var restify = require('restify');
 var bunyan = require('bunyan');
 var async = require('async');
 var assert = require('assert-plus');
+var format = require('util').format;
 
 var createApp = require('./lib/app').createApp;
 var objCopy = require('./lib/utils').objCopy;
@@ -111,6 +112,24 @@ function loadConfigSync(configPath) {
         assert.string(manta.user, 'config.storage.manta.user');
         assert.string(manta.key, 'config.storage.manta.key');
         assert.string(manta.keyId, 'config.storage.manta.keyId');
+        if (manta.baseDir === undefined || manta.baseDir === '') {
+            manta.baseDir = 'imgapi';
+        }
+
+        // If using Manta in dc mode, datacenterName is required in order to
+        // follow a consistent images storage structure. baseDir is what comes
+        // after /stor/$username, so if baseDir is 'images' or '/images' then
+        // the new MantaStore baseDir will be
+        //      /$username/stor/imgapi/$dcname for dc config mode and
+        //      /$username/stor/imgapi         for public/private config mode
+        var rootDir = format('/%s/stor/', manta.user);
+        if (config.mode === 'dc') {
+            assert.string(config.datacenterName, 'config.datacenterName');
+            manta.baseDir = path.join(rootDir, manta.baseDir,
+                config.datacenterName);
+        } else {
+            manta.baseDir = path.join(rootDir, manta.baseDir);
+        }
     }
     if (config.storage.dcls) {
         var dcls = config.storage.dcls;
