@@ -370,92 +370,134 @@ aren't strictly required for a starting rollout.
 
 ## Image Creation Test Matrix
 
-Here is a table of tested origin images for image creation to show that
+Here are tables of tested origin images for image creation to show that
 *at least once* image creation was successful with this origin image.
 
 ||**UUID**||**Name/Ver**||**Successful?**||**Requirements**||**Notes**||
-||55330ab4-066f-11e2-bd0f-434f2462fada||base/1.8.1||???||-||-||
-||84cb7edc-3f22-11e2-8a2a-3f2a7b148699||base/1.8.4||???||-||-||
-||60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4||base/1.9.1||???||-||-||
-||f669428c-a939-11e2-a485-b790efc0f0c1||base/13.1.0||???||-||-||
-||e3364212-05c0-11e3-9576-3f3ee9e951a7||base/13.2.0||???||-||-||
-||b83f8276-1fdd-11e3-989b-4bddb088a8a0||base/13.2.1||???||-||-||
-||753ceee6-5372-11e3-8f4e-f79c1154e596||base/13.3.0||???||-||-||
+||f669428c-a939-11e2-a485-b790efc0f0c1||base/13.1.0||yes||-||-||
+||e3364212-05c0-11e3-9576-3f3ee9e951a7||base/13.2.0||yes||-||-||
+||b83f8276-1fdd-11e3-989b-4bddb088a8a0||base/13.2.1||yes||-||-||
+||753ceee6-5372-11e3-8f4e-f79c1154e596||base/13.3.0||yes||-||-||
 ||dee73ee2-69ab-11e3-b593-a3f1f80ef403||base/13.3.1||yes||-||-||
-||60a3b1fa-0674-11e2-abf5-cb82934a8e24||base64/1.8.1||???||-||-||
-||fdea06b0-3f24-11e2-ac50-0b645575ce9d||base64/1.8.4||???||-||-||
-||cf7e2f40-9276-11e2-af9a-0bad2233fb0b||base64/1.9.1||???||-||-||
-||9eac5c0c-a941-11e2-a7dc-57a6b041988f||base64/13.1.0||???||-||-||
-||0084dad6-05c1-11e3-9476-8f8320925eea||base64/13.2.0||???||-||-||
-||17c98640-1fdb-11e3-bf51-3708ce78e75a||base64/13.2.1||???||-||-||
-||87b9f4ac-5385-11e3-a304-fb868b82fe10||base64/13.3.0||???||-||-||
+||9eac5c0c-a941-11e2-a7dc-57a6b041988f||base64/13.1.0||yes||-||-||
+||0084dad6-05c1-11e3-9476-8f8320925eea||base64/13.2.0||yes||-||-||
+||17c98640-1fdb-11e3-bf51-3708ce78e75a||base64/13.2.1||yes||-||-||
+||87b9f4ac-5385-11e3-a304-fb868b82fe10||base64/13.3.0||yes||-||-||
 ||c353c568-69ad-11e3-a248-db288786ea63||base64/13.3.1||yes||-||-||
-||bae3f528-e01f-11e2-b2cb-1360087a7d5f||cassandra/13.1.0||???||-||-||
-||274bc2bc-d919-11e2-b797-83245409fbeb||hadoop/13.1.0||???||-||-||
-||48489174-e351-11e2-88c0-a31eb2b342ee||java/13.1.0||???||-||-||
 ||c56ed646-82d8-11e3-849e-eb2c0535bf06||java/13.3.1||???||-||-||
-||2c6b0348-d8f6-11e2-91f4-ef498b553611||manta-build/13.1.0||???||-||-||
-||ec5defa8-16fe-11e3-948e-8f59b3488902||mongodb/13.2.0||???||-||-||
-||d2409672-29f3-11e3-ba86-6f782523cb41||mongodb/13.2.1||???||-||-||
-||f953e97e-4991-11e1-9ea4-27c6e7e8afda||nodejs/1.3.3||???||-||-||
-||1fc068b0-13b0-11e2-9f4e-2f3f6a96d9bc||nodejs/1.4.0||???||-||-||
-||beb2dbd4-b26f-11e2-8ad4-935c80092aa6||nodejs/13.1.0||???||-||-||
-||ffed3d9e-2c2f-11e3-9a12-bf5267821b0b||nodejs/13.2.1||???||-||-||
-||133263be-3c2c-11e3-8d3a-a30c43ae58fd||nodejs/13.2.2||???||-||-||
-||81223438-7874-11e3-9edf-8f1e15269924||nodejs/13.3.1||yes||-||IMGAPI-326,DATASET-934||
-||dc1a8b5e-043c-11e2-9d94-0f3fcb2b0c6d||percona/1.6.0||???||-||-||
-||3882b5da-b0e8-11e2-b3a9-dbcf26c3e051||percona/13.1.0||???||-||-||
-||fb6e7820-60ee-11e3-93b6-7f34ea3f2616||percona/13.3.0||???||-||-||
-||1567edb0-b33e-11e2-a0d2-bf73e2825ffe||riak/13.1.0||???||-||-||
-||489754f2-5e01-11e1-8ff8-f770c2116b0d||smartos/1.5.4||no||-||Image should be deprecated, right?||
-||01b2c898-945f-11e1-a523-af1afbe22822||smartos/1.6.3||no||-||Image should be deprecated, right?||
-||31bc4dbe-5e06-11e1-907c-5bed6b255fd1||smartos64/1.5.4||no||-||Image should be deprecated, right?||
-||f9e4be48-9466-11e1-bc41-9f993f5dff36||smartos64/1.6.3||no||-||Image should be deprecated, right?||
-||3390ca7c-f2e7-11e1-8818-c36e0b12e58b||standard/1.0.7||???||-||-||
-||34509f68-1ae7-11e3-b816-d3edf71c7840||standard/13.2.0||???||-||-||
-||dac2ad6e-2aa5-11e3-885f-8fd408fc6a82||standard/13.2.1||???||-||-||
-||56a0655c-3cc6-11e3-9c79-5701599fdf05||standard/13.2.3||???||-||-||
-||40d56fc2-788c-11e3-8e0e-ab90eb060ee7||standard/13.3.1||???||-||-||
-||a0f8cf30-f2ea-11e1-8a51-5793736be67c||standard64/1.0.7||???||-||-||
-||399775e4-163e-11e3-8d42-7b14b732ae17||standard64/13.2.0||???||-||-||
-||b779b49a-29e4-11e3-9b1d-0b0b41ccdcad||standard64/13.2.1||???||-||-||
-||610e04c4-3cc4-11e3-9867-df64b21b66fe||standard64/13.2.3||???||-||-||
-||74c3b232-7961-11e3-a7a7-935768270b93||standard64/13.3.1||???||-||-||
-||2539f6de-0b5a-11e2-b647-fb08c3503fb2||centos-5.7/1.3.0||???||-||-||
-||e4cd7b9e-4330-11e1-81cf-3bb50a972bda||centos-6/1.0.1||???||-||-||
-||8700b668-0da4-11e2-bde4-17221283a2f4||centos-6/1.3.0||???||-||-||
-||87c556ac-ab9d-11e2-914d-07682fcab47d||centos-6/2.4.1||???||-||-||
-||30e9e4c8-bbf2-11e2-ac3b-3b598ee13393||centos-6/2.4.2||???||-||-||
+||81223438-7874-11e3-9edf-8f1e15269924||nodejs/13.3.1||yes||-||-||
+||40d56fc2-788c-11e3-8e0e-ab90eb060ee7||standard/13.3.1||no||-||apache in maint, IMAGE-461||
+||74c3b232-7961-11e3-a7a7-935768270b93||standard64/13.3.1||no||-||apache in maint, IMAGE-461||
+||87c556ac-ab9d-11e2-914d-07682fcab47d||centos-6/2.4.1||???||guest tools upgrade||-||
+||30e9e4c8-bbf2-11e2-ac3b-3b598ee13393||centos-6/2.4.2||???||guest tools upgrade||-||
 ||325dbc5e-2b90-11e3-8a3e-bfdcb1582a8d||centos-6/2.5.0||yes||guest tools upgrade||-||
 ||df81f45e-8f9f-11e3-a819-93fab527c81e||centos-6/2.6.0||yes||-||-||
-||46ecf60e-52c8-11e2-b212-9b51fc749547||debian-6.0.6/2.3.1||n/a||-||-||
-||014e2254-a853-11e2-81c9-b318c31fa17a||debian-6.0.7/2.4.1||n/a||-||-||
-||94384a12-bbeb-11e2-aec2-2bfa9742484b||debian-6.0.7/2.4.2||n/a||-||-||
-||e6ac6784-44b3-11e1-8555-87c3dd87aafe||debian-6.03/1.0.0||n/a||-||-||
-||e42f8c84-bbea-11e2-b920-078fab2aab1f||fedora/2.4.2||n/a||-||-||
-||71101322-43a5-11e1-8f01-cf2a3031a7f4||ubuntu-10.04/1.0.1||???||-||-||
-||64e1b2ee-52c8-11e2-bedd-7f919cc63ab9||ubuntu-12.04/2.3.1||???||-||-||
 ||3162a91e-8b5d-11e2-a78f-9780813f9142||ubuntu-12.04/2.4.0||???||-||-||
 ||da144ada-a558-11e2-8762-538b60994628||ubuntu-12.04/2.4.1||???||-||-||
 ||d2ba0f30-bbe8-11e2-a9a2-6bc116856d85||ubuntu-12.04/2.4.2||yes||guest tools upgrade||-||
 ||a0b441cc-22ac-40c8-a21f-345b734444ec||ubuntu-certified-12.04/20140219||yes||-||-||
 ||46407334-9096-40ef-bb72-6f9a094f0507||ubuntu-certified-13.10/20140219||yes||-||-||
-||13328c9a-9173-11e2-a9a5-2ff43d306c21||ws2008ent-r2-sp1/2.0.2||n/a||-||-||
-||5f101d16-90ac-11e2-b9c2-877979ff6041||ws2008std-r2-sp1/2.0.2||n/a||-||-||
-||95f6c9a6-a2bd-11e2-b753-dbf2651bf890||ws2012std/1.0.1||n/a||-||-||
 
 
-"n/a" here means that image family or operating system isn't currently supported
-for image creation.
+Notes:
 
+- "n/a" here means that image family or operating system isn't currently
+  supported for image creation.
+- "stm" (Riverbed Stringray) images. I'm not going to test those right now.
+  Not clear that image mgmt is a req for them. If any, possibly for the
+  license-unencumbered one: "stm-developer".
+
+I *think* the current img creation supported state is the following, but this
+test matrix is here to clarify that:
+
+- centos 2.6.0 or greater
+- ubuntu-certified (all)
+- base 13.3.x or greater
+- base64 13.3.x or greater
+- (other derivatives of base/base64, e.g. standard) 13.3.1 or greater
+- special cases:
+  - a few older centos and ubuntu with a guest tools upgrade
+  - possibly could support older base-derivatives with a guest tools upgrade
 
 Here is how to generate the template for this table:
 
     sdc-imgadm list public=true -H -o type,name,published,version,uuid | sort \
-        | grep -v 'stm-' | awk '{print $5 " " $2 " " $4}' \
-        | while read line; do printf "||%s %s/%s||???||-||-||\n" $line; done
+        | awk '{print $5 " " $2 " " $4}' \
+        | while read line; do printf "||%s||%s/%s||???||-||-||\n" $line; done
 
 
+
+
+### images for which image creation is *unsupported*
+
+Note that for many of these images the image creation process will naively
+*work*. However VMs provisioned using those custom images will likely break
+in various ways.
+
+Some of these are unsupported because they are older versions, with recent
+versions in that image family being supported. Some are unsupported OSes
+or licensed product lines.
+
+||**UUID**||**Name/Ver**||**Notes**||
+||55330ab4-066f-11e2-bd0f-434f2462fada||base/1.8.1||-||
+||84cb7edc-3f22-11e2-8a2a-3f2a7b148699||base/1.8.4||-||
+||60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4||base/1.9.1||-||
+||60a3b1fa-0674-11e2-abf5-cb82934a8e24||base64/1.8.1||-||
+||fdea06b0-3f24-11e2-ac50-0b645575ce9d||base64/1.8.4||-||
+||cf7e2f40-9276-11e2-af9a-0bad2233fb0b||base64/1.9.1||-||
+||bae3f528-e01f-11e2-b2cb-1360087a7d5f||cassandra/13.1.0||-||
+||274bc2bc-d919-11e2-b797-83245409fbeb||hadoop/13.1.0||-||
+||48489174-e351-11e2-88c0-a31eb2b342ee||java/13.1.0||-||
+||2c6b0348-d8f6-11e2-91f4-ef498b553611||manta-build/13.1.0||-||
+||ec5defa8-16fe-11e3-948e-8f59b3488902||mongodb/13.2.0||-||
+||d2409672-29f3-11e3-ba86-6f782523cb41||mongodb/13.2.1||-||
+||f953e97e-4991-11e1-9ea4-27c6e7e8afda||nodejs/1.3.3||-||
+||1fc068b0-13b0-11e2-9f4e-2f3f6a96d9bc||nodejs/1.4.0||-||
+||beb2dbd4-b26f-11e2-8ad4-935c80092aa6||nodejs/13.1.0||-||
+||ffed3d9e-2c2f-11e3-9a12-bf5267821b0b||nodejs/13.2.1||-||
+||133263be-3c2c-11e3-8d3a-a30c43ae58fd||nodejs/13.2.2||-||
+||dc1a8b5e-043c-11e2-9d94-0f3fcb2b0c6d||percona/1.6.0||-||
+||3882b5da-b0e8-11e2-b3a9-dbcf26c3e051||percona/13.1.0||-||
+||fb6e7820-60ee-11e3-93b6-7f34ea3f2616||percona/13.3.0||-||
+||1567edb0-b33e-11e2-a0d2-bf73e2825ffe||riak/13.1.0||-||
+||489754f2-5e01-11e1-8ff8-f770c2116b0d||smartos/1.5.4||Image should be deprecated, right?||
+||01b2c898-945f-11e1-a523-af1afbe22822||smartos/1.6.3||Image should be deprecated, right?||
+||31bc4dbe-5e06-11e1-907c-5bed6b255fd1||smartos64/1.5.4||Image should be deprecated, right?||
+||f9e4be48-9466-11e1-bc41-9f993f5dff36||smartos64/1.6.3||Image should be deprecated, right?||
+||3390ca7c-f2e7-11e1-8818-c36e0b12e58b||standard/1.0.7||-||
+||34509f68-1ae7-11e3-b816-d3edf71c7840||standard/13.2.0||-||
+||dac2ad6e-2aa5-11e3-885f-8fd408fc6a82||standard/13.2.1||-||
+||56a0655c-3cc6-11e3-9c79-5701599fdf05||standard/13.2.3||-||
+||a0f8cf30-f2ea-11e1-8a51-5793736be67c||standard64/1.0.7||-||
+||399775e4-163e-11e3-8d42-7b14b732ae17||standard64/13.2.0||-||
+||b779b49a-29e4-11e3-9b1d-0b0b41ccdcad||standard64/13.2.1||-||
+||610e04c4-3cc4-11e3-9867-df64b21b66fe||standard64/13.2.3||-||
+||3cd9ef64-1fa5-11e3-be45-1fa28ec74f4a||stm-1000H/13.2.0||Need we support custom stm?||
+||efe2c3e8-1fb8-11e3-b4c4-eb64d18f0b71||stm-1000M/13.2.0||Need we support custom stm?||
+||6e99eff4-1fb9-11e3-9d00-3b6b25be1e62||stm-1000M-SAF/13.2.0||Need we support custom stm?||
+||ef905526-1fb9-11e3-a095-576400e02b54||stm-2000L/13.2.0||Need we support custom stm?||
+||6bf3c40e-1fba-11e3-9847-4f44ccd9abe9||stm-2000L-SAF/13.2.0||Need we support custom stm?||
+||0bcda78c-2066-11e3-8f62-d7edf9742dbd||stm-2000L-SAF-STX/13.2.0||Need we support custom stm?||
+||36f3b80c-2066-11e3-9215-5ffe647b58f0||stm-2000L-STX/13.2.0||Need we support custom stm?||
+||08c63ac6-2067-11e3-abea-a7c7c71e8f15||stm-2000M-SAF-STX/13.2.0||Need we support custom stm?||
+||8b503466-2066-11e3-b5c8-c7e50b85619c||stm-2000M-STX/13.2.0||Need we support custom stm?||
+||e96103b6-1fba-11e3-8dba-3b2f9d336fa1||stm-4000L/13.2.0||Need we support custom stm?||
+||67e5fc46-1fbb-11e3-b1c7-274da29ae2f6||stm-500L-10/13.2.0||Need we support custom stm?||
+||e4093946-1fbb-11e3-8b61-bb9e496e0da4||stm-500M-200/13.2.0||Need we support custom stm?||
+||4b4c141e-1fb4-11e3-a10e-6f99cfdf8806||stm-developer/13.2.0||Need we support custom stm?||
+||2539f6de-0b5a-11e2-b647-fb08c3503fb2||centos-5.7/1.3.0||-||
+||e4cd7b9e-4330-11e1-81cf-3bb50a972bda||centos-6/1.0.1||-||
+||8700b668-0da4-11e2-bde4-17221283a2f4||centos-6/1.3.0||-||
+||46ecf60e-52c8-11e2-b212-9b51fc749547||debian-6.0.6/2.3.1||-||
+||014e2254-a853-11e2-81c9-b318c31fa17a||debian-6.0.7/2.4.1||-||
+||94384a12-bbeb-11e2-aec2-2bfa9742484b||debian-6.0.7/2.4.2||-||
+||e6ac6784-44b3-11e1-8555-87c3dd87aafe||debian-6.03/1.0.0||-||
+||e42f8c84-bbea-11e2-b920-078fab2aab1f||fedora/2.4.2||-||
+||71101322-43a5-11e1-8f01-cf2a3031a7f4||ubuntu-10.04/1.0.1||-||
+||64e1b2ee-52c8-11e2-bedd-7f919cc63ab9||ubuntu-12.04/2.3.1||-||
+||13328c9a-9173-11e2-a9a5-2ff43d306c21||ws2008ent-r2-sp1/2.0.2||-||
+||5f101d16-90ac-11e2-b9c2-877979ff6041||ws2008std-r2-sp1/2.0.2||-||
+||95f6c9a6-a2bd-11e2-b753-dbf2651bf890||ws2012std/1.0.1||-||
 
 <!-- #endif -->
 
