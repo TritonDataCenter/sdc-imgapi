@@ -62,9 +62,9 @@ chmod +x /tmp/sm-prepare-image.custom
 DEBUG=1 yn_start=y yn_nfs=y yn_subips=y yn_halt=n /tmp/sm-prepare-image.custom >&4 2>&1
 
 # IMAGE-461: Zoneinit has a "application/done" guard that sm-prepare-image
-# doesn't clear.
-svccfg -s zoneinit 'setprop application/done = false'
-svcadm refresh zoneinit
+# doesn't clear. Ignore errors for older images without a zoneinit service.
+svccfg -s zoneinit 'setprop application/done = false' 2>/dev/null || true
+svcadm refresh zoneinit 2>/dev/null || true
 
 /usr/sbin/mdata-put prepare-image:state success
 # Successful, but we still emit tail of trace log for info.
