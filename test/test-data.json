@@ -80,5 +80,20 @@
     "files": [],
     "acl": "91ba0e64-2547-11e2-a972-df579e5fddb3",
     "objectclass": "sdcimage"
+  },
+  {
+    "v": 2,
+    "uuid": "2d28c64f-fb16-2145-a0ca-f626aea35c77",
+    "name": "he-will-join-us-or-die",
+    "version": "1.2.3",
+    "owner": "86055c40-2547-11e2-8a6b-4bb37edc84ba",
+    "public": false,
+    "activated": false,
+    "disabled": false,
+    "state": "unactivated",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "acl": "a0b6b534-2547-11e2-b758-63a2afd747d1",
+    "objectclass": "sdcimage"
   }
 ]

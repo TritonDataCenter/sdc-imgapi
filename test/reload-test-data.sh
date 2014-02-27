@@ -86,7 +86,7 @@ if [[ -n "$opt_local" ]]; then
 elif [[ "$opt_mode" == "dc" ]]; then
     $TOP/test/sdc-ldap modify -f $TOP/test/test-data.ldif
 
-    # Load each ldif image into moray with putobject
+    # Load image into moray with putobject
     CFG_FILE=$TOP/etc/imgapi.config.json
     test_images=$TOP/test/test-data.json
     num_test_images=$(json length <$test_images)
