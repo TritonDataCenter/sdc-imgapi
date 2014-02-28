@@ -3174,7 +3174,7 @@ top-level keys in the factory settings. For example: if providing
 ||**var**||**type**||**default**||**description**||
 ||port||Number||8080||Port number on which to listen.||
 ||serverName||String||IMGAPI/$version||Name of the HTTP server. This value is present on every HTTP response in the 'server' header.||
-||logLevel||String or Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
+||logLevel||String/Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
 ||maxSockets||Number||100||Maximum number of sockets for external API calls||
 ||mode||String||public||One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically public server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter).||
 ||datacenterName||String||-||Name of the SDC datacenter on which IMGAPI is running.||
@@ -3194,8 +3194,9 @@ top-level keys in the factory settings. For example: if providing
 ||database.dir||String||-||The base directory for the database `database.type === 'local'`.||
 ||storage||Object||-||The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion.||
 ||storage.local||Object||-||Object holding config information for "local" disk storage.||
-||storage.local.baseDir||String||-||The base directory in which to store image files and archived manifests for "local" storage.||
+||storage.local.baseDir||String||-||The base directory in which to store image files and archived manifests for "local" storage. This is required even if "storage.manta" is setup for primary storage, because image manifest archives are first staged locally before upload to manta.||
 ||storage.manta||Object||-||Object holding config information for Manta storage.||
+||storage.manta.baseDir||String||-||The base directory, relative to '/${storage.manta.user}/stor', under which image files are stored in Manta.||
 ||storage.manta.url||String||-||The Manta API URL.||
 ||storage.manta.insecure||Boolean||false||Ignore SSL certs on the Manta URL.||
 ||storage.manta.remote||Boolean||-||Whether this Manta is remote to this IMGAPI. This helps IMGAPI determine practical issues on whether manta or local storage is used for large files.||
