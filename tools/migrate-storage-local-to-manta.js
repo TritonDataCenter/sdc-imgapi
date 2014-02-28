@@ -1,8 +1,15 @@
 #!/usr/bin/env node
-/*
- * IMGAPI db OPTIONAL migration: this migration is only needed if you have a
- * Local database / Local storage instance that needs its manifests updated
- * after its files have been moved to Manta storage
+/**
+ * This script does *part* of the process of switching an IMGAPI to having all
+ * its image files locally to having them all in Manta.
+ *
+ * Basically the process for that move would be:
+ * - Run all current migrations (from lib/migrations/...) to ensure that you
+ *   have a local storage structure matching that that will exist in Manta.
+ * - Stop imgapi.
+ * - Run `manta-sync ...` to move the local imgapi images storage to
+ *   the appropriate base dir in Manta. TODO: examples
+ * - Run this migration to have the manifests updated so that `files[0].stor = "manta"`.
  */
 
 var p = console.log;
