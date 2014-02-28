@@ -29,8 +29,8 @@ echo '[[ -f $HOME/.mantaprofile ]] && source $HOME/.mantaprofile' >>/root/.profi
 STORAGE_LOCAL_BASEDIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.baseDir)
 if [[ ! -d $STORAGE_LOCAL_BASEDIR ]]; then
     mkdir -p $STORAGE_LOCAL_BASEDIR
-    chown nobody:nobody $STORAGE_LOCAL_BASEDIR
 fi
+chown nobody:nobody $STORAGE_LOCAL_BASEDIR
 
 $(/opt/local/bin/gsed -i"" -e "s/@@PREFIX@@/\/opt\/smartdc\/imgapi/g" /opt/smartdc/imgapi/smf/manifests/imgapi.xml)
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi.xml
