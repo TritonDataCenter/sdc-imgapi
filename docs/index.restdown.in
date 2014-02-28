@@ -399,14 +399,6 @@ Here are tables of tested origin images for image creation to show that
 ||46407334-9096-40ef-bb72-6f9a094f0507||ubuntu-certified-13.10/20140219||yes||-||-||
 
 
-Notes:
-
-- "n/a" here means that image family or operating system isn't currently
-  supported for image creation.
-- "stm" (Riverbed Stringray) images. I'm not going to test those right now.
-  Not clear that image mgmt is a req for them. If any, possibly for the
-  license-unencumbered one: "stm-developer".
-
 I *think* the current img creation supported state is the following, but this
 test matrix is here to clarify that:
 
@@ -415,9 +407,12 @@ test matrix is here to clarify that:
 - base 13.3.x or greater
 - base64 13.3.x or greater
 - (other derivatives of base/base64, e.g. standard) 13.3.1 or greater
-- special cases:
+- special cases (though for simpler instructions we aren't explicitly
+  mentioning these)
   - a few older centos and ubuntu with a guest tools upgrade
   - possibly could support older base-derivatives with a guest tools upgrade
+    (to get DATASET-934 fix), but we don't provide a package for doing that
+    right now
 
 Here is how to generate the template for this table:
 
@@ -437,6 +432,11 @@ in various ways.
 Some of these are unsupported because they are older versions, with recent
 versions in that image family being supported. Some are unsupported OSes
 or licensed product lines.
+
+Regarding "stm" (Riverbed Stringray) images. I'm not going to test those right
+now. Not clear that image mgmt is a req for them. If any, possibly for the
+license-unencumbered one: "stm-developer".
+
 
 ||**UUID**||**Name/Ver**||**Notes**||
 ||55330ab4-066f-11e2-bd0f-434f2462fada||base/1.8.1||-||
