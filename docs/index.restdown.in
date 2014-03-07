@@ -252,7 +252,36 @@ The work required to be able to do SDC builds in JPC.
 - [done, RELENG-492 et al] get builds to work with slaves in us-east-1 JPC zones
 
 
-## M9: remote streaming
+## M9: incr of incr
+
+Note: OS-2811 blocks doing C->A incremental images. Therefore practically
+need to do C->B->A support. Plan:
+
+- currently `imgadm create -i ...` creates B->A incr images, but bails
+  if "A" is itself incremental
+- short term: have it not bail on A being incremental, then can support
+  C->B->A (B's `origin` is A, C's `origin` is B).
+- Longer term, if we want to support "C->A" once OS-2811 is fixed, then
+  we could have: `imgadm create -I <A-image-uuid> ...`. This mirrors
+  the `zfs snapshot -I <base-snapshot> ...` naming.
+
+TODOs:
+
+- [andres] OS-2484 'imgadm create -i' supporting incr of incr
+  including the quick 'imgadm create' change and recursive origin handling
+  in 'imgadm import'
+- OS-??? 'imgadm create -i --max-origin-depth=N' support to allow having
+  the create fail if the origin chain is too deep
+- IMGAPI-???: CreateImageFromVm: add support for passing through maxOriginDepth
+- CNAPI-???/AGENT-???: add support for passing through maxOriginDepth via
+  CNAPI and provisioner agent
+- IMGAPI-???: then not sure if there is more tooling that needs updates, e.g.
+  adding support to AdminImportRemoteImage to do recursive importing
+- OS-????: mini-platform upgrade. We need this to get new imgadm out in a
+  timely manner to JPC.
+
+
+## M10: remote streaming
 
 **Note:** Presuming a first JPC rollout *to us-east only*, this milestone is
 not necessary for the end-of-Aug cut.
@@ -295,7 +324,7 @@ Create a followable metric (via SDC log analysis) to track GetImageFile
 times to help improve this caching.
 
 
-## M10: capacity handling
+## M11: capacity handling
 
 **Note:** This milestone probably not required for shipping img mgmt in JPC.
 
@@ -309,7 +338,7 @@ times to help improve this caching.
   of space? Test it.
 
 
-## M11: tracking usage and billing
+## M12: tracking usage and billing
 
 This is underspecified. Some notes:
 
@@ -325,9 +354,7 @@ This is underspecified. Some notes:
   track this? Usage API work to store that data.
 
 
-## M12: windows support
-
-TODO: pull in Windows-specific steps from preceding milestones
+## M13: windows support
 
 - Windows prepare-image support
 - windows image creation testing
@@ -336,7 +363,7 @@ TODO: pull in Windows-specific steps from preceding milestones
 - [jclulow] mdata-* tools support for Windows
 
 
-## M13: misc
+## M14: misc
 
 A collection of tickets that should be address for robustness, UX, etc. but
 aren't strictly required for a starting rollout.
