@@ -406,13 +406,17 @@ Here are tables of tested origin images for image creation to show that
 ||b83f8276-1fdd-11e3-989b-4bddb088a8a0||base/13.2.1||yes||-||-||
 ||753ceee6-5372-11e3-8f4e-f79c1154e596||base/13.3.0||yes||-||-||
 ||dee73ee2-69ab-11e3-b593-a3f1f80ef403||base/13.3.1||yes||-||-||
+||2b683a82-a066-11e3-97ab-2faa44701c5a||base/13.4.0||yes||-||-||
 ||9eac5c0c-a941-11e2-a7dc-57a6b041988f||base64/13.1.0||yes||-||-||
 ||0084dad6-05c1-11e3-9476-8f8320925eea||base64/13.2.0||yes||-||-||
 ||17c98640-1fdb-11e3-bf51-3708ce78e75a||base64/13.2.1||yes||-||-||
 ||87b9f4ac-5385-11e3-a304-fb868b82fe10||base64/13.3.0||yes||-||-||
 ||c353c568-69ad-11e3-a248-db288786ea63||base64/13.3.1||yes||-||-||
+||ff86eb8a-a069-11e3-ae0e-4f3c8983a91c||base64/13.4.0||yes||-||-||
 ||c56ed646-82d8-11e3-849e-eb2c0535bf06||java/13.3.1||???||-||-||
 ||81223438-7874-11e3-9edf-8f1e15269924||nodejs/13.3.1||yes||-||-||
+||e7061478-9975-11e3-9e42-f3f53beea0c6||postgresql/13.3.1||yes||-||-||
+||6d03452a-9a3c-11e3-8773-23a29a9b75d8||hadoop/13.3.1||yes||-||-||
 ||40d56fc2-788c-11e3-8e0e-ab90eb060ee7||standard/13.3.1||no||-||apache in maint, IMAGE-461||
 ||74c3b232-7961-11e3-a7a7-935768270b93||standard64/13.3.1||no||-||apache in maint, IMAGE-461||
 ||87c556ac-ab9d-11e2-914d-07682fcab47d||centos-6/2.4.1||???||guest tools upgrade||-||
