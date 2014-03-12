@@ -257,26 +257,23 @@ The work required to be able to do SDC builds in JPC.
 Note: OS-2811 blocks doing C->A incremental images. Therefore practically
 need to do C->B->A support. Plan:
 
-- currently `imgadm create -i ...` creates B->A incr images, but bails
-  if "A" is itself incremental
-- short term: have it not bail on A being incremental, then can support
-  C->B->A (B's `origin` is A, C's `origin` is B).
+- C->B->A support has been implemented (B's `origin` is A, C's `origin` is B).
 - Longer term, if we want to support "C->A" once OS-2811 is fixed, then
   we could have: `imgadm create -I <A-image-uuid> ...`. This mirrors
   the `zfs snapshot -I <base-snapshot> ...` naming.
 
 TODOs:
 
-- [andres] OS-2484 'imgadm create -i' supporting incr of incr
+- [done, andres] OS-2484 'imgadm create -i' supporting incr of incr
   including the quick 'imgadm create' change and recursive origin handling
   in 'imgadm import'
-- OS-??? 'imgadm create -i --max-origin-depth=N' support to allow having
-  the create fail if the origin chain is too deep
+- [done, andres] OS-2484 'imgadm create -i --max-origin-depth=N' support to
+  allow having the create fail if the origin chain is too deep
 - IMGAPI-???: CreateImageFromVm: add support for passing through maxOriginDepth
 - CNAPI-???/AGENT-???: add support for passing through maxOriginDepth via
   CNAPI and provisioner agent
-- IMGAPI-???: then not sure if there is more tooling that needs updates, e.g.
-  adding support to AdminImportRemoteImage to do recursive importing
+- [done, andres] OS-2484 Add support to AdminImportRemoteImage to do recursive
+  importing
 - OS-????: mini-platform upgrade. We need this to get new imgadm out in a
   timely manner to JPC.
 
