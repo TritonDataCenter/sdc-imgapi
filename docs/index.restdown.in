@@ -2182,6 +2182,7 @@ going to be directly computed from the source VM.
 ||account||UUID||Yes||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
 ||vm_uuid||UUID||Yes||-||The UUID of the source VM.||
 ||incremental||Boolean||No||false||Whether to create an incremental image.||
+||max_origin_depth||Number||-||If the image is incremental, this number allows setting a limit in the number of child incremental images. E.g. a value of 3 means that the image will only be created if there are no more than 3 parent images in the origin chain.||
 
 ### Manifest Inputs
 
