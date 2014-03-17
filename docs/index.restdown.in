@@ -269,8 +269,8 @@ TODOs:
   in 'imgadm import'
 - [done, andres] OS-2484 'imgadm create -i --max-origin-depth=N' support to
   allow having the create fail if the origin chain is too deep
-- IMGAPI-???: CreateImageFromVm: add support for passing through maxOriginDepth
-- CNAPI-???/AGENT-???: add support for passing through maxOriginDepth via
+- [done, andres] OS-2484 CreateImageFromVm: add support for passing through maxOriginDepth
+- [done, andres] OS-2484 add support for passing through maxOriginDepth via
   CNAPI and provisioner agent
 - [done, andres] OS-2484 Add support to AdminImportRemoteImage to do recursive
   importing
