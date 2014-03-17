@@ -274,7 +274,7 @@ TODOs:
   CNAPI and provisioner agent
 - [done, andres] OS-2484 Add support to AdminImportRemoteImage to do recursive
   importing
-- OS-????: mini-platform upgrade. We need this to get new imgadm out in a
+- [trent?] HEAD-1940: mini-platform upgrade. We need this to get new imgadm out in a
   timely manner to JPC.
 
 
