@@ -1724,6 +1724,31 @@ authenticated account. The latter is for operator-only querying.
 ||tag.{key}||String||List images by tags. See below||
 ||billing_tag||String||List images by billing tags. See below||
 
+### Filtering Images
+
+Resuls from ListImages can be paginated by using two additional query parameters:
+limit and marker. Both can be used together or separately. The following table
+describes the function of each parameter:
+
+||**Field**||**Type**||**Description**||
+||limit||Number||Maximum number of images to return. Images are sorted by creation date (ASC) by default||
+||marker||UUID||Only return images created after the creation date of the image specified by the marker (including the marker image).||
+
+Here are a couple of examples that demostrate how to filter images by using limit
+and markers:
+
+    Get only 10 images
+      GET /images?limit=10
+
+    Get images created after image d0f6f1a8-aef5-11e3-8002-28cfe91a33c9
+      GET /images?marker=d0f6f1a8-aef5-11e3-8002-28cfe91a33c9
+
+    Get the next 2 images after image d0f6f1a8-aef5-11e3-8002-28cfe91a33c9
+      GET /images?limit=3&marker=d0f6f1a8-aef5-11e3-8002-28cfe91a33c9
+
+
+### Searching Images by Tags or Billing Tags
+
 Images can be searched by tags. If an Image is tagged as 'cloud=private', then
 the filter to be added to the request params should be 'tag.cloud=private' and
 the full path for the query would look like "/images?tag.cloud=private". More
