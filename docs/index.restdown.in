@@ -1723,19 +1723,14 @@ authenticated account. The latter is for operator-only querying.
 ||type||String||List images of the given type.||
 ||tag.{key}||String||List images by tags. See below||
 ||billing_tag||String||List images by billing tags. See below||
-
-### Filtering Images
-
-Resuls from ListImages can be paginated by using two additional query parameters:
-limit and marker. Both can be used together or separately. The following table
-describes the function of each parameter:
-
-||**Field**||**Type**||**Description**||
 ||limit||Number||Maximum number of images to return. Images are sorted by creation date (ASC) by default||
 ||marker||UUID||Only return images created after the creation date of the image specified by the marker (including the marker image).||
 
-Here are a couple of examples that demostrate how to filter images by using limit
-and markers:
+### Filtering Images
+
+Resuls from ListImages can be paginated by using the limit and marker query
+parameters. Both can be used together or separately. Here are a couple of
+examples that demostrate their usage:
 
     Get only 10 images
       GET /images?limit=10
