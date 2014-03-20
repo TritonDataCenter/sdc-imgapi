@@ -1723,7 +1723,7 @@ authenticated account. The latter is for operator-only querying.
 ||type||String||List images of the given type.||
 ||tag.{key}||String||List images by tags. See below||
 ||billing_tag||String||List images by billing tags. See below||
-||limit||Number||Maximum number of images to return. Images are sorted by creation date (ASC) by default||
+||limit||Number||Maximum number of images to return. Images are sorted by creation date (ASC) by default. The default (and maximum) limit value is 1000||
 ||marker||UUID||Only return images created after the creation date of the image specified by the marker (including the marker image).||
 
 ### Filtering Images
