@@ -197,11 +197,12 @@ test('CreateImage', function (t) {
         });
     }
     function update(next) {
-        var mod = { description: 'awesome image'};
+        var mod = { version: '1.1.0', description: 'awesome image'};
         self.client.updateImage(uuid, mod, luke, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.description, 'awesome image');
+            t.equal(image.version, '1.1.0');
             aImage = image;
             next();
         });
