@@ -220,7 +220,6 @@ This involves:
 
 Notes:
 
-
 - node-smartdc polishing: error reporting on sdc-createimagefrommachine sucks.
   See the example at <http://wiki.joyent.com/wiki/display/jpc2/Troubleshooting+Image+Creation>
 - polish, error case in JPC: IMGAPI-320
@@ -279,14 +278,12 @@ TODOs:
   timely manner to JPC.
 
 
-## M10: remote streaming
+## M10: local caching of remote image files
 
-(3 weeks, again very rough estimate) Support for remote streaming (from
-remote manta) of image files for install in local DC. If necessary (typically
-large incr images and/or slow WAN download), intelligent local
-pre-caching/loading of images. An obvious case is if a customer creates an
-image in west-1 (which gets published to the manta in east), then that image
-should be cached in west-1 for likely provisioning there.
+(3 weeks, very rough estimate) When IMGAPI's Manta is remote, then it should
+intelligently cache image files locally. An obvious case is if a customer
+creates an image in west-1 (which gets published to the manta in east), then
+that image should be cached in west-1 for likely provisioning there.
 
 Proposed plan tl;dr: Each IMGAPI maintains an image file MRU cache on local
 disk. This is IMGAPI-235.
