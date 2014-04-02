@@ -93,7 +93,7 @@ EOP
 }
 
 function install_base_image {
-    local uuid=753ceee6-5372-11e3-8f4e-f79c1154e596  # base 13.3.0
+    local uuid=2b683a82-a066-11e3-97ab-2faa44701c5a # base 13.4.0
     sdc-imgadm get $uuid >/dev/null 2>/dev/null && return
     echo "# Install base image"
     sdc-imgadm import $uuid -S https://images.joyent.com --skip-owner-check

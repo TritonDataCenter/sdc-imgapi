@@ -209,16 +209,18 @@ This involves:
   latest guest tools" in play.
 - [done, IMAGE-371, trent/jclulow] Old ubuntu guest tools
 - [done, DOC-501, trent] img mgmt v2 user docs
-- [???, IMAGE-375, christopher/carlos/trent] New releases of all (non-Windows)
-  KVM images with the new guest tools.
-- [IMAGE-406, ..., jclulow] Canonical Ubuntu guest tools
-- [2d, OS-2484, trent] incr image of incr image should use the first's origin
+- [all but freebsd done, IMAGE-375, christopher/trent] New releases of all
+  (non-Windows) KVM images with the new guest tools.
+- [done, IMAGE-406, ..., jclulow] Canonical Ubuntu guest tools
+- [done, 2d, OS-2484, andres] incr image of incr image should use the first's origin
 - [3d?, IMAGE-372, ?] debian guest tools: operator-script, mdata-put, ...
 - [3d?, IMAGE-373, ?] freebsd guest tools: operator-script, mdata-put, ...
+- [HEAD-1940, trent] mini-platform upgrade dependency to meaningfully deploy:
+  OS-2657. See HEAD-1940 dep below as well.
 
 Notes:
 
-- mini-platform upgrade dep really wanted: OS-2657
+
 - node-smartdc polishing: error reporting on sdc-createimagefrommachine sucks.
   See the example at <http://wiki.joyent.com/wiki/display/jpc2/Troubleshooting+Image+Creation>
 - polish, error case in JPC: IMGAPI-320
@@ -234,7 +236,6 @@ Notes:
       default is "all", but it isn't including disabled ones.
       Might then want cloudapi internally to use _loadInactiveImages instead
       of _loadDisabledImages because that isn't the right separation.
-    - TODO: cloudapi tickets for UpdateImage (also see older emails/tickets on this)
 - portal support: allow a "dry run" call to CreateImageFromMachine to validate
   fields?
 
@@ -320,15 +321,11 @@ times to help improve this caching.
 
 ## M11: capacity handling
 
-**Note:** This milestone probably not required for shipping img mgmt in JPC.
-
-- What happens when there are >1000 images for a typical search case? Currently
-  IMGAPI doesn't handle paging through "ListImages" results. Proper paging
-  here might require moving IMGAPI's db of manifests from UFDS to Moray.
-  This is IMGAPI-182
-- Ability to have a limit if custom images per user, e.g. so that people
+- [done, IMGAPI-182, IMGAPI-373, etc., andres/trent] Switch IMGAPI db to Moray
+  and support limit/marker for paging through results.
+- [???] Ability to have a limit of custom images per user, e.g. so that people
   don't start using custom images as a cheap/easy way to do backups.
-- How well does IMGAPI fail when its local dir for images files runs out
+- [???] How well does IMGAPI fail when its local dir for images files runs out
   of space? Test it.
 
 
@@ -374,11 +371,9 @@ aren't strictly required for a starting rollout.
       a more complete "Capacity Aware Packages" answer by then)
     - list all VMs provisioned with these packages. Consider them "dirty" if
       they have a long life?
-- [done PUBAPI-857/PUBAPI-692, trent/andres] UpdateImage, sdc-updateimage
+- [done, PUBAPI-857/PUBAPI-692, trent/andres] UpdateImage, sdc-updateimage
 - PORTAL-??? How will public images from others be handled?
-- JPC-???/PUBAPI-??? capi_limits plugin can't currently handle public images
-  from others where can have 'name' collisions.
-- [OS-2203, trent] provision fails when import in progress: imgadm import must
+- [done, OS-2203, trent] provision fails when import in progress: imgadm import must
   coordinate
 - [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
   the same vm_uuid. This to guard against an attempt to DeleteMachine
