@@ -1950,7 +1950,11 @@ The (typically large) image file content.
 
 ### Errors
 
-See [Errors](#errors) section above.
+Any errors produced while transferring the image data will result in the connection
+being closed. Clients should compare the returned data's SHA-1 against the value
+found in the manifest files object in order to check if the received file is corrupt.
+
+For request validation errors, see [Errors](#errors) section above.
 
 ### Example
 
@@ -1989,7 +1993,12 @@ The image icon file content.
 
 ### Errors
 
-See [Errors](#errors) section above.
+Any errors produced while transferring the image icon will result in the connection
+being closed. Clients should compare the returned data's SHA-1 against the value
+found in the manifest files object in order to check if the received icon file is
+corrupt.
+
+For request validation errors, see [Errors](#errors) section above.
 
 ### Example
 
