@@ -112,6 +112,7 @@ test('CreateImage', function (t) {
     var sha1, iconSha1;
     var md5, iconMd5;
     var aImage;
+    var etag;
 
     function create(next) {
         self.client.createImage(data, luke, function (err, image, res) {
@@ -203,6 +204,27 @@ test('CreateImage', function (t) {
             t.ok(image);
             t.equal(image.description, 'awesome image');
             t.equal(image.version, '1.1.0');
+            aImage = image;
+            etag = res.headers['etag'];
+            next();
+        });
+    }
+    function conditionalUpdateFailure(next) {
+        var mod = { version: '1.2.0' };
+        var o = { headers: { 'if-match': 'abcdef' } };
+        self.client.updateImage(uuid, mod, luke, o, function (err, image, res) {
+            t.ok(err, 'conditional update got error: ' + err);
+            t.equal(err.statusCode, '412', 'conditional update statusCode');
+            next();
+        });
+    }
+    function conditionalUpdate(next) {
+        var mod = { version: '1.2.0' };
+        var o = { headers: { 'if-match': etag } };
+        self.client.updateImage(uuid, mod, luke, o, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.version, '1.2.0');
             aImage = image;
             next();
         });
@@ -374,6 +396,8 @@ test('CreateImage', function (t) {
             disable,
             enable,
             update,
+            conditionalUpdateFailure,
+            conditionalUpdate,
             addAcl,
             removeAcl,
             getIconSize,
