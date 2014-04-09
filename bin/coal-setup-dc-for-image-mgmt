@@ -110,14 +110,6 @@ function hack_imgapi_to_allow_local_custom_images {
     fi
 }
 
-function add_image_creation_packages {
-    local existing=$(sdc-ldap s '(&(objectclass=sdcpackage)(name=*-image-creation)(active=true))' | wc -l | awk '{print $1}')
-    if [[ "$existing" == "0" ]]; then
-        local imgapi_zone=$(vmadm lookup -1 alias=imgapi0)
-        /zones/$imgapi_zone/root/opt/smartdc/imgapi/tools/seed-packages/install-seed-packages-coal.sh
-    fi
-}
-
 
 
 #---- mainline
@@ -136,7 +128,6 @@ hack_dapi_for_headnode_provisioning
 # TODO: how to offer alternative to hook up to remote Manta?
 hack_imgapi_to_allow_local_custom_images
 add_external_nic_to_some_core_zones
-add_image_creation_packages
 install_base_image
 
 
