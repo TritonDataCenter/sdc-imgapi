@@ -4,6 +4,9 @@
     "mode": "dc",
     "datacenterName": "{{{datacenter_name}}}",
     "adminUuid": "{{{ufds_admin_uuid}}}",
+    {{#IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}
+    "allowLocalCreateImageFromVm": {{{IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}},
+    {{/IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}
     "ufds": {
         "url": "ldaps://{{{UFDS_SERVICE}}}",
         "bindDN": "{{{ufds_ldap_root_dn}}}",

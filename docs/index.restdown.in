@@ -571,7 +571,7 @@ A summary of fields (details are provided below):
 ||[error](#manifest-error)||Object||No||No||An object with details on image creation failure. It only exists when `state=='failed'`.||
 ||[disabled](#manifest-disabled)||Boolean||Yes||No (\*)||Indicates if this image is available for provisioning.||
 ||[public](#manifest-public)||Boolean||Yes||Yes (\*)||Indicates if this image is publicly available.||
-||[published_at](#manifest-published_at)||Date||Yes (if activated)||No||The date at which the image is activated). Set by the IMGAPI server.||
+||[published_at](#manifest-published_at)||Date||Yes (if activated)||No||The date at which the image is activated. Set by the IMGAPI server.||
 ||[type](#manifest-type)||String||Yes||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
 ||[os](#manifest-os)||String||Yes||Yes||The OS family this image provides. One of "smartos", "windows", "linux" or "other".||
 ||[origin](#manifest-origin)||UUID||No||No||The origin image UUID if this is an incremental image.||
@@ -3227,7 +3227,7 @@ top-level keys in the factory settings. For example: if providing
 ||datacenterName||String||-||Name of the SDC datacenter on which IMGAPI is running.||
 ||adminUuid||String||-||The UUID of the admin user in this SDC.||
 ||placeholderImageLifespanDays||Number||7||The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database.||
-||allowLocalCreateImageFromVm||Boolean||false||Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing.||
+||allowLocalCreateImageFromVm||Boolean||false||Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this.||
 ||minImageCreationPlatform||Array||see defaults.json||The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm).||
 ||ufds.url||String||-||LDAP URL to connect to UFDS. Required if `mode === 'dc'`.||
 ||ufds.bindDN||String||-||UFDS root dn. Required if `mode === 'dc'`.||
