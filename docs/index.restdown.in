@@ -414,6 +414,7 @@ Here are tables of tested origin images for image creation to show that
 ||d2ba0f30-bbe8-11e2-a9a2-6bc116856d85||ubuntu-12.04/2.4.2||yes||guest tools upgrade||-||
 ||a0b441cc-22ac-40c8-a21f-345b734444ec||ubuntu-certified-12.04/20140219||yes||-||-||
 ||46407334-9096-40ef-bb72-6f9a094f0507||ubuntu-certified-13.10/20140219||yes||-||-||
+||96aae6e5-c130-44aa-a4e3-d2394591eee5||ubuntu-certified-13.10/20140410||yes||-||-||
 
 
 I *think* the current img creation supported state is the following, but this
