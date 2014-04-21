@@ -49,14 +49,15 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: update-npm $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(BUILD)/updated-npm.stamp $(NODEUNIT) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
 
 # IMGAPI-391 workaround, get latest npm into our node 0.8 to be able
 # to deal with '^1.2.3'-style semver deps
 # (TODO: remove this when using node >=0.10)
-update-npm: | $(NPM_EXEC)
+$(BUILD)/updated-npm.stamp: | $(NPM_EXEC)
 	$(NPM) install -g npm@1.4.7
+	touch $(BUILD)/updated-npm.stamp
 
 # Node hack for images.joyent.com and updates.joyent.com
 #
