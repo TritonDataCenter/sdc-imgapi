@@ -52,13 +52,6 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
 
-# IMGAPI-391 workaround, get latest npm into our node 0.8 to be able
-# to deal with '^1.2.3'-style semver deps
-# (TODO: remove this when using node >=0.10)
-$(BUILD)/updated-npm.stamp: | $(NPM_EXEC)
-	$(NPM) install -g npm@1.4.7
-	touch $(BUILD)/updated-npm.stamp
-
 # Node hack for images.joyent.com and updates.joyent.com
 #
 # Fake out 'Makefile.node_prebuilt.*' by symlinking build/node
@@ -85,7 +78,7 @@ updates.joyent.com-node-hack:
 		fi; \
 	fi
 
-$(NODEUNIT) node_modules/restify: | $(NPM_EXEC) $(BUILD)/updated-npm.stamp
+$(NODEUNIT) node_modules/restify: | $(NPM_EXEC)
 	$(NPM) install
 
 .PHONY: test test-kvm7 test-images.joyent.com
