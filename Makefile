@@ -49,7 +49,7 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(BUILD)/updated-npm.stamp $(NODEUNIT) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
 
 # IMGAPI-391 workaround, get latest npm into our node 0.8 to be able
@@ -85,7 +85,7 @@ updates.joyent.com-node-hack:
 		fi; \
 	fi
 
-$(NODEUNIT) node_modules/restify: | $(NPM_EXEC)
+$(NODEUNIT) node_modules/restify: | $(NPM_EXEC) $(BUILD)/updated-npm.stamp
 	$(NPM) install
 
 .PHONY: test test-kvm7 test-images.joyent.com
