@@ -33,36 +33,12 @@ function skiptest() {} // quick hack to comment out a test
 var vader = '86055c40-2547-11e2-8a6b-4bb37edc84ba';
 var luke = '91ba0e64-2547-11e2-a972-df579e5fddb3';
 var sdc = 'ba28f844-8cb4-f141-882d-46d6251e6a9f';
-var IMAGES_JOYENT_COM_IP = null;
-var DATASETS_JOYENT_COM_IP = null;
 
 
 //---- tests
 
 before(function (next) {
     this.client = new IMGAPI({url: process.env.IMGAPI_URL, agent: false});
-
-    if (process.env.IMGAPI_TEST_OFFLINE) {
-        return next();
-    }
-
-    // We typically run this test suite from the GZ, where DNS isn't enabled.
-    // We need to manually get the IPs for services we are hitting.
-    dns.lookup('images.joyent.com', function (err, ip) {
-        if (err)
-            return next(err);
-        if (!ip)
-            return next(new Error('could not resolve images.joyent.com'));
-        IMAGES_JOYENT_COM_IP = ip;
-        dns.lookup('datasets.joyent.com', function (err2, ip2) {
-            if (err2)
-                return next(err2);
-            if (!ip2)
-                return next(new Error('could not resolve datasets.joyent.com'));
-            DATASETS_JOYENT_COM_IP = ip2;
-            next();
-        });
-    });
 });
 
 
@@ -583,9 +559,8 @@ test('AdminImportImage from images.joyent.com', function (t) {
     var aImage;
 
     var imagesClient = new IMGAPI({
-        url: 'https://' + IMAGES_JOYENT_COM_IP,
-        agent: false,
-        rejectUnauthorized: false
+        url: 'https://images.joyent.com',
+        agent: false
     });
 
     function getManifestFromImagesJo(next) {
@@ -738,9 +713,8 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
     var aImage;
 
     var datasetsClient = new DSAPI({
-        url: 'https://' + DATASETS_JOYENT_COM_IP,
-        agent: false,
-        rejectUnauthorized: false
+        url: 'https://datasets.joyent.com',
+        agent: false
     });
 
     function getManifestFromDatasetsJo(next) {
@@ -753,8 +727,6 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
     }
     function getFileFromDatasetsJo(next) {
         var url = manifest.files[0].url;
-        // Tests run from the GZ where we don't have DNS.
-        url = url.replace('datasets.joyent.com', DATASETS_JOYENT_COM_IP);
         var stream = fs.createWriteStream(filePath);
         https.get(url, function (res) {
             var sha1hash = crypto.createHash('sha1');
@@ -885,7 +857,6 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
     // shitty-networking BH-1 where testing is typically done.
     var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
     var aImage;
-    // var imagesUrl = 'https://' + IMAGES_JOYENT_COM_IP;
     var imagesUrl = 'https://images.joyent.com';
 
     function importRemote(next) {
