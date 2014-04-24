@@ -136,7 +136,7 @@ test('CreateImage', function (t) {
         var hash = crypto.createHash('sha1');
         var s = fs.createReadStream(filePath);
         s.on('data', function (d) { hash.update(d); });
-        s.on('end', function () {
+        s.on('close', function () {
             sha1 = hash.digest('hex');
             next();
         });
@@ -145,7 +145,7 @@ test('CreateImage', function (t) {
         var hash = crypto.createHash('md5');
         var s = fs.createReadStream(filePath);
         s.on('data', function (d) { hash.update(d); });
-        s.on('end', function () {
+        s.on('close', function () {
             md5 = hash.digest('base64');
             next();
         });
@@ -261,7 +261,7 @@ test('CreateImage', function (t) {
         var hash = crypto.createHash('sha1');
         var s = fs.createReadStream(iconPath);
         s.on('data', function (d) { hash.update(d); });
-        s.on('end', function () {
+        s.on('close', function () {
             iconSha1 = hash.digest('hex');
             next();
         });
@@ -270,7 +270,7 @@ test('CreateImage', function (t) {
         var hash = crypto.createHash('md5');
         var s = fs.createReadStream(iconPath);
         s.on('data', function (d) { hash.update(d); });
-        s.on('end', function () {
+        s.on('close', function () {
             iconMd5 = hash.digest('base64');
             next();
         });
@@ -309,7 +309,7 @@ test('CreateImage', function (t) {
             var hash = crypto.createHash('sha1');
             var s = fs.createReadStream(tmpFilePath);
             s.on('data', function (d) { hash.update(d); });
-            s.on('end', function () {
+            s.on('close', function () {
                 var actual_sha1 = hash.digest('hex');
                 t.equal(sha1, actual_sha1, 'sha1 matches upload');
                 t.equal(aImage.files[0].sha1, actual_sha1,
@@ -330,7 +330,7 @@ test('CreateImage', function (t) {
             var hash = crypto.createHash('sha1');
             var s = fs.createReadStream(tmpFilePath);
             s.on('data', function (d) { hash.update(d); });
-            s.on('end', function () {
+            s.on('close', function () {
                 var actual_sha1 = hash.digest('hex');
                 t.equal(iconSha1, actual_sha1, 'sha1 matches icon upload');
                 next();
