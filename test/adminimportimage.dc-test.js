@@ -39,6 +39,7 @@ var sdc = 'ba28f844-8cb4-f141-882d-46d6251e6a9f';
 
 before(function (next) {
     this.client = new IMGAPI({url: process.env.IMGAPI_URL, agent: false});
+    next();
 });
 
 
