@@ -1961,7 +1961,7 @@ For request validation errors, see [Errors](#errors) section above.
 
 Raw curl (from images.joyent.com):
 
-    $ curl -kIsS https://images.joyent.com/images/01b2c898-945f-11e1-a523-af1afbe22822/file -o file.bz2
+    $ curl -kfsS https://images.joyent.com/images/01b2c898-945f-11e1-a523-af1afbe22822/file -o file.bz2
 
 CLI tool (from images.joyent.com):
 
@@ -2005,7 +2005,7 @@ For request validation errors, see [Errors](#errors) section above.
 
 Raw curl:
 
-    $ curl -kIsS https://localhost/images/01b2c898-945f-11e1-a523-af1afbe22822/icon -o icon.png
+    $ curl -kfsS https://localhost/images/01b2c898-945f-11e1-a523-af1afbe22822/icon -o icon.png
 
 CLI tool:
 
