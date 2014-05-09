@@ -3320,26 +3320,16 @@ The symptom of needing to do this from cloudapi or the node-smartdc CLI is:
     sdc-createimagefrommachine: error (NotAvailable): custom image creation is not currently available
 
 
-First turn on the "allowLocalCreateImageFromVm" config var:
+To allow custom images using *local* storage, run the following in your
+SDC headnode global zone:
 
-    [root@6dc941ae-eecd-40d5-8876-54fa50a2687c (mxpa:imgapi0) /opt/smartdc/imgapi/sapi_manifests/imgapi]# diff -u template.orig template
-    --- template.orig       2014-02-07 19:50:39.333663790 +0000
-    +++ template    2014-02-07 19:50:53.650995828 +0000
-    @@ -4,6 +4,7 @@
-        "mode": "dc",
-        "datacenterName": "{{{datacenter_name}}}",
-        "adminUuid": "{{{ufds_admin_uuid}}}",
-    +   "allowLocalCreateImageFromVm": true,
-        "ufds": {
-            "url": "ldaps://{{{UFDS_SERVICE}}}",
-            "bindDN": "{{{ufds_ldap_root_dn}}}",
+    echo '{"metadata": {"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true}}' \
+      | sapiadm update $(sdc-sapi /services?name=imgapi | json -H 0.uuid)
 
-Then restart config-agent *in the imgapi zone* to have it regen the config file
-and restart the imgapi server:
-
-    svcadm restart config-agent
-
-and then wait up to 30s for the imgapi server to be restarted.
+When the 'config-agent' running in the imgapi zone picks up this change
+(after about 30s), the imgapi service will be restarted with
+`"allowLocalCreateImageFromVm": true` (see [the Configuration
+section](#configuration) above).
 
 
 ## HOWTO: Dig into IMGAPI's Manta storage
