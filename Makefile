@@ -8,7 +8,7 @@
 # Vars, Tools, Files, Flags
 #
 NAME		:= imgapi
-DOC_FILES	 = index.restdown public.restdown design.restdown
+DOC_FILES	 = index.restdown public.restdown design.restdown search.restdown
 RESTDOWN_FLAGS   = --brand-dir=deps/docbrand
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/') \
