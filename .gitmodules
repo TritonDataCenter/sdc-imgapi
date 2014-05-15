@@ -13,3 +13,4 @@
 [submodule "deps/docbrand"]
 	path = deps/docbrand
 	url = git@github.com:joyent/docbrand.git
+	branch = master
