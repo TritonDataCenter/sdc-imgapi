@@ -9,7 +9,7 @@
 #
 NAME		:= imgapi
 DOC_FILES	 = index.restdown public.restdown design.restdown search.restdown
-RESTDOWN_FLAGS   = --brand-dir=deps/docbrand
+RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/') \
 	bin/imgapi-external-manta-setup \
