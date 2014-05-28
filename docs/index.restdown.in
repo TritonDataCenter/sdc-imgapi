@@ -3281,7 +3281,7 @@ There is one IMGAPI service per datacenter. There might actually be more than
 one "imgapi" zone for HA. Use this to list the imgapi zones in a DC:
 
     sdc-vmapi /vms?owner_uuid=$(bash /lib/sdc/config.sh -json | json ufds_admin_uuid) \
-        | json -H -c "tags.smartdc_role=='imgapi'"
+        | json -H -c "this.tags.smartdc_role=='imgapi'"
 
 
 ## Health
