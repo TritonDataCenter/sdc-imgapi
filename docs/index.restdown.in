@@ -2254,7 +2254,7 @@ See [Errors](#errors) section above.
 Raw API tool (against an SDC's IMGAPI). This queues the creation of a new Image
 from an existing VM:
 
-    $ sdc-imgapi /images?action=create-from-vm&vm_uuid=56b107b9-9277-4a6a-bcd3-17c497041bee \
+    $ sdc-imgapi '/images?action=create-from-vm&vm_uuid=56b107b9-9277-4a6a-bcd3-17c497041bee' \
         -X POST \
         --data-binary '{
             "name": "foo",
