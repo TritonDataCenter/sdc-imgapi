@@ -561,7 +561,7 @@ A summary of fields (details are provided below):
 ||**Field**||**Type**||**Always Present?**||**Mutable?**||**Notes**||
 ||[v](#manifest-v)||Integer||Yes||No||Version of the manifest format/spec. The current value is **2**.||
 ||[uuid](#manifest-uuid)||UUID||Yes||No||The unique identifier for a UUID. This is set by the IMGAPI server. See details below.||
-||[owner](#manifest-owner)||UUID||Yes||No||The UUID of the owner of this image (the account that created it).||
+||[owner](#manifest-owner)||UUID||Yes||Yes||The UUID of the owner of this image (the account that created it).||
 ||[name](#manifest-name)||String||Yes||No||A short name for this image. Max 512 characters (though practical usage should be much shorter). No uniqueness guarantee.||
 ||[version](#manifest-version)||String||Yes||No||A version string for this image. Max 128 characters. No uniqueness guarantee.||
 ||[description](#manifest-description)||String||No||Yes||A short description of the image.||
@@ -643,9 +643,12 @@ of URN (`<cloud_name>:<creator_name>:<name>:<version>`) are not maintainable
 in global ecosystem of SmartOS images. Therefore the URN has been dropped as
 a supported mechanism of uniquely identifying images. Use the `uuid` field.
 
+
 ## Manifest: owner
 
 The account UUID of the owner/creator of this image.
+In non-"dc" mode IMGAPI repositories (where there is no user database) this
+value has no meaning.
 
 
 ## Manifest: name
