@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Joyent Inc. All rights reserved.
+ * Copyright (c) 2014 Joyent Inc. All rights reserved.
  *
  * Test CreateImageFromVm endpoint.
  */
@@ -15,8 +15,7 @@ var async = require('async');
 var restify = require('restify');
 var genUuid = require('libuuid');
 
-//var IMGAPI = require('sdc-clients').IMGAPI;   // temp broken by TOOLS-211
-var IMGAPI = require('sdc-clients/lib/imgapi');
+var IMGAPI = require('sdc-clients').IMGAPI;
 var DSAPI = require('sdc-clients/lib/dsapi');
 
 // Needed for provisioning
@@ -32,13 +31,16 @@ var tap4nodeunit = require('./tap4nodeunit.js');
 var after = tap4nodeunit.after;
 var before = tap4nodeunit.before;
 var test = tap4nodeunit.test;
-function skiptest() {} // quick hack to comment out a test
 
 
 
 //---- globals
 
-var SMARTOS = '01b2c898-945f-11e1-a523-af1afbe22822';
+// Require base@14.1.0 installed. Note that
+// globe-theatre.git/bin/stage-test-imgapi does this for us.
+var TEST_IMAGE_UUID = 'caac17a4-d512-11e3-9d41-b756aebcb18f';
+
+
 var NETWORK = null;
 var SERVER = null;
 var VM = null;
@@ -48,8 +50,11 @@ var CAN_RUN_TEST = (process.env.VMAPI_URL !== undefined &&
                     process.env.NAPI_URL !== undefined &&
                     process.env.CNAPI_URL !== undefined &&
                     process.env.UFDS_ADMIN_UUID !== undefined &&
-                    (process.env.IMGAPI_HAS_MANTA === true ||
-                        process.env.IMGAPI_HAS_MANTA === 'true'));
+                    (process.env.IMGAPI_IMAGE_CREATION_ENABLED === true ||
+                        process.env.IMGAPI_IMAGE_CREATION_ENABLED === 'true'));
+if (!CAN_RUN_TEST) {
+    console.warn("WARNING: skipping image creation tests (CAN_RUN_TEST=false)");
+}
 
 function createManifest() {
     var uuid = genUuid.create();
@@ -88,9 +93,11 @@ function waitForState(vmapi, state, callback) {
     return check();
 }
 
+
 //---- tests
 
 before(function (next) {
+    var self = this;
     this.client = new IMGAPI({url: process.env.IMGAPI_URL, agent: false});
 
     if (!CAN_RUN_TEST) {
@@ -111,6 +118,15 @@ before(function (next) {
     var cnapi = new CNAPI({url: process.env.CNAPI_URL, agent: false});
 
     async.waterfall([
+        function ensureImage(cb) {
+            self.client.getImage(TEST_IMAGE_UUID, function (err, img) {
+                if (err) {
+                    console.error('error: the test image %s is not ' +
+                        'imported from images.joyent.com', TEST_IMAGE_UUID);
+                }
+                cb(err);
+            });
+        },
         function getNetwork(cb) {
             napi.listNetworks({}, function (err, networks) {
                 if (err) {
@@ -136,12 +152,13 @@ before(function (next) {
             var payload = {
                 alias: 'imgapi-test-' + genUuid.create(),
                 owner_uuid: process.env.UFDS_ADMIN_UUID,
-                image_uuid: SMARTOS,
+                image_uuid: TEST_IMAGE_UUID,
                 networks: NETWORK,
-                brand: 'joyent-minimal',
-                ram: 64,
+                brand: 'joyent',
+                ram: 128,
                 server_uuid: SERVER.uuid
             };
+            p('Create test VM (alias=%s)', payload.alias);
 
             vmapi.createVm(payload, function (err, job) {
                 if (err) {
@@ -162,9 +179,8 @@ before(function (next) {
             });
         }
     ], function (err) {
-            next(err);
-        }
-    );
+        next(err);
+    });
 });
 
 
@@ -173,17 +189,7 @@ test('CreateImageFromVm should not work for an nonexistent VM', function (t) {
     this.client.createImageFromVmAndWait(createManifest(),
         { vm_uuid: genUuid.create() },
       function (err, image) {
-        t.ok(err, 'got expected error');
-        t.end();
-    });
-});
-
-
-if (CAN_RUN_TEST)
-test('CreateImageFromVm should not work for a running VM', function (t) {
-    this.client.createImageFromVmAndWait(createManifest(), { vm_uuid: VM },
-      function (err, image) {
-        t.ok(err, 'got expected error');
+        t.ok(err, 'got an error as expected');
         t.end();
     });
 });
@@ -195,22 +201,6 @@ test('CreateImageFromVm should create the image', function (t) {
     var self = this;
 
     async.waterfall([
-        function stopVm(cb) {
-            vmapi.stopVm({ uuid: VM }, function (err, job) {
-                if (err) {
-                    return cb(err);
-                }
-                return cb();
-            });
-        },
-        function waitForVm(cb) {
-            waitForState(vmapi, 'stopped', function (err) {
-                if (err) {
-                    return cb(err);
-                }
-                return cb();
-            });
-        },
         function createFromVm(cb) {
             self.client.createImageFromVmAndWait(createManifest(),
                 { vm_uuid: VM },
@@ -243,6 +233,7 @@ after(function (next) {
     var vmapi = this.vmapi;
     async.waterfall([
         function deleteVm(cb) {
+            p('Destroy test VM %s', VM);
             vmapi.deleteVm({ uuid: VM }, function (err, job) {
                 if (err) {
                     return cb(err);

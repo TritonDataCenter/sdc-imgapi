@@ -24,7 +24,8 @@
     "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#9bcb3a0ebec7cd5b4052acaacde8fd6e3e2dfcf9",
     "moray": "git+ssh://git@git.joyent.com:node-moray.git#93e1648",
     "memorystream": "0.2.0",
-    "posix-getopt": "1.0.0"
+    "posix-getopt": "1.0.0",
+    "vasync": "1.5.0"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0",

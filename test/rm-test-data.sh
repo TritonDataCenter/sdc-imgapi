@@ -86,7 +86,8 @@ elif [[ "$opt_mode" == "dc" ]]; then
 
     for dn in $dns; do
         dn=$(echo $dn | sed 's/,/, /g')
-        if [[ -n "$($TOP/test/sdc-ldap search -b "$dn")" ]]; then
+        uuid_query=$(echo $dn | cut -d, -f1)
+        if [[ -n "$($TOP/test/sdc-ldap search "$uuid_query")" ]]; then
             echo "Deleting '$dn'."
             $TOP/test/sdc-ldap rm "$dn"
         fi

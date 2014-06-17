@@ -187,7 +187,15 @@ if [[ "$opt_mode" == "dc" ]]; then
         export VMAPI_URL=http://"$(json vmapi_service <$CFG_FILE)"
         export CNAPI_URL=http://"$(json cnapi_service <$CFG_FILE)"
         export NAPI_URL=http://"$(json napi_service <$CFG_FILE)"
-        export IMGAPI_HAS_MANTA="$(curl $IMGAPI_URL/state | json -H -e 'this.hasManta = ~this.storageTypes.indexOf("manta")' hasManta)"
+        imgapi_has_manta="$(curl $IMGAPI_URL/state \
+            | json -H -e 'this.hasManta = ~this.storageTypes.indexOf("manta")' hasManta)"
+        imgapi_allow_local_create=$(json allowLocalCreateImageFromVm <$CFG_FILE)
+        if [[ "$imgapi_has_manta" == "true" \
+            || "$imgapi_allow_local_create" == "true" ]]; then
+            export IMGAPI_IMAGE_CREATION_ENABLED=true
+        else
+            export IMGAPI_IMAGE_CREATION_ENABLED=false
+        fi
     fi
 else
     # "public" mode
