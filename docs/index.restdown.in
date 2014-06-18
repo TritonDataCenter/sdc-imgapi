@@ -2859,12 +2859,11 @@ CLI tool:
     $ cat data.json | sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874
 
 
+
 <!-- #ifdef PRIVATE -->
 ## AdminImportImage (POST /images/:uuid?action=import)
 
-Import an image (preserving its `uuid` and `published_at` fields). This is
-typically used for importing an image from <https://images.joyent.com>,
-Joyent's central repository of vetted SmartOS images.
+Import an image (preserving its `uuid` and `published_at` fields).
 
 This may only be used by operators. This is enforced by requiring that
 `account=UUID` is NOT provided. All usage of IMGAPI on behalf of end users
@@ -2885,13 +2884,14 @@ and changes:
 ||account||UUID||No\*||-||This must NOT be provided. See the discussion above.||
 ||uuid||UUID||Yes||-||The existing image UUID.||
 ||published_at||Date||No||-||The published date/time of the image.||
+||...||...||...||...||Other fields from [CreateImage](#CreateImage).||
 
 Query params:
 
 ||**Field**||**Type**||**Required?**||**Default**||**Notes**||
 ||action||String||Yes||-||"import"||
 ||skip_owner_check||Boolean||No||false||Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
-
+||source||URL||No||-||URL of the source IMGAPI repository. If called with a `source` then only the `uuid` input field is relevant.||
 
 ### Returns
 
@@ -2906,7 +2906,7 @@ See [Errors](#errors) section above.
 Raw API tool:
 
     $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import \
-        -X POST --data-binary @smartos-1.6.3.dsmanifest
+        -X POST --data-binary @base-14.1.0.imgmanifest
     ...
 
 CLI tool. This example uses the '-f FILE' argument, which will handle
