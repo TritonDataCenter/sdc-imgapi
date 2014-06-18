@@ -188,8 +188,7 @@ deploy-images.joyent.com:
 		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
 		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
 		&& mv /root/services/imgapi.deploying /root/services/imgapi \
-		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi \
-		&& tail -f `svcs -L imgapi` | bunyan -o short'
+		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi'
 
 .PHONY: deploy-updates.joyent.com
 deploy-updates.joyent.com:
@@ -209,8 +208,7 @@ deploy-updates.joyent.com:
 		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
 		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
 		&& mv /root/services/imgapi.deploying /root/services/imgapi \
-		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi \
-		&& tail -f `svcs -L imgapi` | bunyan -o short'
+		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi'
 
 .PHONY: devrun
 devrun:
