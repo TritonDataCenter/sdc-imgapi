@@ -157,6 +157,23 @@ release: all public-docs
 		$(TOP)/build/node \
 		$(TOP)/build/public-docs \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
+	# Trim node
+	rm -rf \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/bin/npm \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/lib/node_modules \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/include \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/share
+	# Trim node_modules (this is death of a 1000 cuts, try for some
+	# easy wins).
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name test | xargs -n1 rm -rf
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name tests | xargs -n1 rm -rf
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name examples | xargs -n1 rm -rf
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name "draft-*" | xargs -n1 rm -rf  # draft xml stuff in json-schema
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name tap | xargs -n1 rm -rf  # nodeunit
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name libusdt | xargs -n1 rm -rf  # dtrace-provider
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name obj.target | xargs -n1 rm -rf  # dtrace-provider
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name deps | grep 'extsprintf/deps$$' | xargs -n1 rm -rf  # old extsprintf shipped dev bits
+	# Tar
 	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(RELSTAGEDIR)
 
