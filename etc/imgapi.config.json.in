@@ -21,7 +21,7 @@
 
     "storage": {
         "local": {
-            "dir": "/var/tmp/imgapi/images"
+            "baseDir": "/var/tmp/imgapi"
         }
     },
     "database": {

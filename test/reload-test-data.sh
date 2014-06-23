@@ -73,11 +73,11 @@ if [[ -n "$opt_local" ]]; then
     if [[ ! -d $raw_dir ]]; then
         mkdir -p $raw_dir
     fi
-    test_images=$($TOP/test/ldif2json $TOP/test/test-data.ldif | json -c 'this.objectclass=="sdcimage"')
-    num_test_images=$(echo "$test_images" | json length)
+    test_images=$TOP/test/test-data.json
+    num_test_images=$(cat "$test_images" | json length)
     i=0
     while [[ $i < $num_test_images ]]; do
-        image=$(echo "$test_images" | json $i | json -e 'this.changetype=undefined')
+        image=$(cat "$test_images" | json $i | json -e 'this.changetype=undefined')
         uuid=$(echo "$image" | json uuid)
         raw_path=$raw_dir/$uuid.raw
         echo "$image" >$raw_path

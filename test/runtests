@@ -19,7 +19,9 @@ fi
 set -o errexit
 set -o pipefail
 
-PATH=/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgapi/node_modules/.bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
+if [[ "$(uname -s)" == "SunOS" ]]; then
+    PATH=/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgapi/node_modules/.bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin:/bin
+fi
 
 
 #---- support functions
@@ -48,7 +50,7 @@ function usage () {
     echo "  -q          Quick. Don't reload the test data."
     echo "  -f FILTER   Filter pattern (substring match) for test files to run."
     echo "  -p          Run tests against 'public' mode IMGAPI."
-    echo "  -l          Start a local IMGAPI using './imgapi-config-local-$MODE.json'"
+    echo "  -l          Start a local IMGAPI using './imgapi-config-local-MODE.json'"
     echo "              and test against that."
     echo "  -o          Offline. Skip tests and setup that require the internet."
     echo "  -r          nodeunit reporter. Default is 'default'."

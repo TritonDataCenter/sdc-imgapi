@@ -11,11 +11,11 @@
     },
     "database": {
         "type": "local",
-        "dir": "/var/tmp/imgapi-test-public/db/manifests"
+        "dir": "/var/tmp/imgapi-test-public/manifests"
     },
     "storage": {
         "local": {
-            "dir": "/var/tmp/imgapi-test-public/db/images"
+            "baseDir": "/var/tmp/imgapi-test-public"
         }
     }
 }
