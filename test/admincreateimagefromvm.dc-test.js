@@ -53,7 +53,7 @@ var CAN_RUN_TEST = (process.env.VMAPI_URL !== undefined &&
                     (process.env.IMGAPI_IMAGE_CREATION_ENABLED === true ||
                         process.env.IMGAPI_IMAGE_CREATION_ENABLED === 'true'));
 if (!CAN_RUN_TEST) {
-    console.warn("WARNING: skipping image creation tests (CAN_RUN_TEST=false)");
+    console.warn('WARNING: skipping image creation tests (CAN_RUN_TEST=false)');
 }
 
 function createManifest() {
@@ -197,7 +197,6 @@ test('CreateImageFromVm should not work for an nonexistent VM', function (t) {
 
 if (CAN_RUN_TEST)
 test('CreateImageFromVm should create the image', function (t) {
-    var vmapi = this.vmapi;
     var self = this;
 
     async.waterfall([
