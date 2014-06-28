@@ -1,7 +1,6 @@
 #!/bin/bash
 #
 # (Re-)load test data.
-# This will delete any existing items with the same DN.
 #
 # Usage:
 #   ./test/reload-test-data.sh
@@ -67,28 +66,29 @@ done
 
 $TOP/test/rm-test-data.sh $*
 if [[ -n "$opt_local" ]]; then
-    # Hack in $manifestsDatabaseDir/$uuid.raw for each image in test-data.ldif.
+    # Hack in $manifestsDatabaseDir/$uuid.raw for each image
+    # in MODE-test-images.json.
     CFG_FILE=$TOP/test/imgapi-config-local-$opt_mode.json
     raw_dir=$(json database.dir <$CFG_FILE)
     if [[ ! -d $raw_dir ]]; then
         mkdir -p $raw_dir
     fi
-    test_images=$TOP/test/test-data.json
+    test_images=$TOP/test/$opt_mode-test-images.json
     num_test_images=$(cat "$test_images" | json length)
     i=0
     while [[ $i < $num_test_images ]]; do
-        image=$(cat "$test_images" | json $i | json -e 'this.changetype=undefined')
+        image=$(cat "$test_images" | json $i)
         uuid=$(echo "$image" | json uuid)
         raw_path=$raw_dir/$uuid.raw
         echo "$image" >$raw_path
         i=$(($i + 1))
     done
 elif [[ "$opt_mode" == "dc" ]]; then
-    $TOP/test/sdc-ldap modify -f $TOP/test/test-data.ldif
+    $TOP/test/sdc-ldap modify -f $TOP/test/dc-test-users.ldif
 
     # Load image into moray with putobject
     CFG_FILE=$TOP/etc/imgapi.config.json
-    test_images=$TOP/test/test-data.json
+    test_images=$TOP/test/dc-test-images.json
     num_test_images=$(json length <$test_images)
     i=0
     while [[ $i < $num_test_images ]]; do
@@ -98,6 +98,4 @@ elif [[ "$opt_mode" == "dc" ]]; then
         MORAY_URL=moray://$(json moray.host <$CFG_FILE) $TOP/test/putobject -d "$image" imgapi_images $uuid
         i=$(($i + 1))
     done
-else
-    echo "# No test data is loaded for images.joyent.com test."
 fi

@@ -165,7 +165,6 @@ mkdir -p $OUTPUT_DIR
 
 # Gather IMGAPI/datacenter data to be used by the test suite.
 if [[ "$opt_mode" == "dc" ]]; then
-
     if [[ -n "$opt_local" ]]; then
         CFG_FILE=$TOP/test/imgapi-config-local-dc.json
         export IMGAPI_URL=http://localhost:$(json port <$CFG_FILE)
@@ -208,7 +207,8 @@ else
         export IMGAPI_PASSWORD=guest
         export CURL_IMGAPI_AUTH="-u $IMGAPI_USER:$IMGAPI_PASSWORD"
     else
-        export IMGAPI_URL=https://images.joyent.com
+        echo "runtests: error: use '-l' (local imgapi server) if using '-p'"
+        exit 1
     fi
 fi
 
@@ -225,15 +225,8 @@ echo "# IMGAPI_URL is $IMGAPI_URL"
 
 # Guard against running 'public' tests against production images.joyent.com.
 if [[ "$IMGAPI_URL" == "https://images.joyent.com" ]]; then
-    echo ""
-    echo "# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
-    echo "# *                         WARNING                               *"
-    echo "# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
-    echo "#    This is going to run tests against a \*production\* system."
-    echo "#    Are you sure you want to continue? Use <Ctrl+C> to cancel."
-    echo "# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *"
-    read answer
-    echo "# Continuing."
+    echo "runtests: error: don't run the test suite against images.jo"
+    exit 1
 fi
 
 
@@ -272,7 +265,7 @@ if [[ -n "$opt_local" ]]; then
 fi
 
 
-# Clear caches (not for images.joyent.com test).
+# Clear caches.
 if [[ -n $opt_local || "$opt_mode" != "public" ]]; then
     echo "# Drop IMGAPI caches."
     curl $CURL_IMGAPI_AUTH -isS $IMGAPI_URL/state?action=dropcaches \

@@ -1,0 +1,49 @@
+[
+  {
+    "v": 2,
+    "uuid": "c58161c0-2547-11e2-a75e-9fdca1940570",
+    "name": "innochan",
+    "version": "1.2.3",
+    "owner": "00000000-0000-0000-0000-000000000000",
+    "public": true,
+    "activated": true,
+    "disabled": false,
+    "state": "active",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "published_at": "2012-11-02T22:46:45.992Z",
+    "files": []
+  },
+  {
+    "v": 2,
+    "uuid": "8ba6d20f-6013-f944-9d69-929ebdef45a2",
+    "name": "indevchan",
+    "version": "1.2.3",
+    "owner": "00000000-0000-0000-0000-000000000000",
+    "public": true,
+    "activated": true,
+    "disabled": false,
+    "state": "active",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "published_at": "2012-11-02T22:46:45.992Z",
+    "files": [],
+    "channels": ["dev"]
+  },
+  {
+    "v": 2,
+    "uuid": "3e6ebb8c-bb37-9245-ba5d-43d172461be6",
+    "name": "instagingchan",
+    "version": "1.2.3",
+    "owner": "00000000-0000-0000-0000-000000000000",
+    "public": true,
+    "activated": true,
+    "disabled": false,
+    "state": "active",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "published_at": "2012-11-02T22:46:45.992Z",
+    "files": [],
+    "channels": ["staging"]
+  }
+]

@@ -9,6 +9,11 @@
             "guest": "$2a$10$Mqn0lKFw2XI6GbUbI5S8vekyMgpcXe2yimmzoaEmIQeYycP.K9oEW"
         }
     },
+    "channels": [
+        {"name": "dev", "description": "all development builds", "default": true},
+        {"name": "staging", "description": "builds for testing in staging in prep for production release"},
+        {"name": "release", "description": "release gold bits"}
+    ],
     "database": {
         "type": "local",
         "dir": "/var/tmp/imgapi-test-public/manifests"

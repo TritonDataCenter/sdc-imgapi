@@ -5,8 +5,8 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
-    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#5ad8d1cfb01d503047c03c34e3b33bf37c1ec98f",
-    "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#f580081",
+    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#73efaaa",
+    "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#1c31106",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
     "restify": "git+ssh://git@github.com:mcavage/node-restify.git#43ee356",
     "bunyan": "0.22.3",

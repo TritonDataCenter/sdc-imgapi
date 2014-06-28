@@ -1,4 +1,6 @@
-# Test data for IMGAPI
+# mode=dc Test data for IMGAPI
+#
+# Test users are in this file, test images in dc-test-images.json.
 #
 # Users (prefixed with 'imgapitest'): vader, luke, emperor, sdc
 # Images:
