@@ -47,6 +47,7 @@ var assert = require('assert-plus');
 var dashdash = require('dashdash');
 var async = require('async');
 var sdcClients = require('sdc-clients');
+var UFDS = require('ufds');
 var bunyan = require('bunyan');
 
 
@@ -193,7 +194,7 @@ function getUfdsClient(master, sdcApp, callback) {
         bindPassword: sdcApp.metadata.ufds_ldap_root_pw,
         log: log
     };
-    var ufds = new sdcClients.UFDS(options);
+    var ufds = new UFDS(options);
 
     var callback_ = once(callback);
     ufds.on('connect', function () {

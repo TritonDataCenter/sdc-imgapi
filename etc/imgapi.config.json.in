@@ -7,7 +7,8 @@
     "ufds": {
         "url": "ldaps://{{{UFDS_SERVICE}}}",
         "bindDN": "{{{ufds_ldap_root_dn}}}",
-        "bindPassword": "{{{ufds_ldap_root_pw}}}"
+        "bindPassword": "{{{ufds_ldap_root_pw}}}",
+        "failFast": true
     },
 
     "// mode": "public",
