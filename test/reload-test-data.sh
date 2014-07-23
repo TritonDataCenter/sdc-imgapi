@@ -69,9 +69,13 @@ if [[ -n "$opt_local" ]]; then
     # Hack in $manifestsDatabaseDir/$uuid.raw for each image
     # in MODE-test-images.json.
     CFG_FILE=$TOP/test/imgapi-config-local-$opt_mode.json
-    raw_dir=$(json database.dir <$CFG_FILE)
-    if [[ ! -d $raw_dir ]]; then
-        mkdir -p $raw_dir
+    manifest_dir=$(json database.dir <$CFG_FILE)
+    if [[ ! -d $manifest_dir ]]; then
+        mkdir -p $manifest_dir
+    fi
+    stor_dir=$(json storage.local.baseDir <$CFG_FILE)
+    if [[ ! -d $stor_dir ]]; then
+        mkdir -p $stor_dir
     fi
     test_images=$TOP/test/$opt_mode-test-images.json
     num_test_images=$(cat "$test_images" | json length)
@@ -79,8 +83,14 @@ if [[ -n "$opt_local" ]]; then
     while [[ $i < $num_test_images ]]; do
         image=$(cat "$test_images" | json $i)
         uuid=$(echo "$image" | json uuid)
-        raw_path=$raw_dir/$uuid.raw
+        raw_path=$manifest_dir/$uuid.raw
         echo "$image" >$raw_path
+        file_path=$stor_dir/images/${uuid:0:3}/$uuid/file0
+        mkdir -p $(dirname $file_path)
+        echo "file" >$file_path
+        icon_path=$stor_dir/images/${uuid:0:3}/$uuid/icon
+        mkdir -p $(dirname $icon_path)
+        echo "icon" >$icon_path
         i=$(($i + 1))
     done
 elif [[ "$opt_mode" == "dc" ]]; then

@@ -12,7 +12,7 @@
 var p = console.log;
 var format = require('util').format;
 var assert = require('assert-plus');
-var async = require('async');
+var fs = require('fs');
 
 var imgapi = require('sdc-clients').IMGAPI;
 
@@ -27,6 +27,13 @@ var before = tap4nodeunit.before;
 var test = tap4nodeunit.test;
 
 
+//---- globals
+
+var tmpDownloadFile = '/var/tmp/imgapi-channels-test-download';
+
+
+
+//---- tests
 
 before(function (next) {
     var options = {
@@ -61,6 +68,7 @@ test('ListChannels', function (t) {
         t.end();
     });
 });
+
 
 test('ListImages with implied dev channel has indevchan', function (t) {
     this.authClient.listImages(function (err, images) {
@@ -310,3 +318,114 @@ test('GetImage with bogus channel gets error', function (t) {
         t.end();
     });
 });
+
+
+
+test('GetImageFile with implied dev channel can get indevchan', function (t) {
+    this.authClient.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.equal(fs.readFileSync(tmpDownloadFile), 'file');
+        t.end();
+    });
+});
+
+test('GetImageFile with implied dev channel cannot get innochan', function (t) {
+    this.authClient.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
+            tmpDownloadFile, function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageFile with implied dev channel cannot get instagingchan',
+     function (t) {
+    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageFile with dev channel can get indevchan', function (t) {
+    this.authClient.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+            function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.equal(fs.readFileSync(tmpDownloadFile), 'file');
+        t.end();
+    });
+});
+
+test('GetImageFile with dev channel cannot get innochan', function (t) {
+    this.authClient.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
+            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+            function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageFile with dev channel cannot get instagingchan', function (t) {
+    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+            function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageFile with staging channel can get instagingchan', function (t) {
+    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+            function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.equal(fs.readFileSync(tmpDownloadFile), 'file');
+        t.end();
+    });
+});
+
+test('GetImageFile with staging channel cannot get innochan', function (t) {
+    this.authClient.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
+            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+            function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageFile with staging channel cannot get indevchan', function (t) {
+    this.authClient.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+            function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageFile with bogus channel gets error', function (t) {
+    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined, {query: {channel: 'bogus'}},
+            function (err, res) {
+        t.plan(2);
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ValidationFailed');
+        t.end();
+    });
+});
+
