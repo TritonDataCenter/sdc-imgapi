@@ -13,6 +13,7 @@ var p = console.log;
 var format = require('util').format;
 var assert = require('assert-plus');
 var fs = require('fs');
+var once = require('once');
 
 var imgapi = require('sdc-clients').IMGAPI;
 
@@ -31,6 +32,13 @@ var test = tap4nodeunit.test;
 
 var tmpDownloadFile = '/var/tmp/imgapi-channels-test-download';
 
+
+// The name of the event on a write stream indicating it is done.
+var nodeVer = process.versions.node.split('.').map(Number);
+var writeStreamFinishEvent = 'finish';
+if (nodeVer[0] === 0 && nodeVer[1] <= 8) {
+    writeStreamFinishEvent = 'close';
+}
 
 
 //---- tests
@@ -429,3 +437,147 @@ test('GetImageFile with bogus channel gets error', function (t) {
     });
 });
 
+
+test('GetImageFile (stream) with staging channel can get instagingchan', function (t) {
+    this.authClient.getImageFileStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            undefined, {query: {channel: 'staging'}}, function (err, stream) {
+        t.ifError(err);
+        t.ok(stream);
+
+        function finish_(err) {
+            t.ifError(err);
+            if (!err) t.equal(fs.readFileSync(tmpDownloadFile), 'file');
+            t.end();
+        }
+        var finish = once(finish_);
+
+        var out = stream.pipe(fs.createWriteStream(tmpDownloadFile));
+        out.on(writeStreamFinishEvent, finish);
+        stream.on('error', finish);
+        stream.resume();
+    });
+});
+
+test('GetImageFile (stream) with staging channel cannot get innochan', function (t) {
+    this.authClient.getImageFileStream('c58161c0-2547-11e2-a75e-9fdca1940570',
+            undefined, {query: {channel: 'staging'}},
+            function (err, stream) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(stream.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageFile (stream) with staging channel cannot get indevchan', function (t) {
+    this.authClient.getImageFileStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            undefined, {query: {channel: 'staging'}},
+            function (err, stream) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(stream.statusCode, 404);
+        t.end();
+    });
+});
+
+
+test('GetImageIcon with implied dev channel can get indevchan', function (t) {
+    this.authClient.getImageIcon('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.equal(fs.readFileSync(tmpDownloadFile), 'icon');
+        t.end();
+    });
+});
+
+test('GetImageIcon with implied dev channel cannot get instagingchan',
+     function (t) {
+    this.authClient.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageIcon with dev channel can get indevchan', function (t) {
+    this.authClient.getImageIcon('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+            function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.equal(fs.readFileSync(tmpDownloadFile), 'icon');
+        t.end();
+    });
+});
+
+test('GetImageIcon with dev channel cannot get instagingchan', function (t) {
+    this.authClient.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+            function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageIcon with staging channel can get instagingchan', function (t) {
+    this.authClient.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+            function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.equal(fs.readFileSync(tmpDownloadFile), 'icon');
+        t.end();
+    });
+});
+
+
+test('GetImageIcon (stream) with staging channel can get instagingchan', function (t) {
+    this.authClient.getImageIconStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            undefined, {query: {channel: 'staging'}}, function (err, stream) {
+        t.ifError(err);
+        if (!err) {
+            t.ok(stream);
+
+            function finish_(err) {
+                t.ifError(err);
+                if (!err) t.equal(fs.readFileSync(tmpDownloadFile), 'icon');
+                t.end();
+            }
+            var finish = once(finish_);
+
+            var out = stream.pipe(fs.createWriteStream(tmpDownloadFile));
+            out.on(writeStreamFinishEvent, finish);
+            stream.on('error', finish);
+            stream.resume();
+        } else {
+            t.end();
+        }
+    });
+});
+
+test('GetImageIcon (stream) with staging channel cannot get innochan', function (t) {
+    this.authClient.getImageIconStream('c58161c0-2547-11e2-a75e-9fdca1940570',
+            undefined, {query: {channel: 'staging'}},
+            function (err, stream) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(stream.statusCode, 404);
+        t.end();
+    });
+});
+
+test('GetImageIcon (stream) with staging channel cannot get indevchan', function (t) {
+    this.authClient.getImageIconStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            undefined, {query: {channel: 'staging'}},
+            function (err, stream) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(stream.statusCode, 404);
+        t.end();
+    });
+});
