@@ -41,32 +41,57 @@ if (nodeVer[0] === 0 && nodeVer[1] <= 8) {
 }
 
 
+//---- support stuff
+
+function mergeObjs(a, b) {
+    assert.object(a, 'a');
+    assert.object(b, 'b');
+    var obj = {};
+    Object.keys(a).forEach(function (key) { obj[key] = a[key]; });
+    Object.keys(b).forEach(function (key) { obj[key] = b[key]; });
+    return obj;
+}
+
+
 //---- tests
 
 before(function (next) {
-    var options = {
+    var opts = {
         url: process.env.IMGAPI_URL,
         agent: false
     };
     if (process.env.IMGAPI_PASSWORD) {
-        options.user = process.env.IMGAPI_USER;
-        options.password = process.env.IMGAPI_PASSWORD;
+        opts.user = process.env.IMGAPI_USER;
+        opts.password = process.env.IMGAPI_PASSWORD;
     } else if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
         assert.fail('Do not run the channels tests against images.jo.');
     } else {
         assert.fail('What no auth info!?');
     }
-    this.authClient = imgapi.createClient(options);
-    this.noAuthClient = imgapi.createClient({
-        url: process.env.IMGAPI_URL,
-        agent: false
-    });
+    this.authClients = {
+        'nochan':  imgapi.createClient(opts),
+        'star':    imgapi.createClient(mergeObjs(opts, {channel: '*'})),
+        'bogus':   imgapi.createClient(mergeObjs(opts, {channel: 'bogus'})),
+        'dev':     imgapi.createClient(mergeObjs(opts, {channel: 'dev'})),
+        'staging': imgapi.createClient(mergeObjs(opts, {channel: 'staging'})),
+        'release': imgapi.createClient(mergeObjs(opts, {channel: 'release'}))
+    };
+    delete opts.user;
+    delete opts.password;
+    this.noAuthClients = {
+        'nochan':  imgapi.createClient(opts),
+        'star':    imgapi.createClient(mergeObjs(opts, {channel: '*'})),
+        'bogus':   imgapi.createClient(mergeObjs(opts, {channel: 'bogus'})),
+        'dev':     imgapi.createClient(mergeObjs(opts, {channel: 'dev'})),
+        'staging': imgapi.createClient(mergeObjs(opts, {channel: 'staging'})),
+        'release': imgapi.createClient(mergeObjs(opts, {channel: 'release'}))
+    };
     next();
 });
 
 
 test('ListChannels', function (t) {
-    this.authClient.listChannels({}, function (err, channels) {
+    this.authClients.nochan.listChannels({}, function (err, channels) {
         t.ifError(err, 'ListChannels err: ', err);
         t.ok(channels, 'channels');
         t.equal(channels.length, 3, 'channels.length');
@@ -79,7 +104,7 @@ test('ListChannels', function (t) {
 
 
 test('ListImages with implied dev channel has indevchan', function (t) {
-    this.authClient.listImages(function (err, images) {
+    this.authClients.nochan.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -91,7 +116,7 @@ test('ListImages with implied dev channel has indevchan', function (t) {
 });
 
 test('ListImages with implied dev channel has no innochan', function (t) {
-    this.authClient.listImages(function (err, images) {
+    this.authClients.nochan.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -103,7 +128,7 @@ test('ListImages with implied dev channel has no innochan', function (t) {
 });
 
 test('ListImages with implied dev channel has no instagingchan', function (t) {
-    this.authClient.listImages(function (err, images) {
+    this.authClients.nochan.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -115,7 +140,7 @@ test('ListImages with implied dev channel has no instagingchan', function (t) {
 });
 
 test('ListImages with dev channel has indevchan', function (t) {
-    this.authClient.listImages({channel: 'dev'}, function (err, images) {
+    this.authClients.dev.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -127,7 +152,7 @@ test('ListImages with dev channel has indevchan', function (t) {
 });
 
 test('ListImages with dev channel has no innochan', function (t) {
-    this.authClient.listImages({channel: 'dev'}, function (err, images) {
+    this.authClients.dev.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -139,7 +164,7 @@ test('ListImages with dev channel has no innochan', function (t) {
 });
 
 test('ListImages with dev channel has no instagingchan', function (t) {
-    this.authClient.listImages({channel: 'dev'}, function (err, images) {
+    this.authClients.dev.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -151,7 +176,7 @@ test('ListImages with dev channel has no instagingchan', function (t) {
 });
 
 test('ListImages with staging channel has no indevchan', function (t) {
-    this.authClient.listImages({channel: 'staging'}, function (err, images) {
+    this.authClients.staging.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -163,7 +188,7 @@ test('ListImages with staging channel has no indevchan', function (t) {
 });
 
 test('ListImages with staging channel has instagingchan', function (t) {
-    this.authClient.listImages({channel: 'staging'}, function (err, images) {
+    this.authClients.staging.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -175,7 +200,7 @@ test('ListImages with staging channel has instagingchan', function (t) {
 });
 
 test('ListImages with channel=* has no innochan', function (t) {
-    this.authClient.listImages({channel: '*'}, function (err, images) {
+    this.authClients.star.listImages(function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -187,7 +212,7 @@ test('ListImages with channel=* has no innochan', function (t) {
 });
 
 test('ListImages with channel=* has indevchan and instagingchan', function (t) {
-    this.authClient.listImages({channel: '*'}, function (err, images) {
+    this.authClients.star.listImages({channel: '*'}, function (err, images) {
         t.ifError(err);
         t.equal(
             images
@@ -204,7 +229,7 @@ test('ListImages with channel=* has indevchan and instagingchan', function (t) {
 });
 
 test('ListImages with bogus channel errors', function (t) {
-    this.authClient.listImages({channel: 'bogus'}, function (err, images) {
+    this.authClients.bogus.listImages({channel: 'bogus'}, function (err, images) {
         t.ok(err);
         t.equal(err.body.code, 'ValidationFailed');
         t.equal(err.body.errors[0].field, 'channel');
@@ -214,7 +239,7 @@ test('ListImages with bogus channel errors', function (t) {
 
 
 test('GetImage with implied dev channel can get indevchan', function (t) {
-    this.authClient.getImage('8ba6d20f-6013-f944-9d69-929ebdef45a2', {},
+    this.authClients.nochan.getImage('8ba6d20f-6013-f944-9d69-929ebdef45a2', {},
                              function (err, image) {
         t.ifError(err);
         t.ok(image);
@@ -225,7 +250,7 @@ test('GetImage with implied dev channel can get indevchan', function (t) {
 });
 
 test('GetImage with implied dev channel cannot get innochan', function (t) {
-    this.authClient.getImage('c58161c0-2547-11e2-a75e-9fdca1940570', {},
+    this.authClients.nochan.getImage('c58161c0-2547-11e2-a75e-9fdca1940570', {},
                              function (err, image) {
         t.ok(err);
         t.equal(err.body.code, 'ResourceNotFound');
@@ -235,7 +260,7 @@ test('GetImage with implied dev channel cannot get innochan', function (t) {
 
 test('GetImage with implied dev channel cannot get instagingchan',
      function (t) {
-    this.authClient.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6', {},
+    this.authClients.nochan.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6', {},
                              function (err, image) {
         t.ok(err);
         if (err) {
@@ -246,8 +271,7 @@ test('GetImage with implied dev channel cannot get instagingchan',
 });
 
 test('GetImage with dev channel can get indevchan', function (t) {
-    this.authClient.getImage('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-                             {query: {channel: 'dev'}},
+    this.authClients.dev.getImage('8ba6d20f-6013-f944-9d69-929ebdef45a2',
                              function (err, image) {
         t.ifError(err);
         t.ok(image);
@@ -258,8 +282,7 @@ test('GetImage with dev channel can get indevchan', function (t) {
 });
 
 test('GetImage with dev channel cannot get innochan', function (t) {
-    this.authClient.getImage('c58161c0-2547-11e2-a75e-9fdca1940570',
-                             {query: {channel: 'dev'}},
+    this.authClients.dev.getImage('c58161c0-2547-11e2-a75e-9fdca1940570',
                              function (err, image) {
         t.ok(err);
         t.equal(err.body.code, 'ResourceNotFound');
@@ -268,8 +291,7 @@ test('GetImage with dev channel cannot get innochan', function (t) {
 });
 
 test('GetImage with dev channel cannot get instagingchan', function (t) {
-    this.authClient.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-                             {query: {channel: 'dev'}},
+    this.authClients.dev.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
                              function (err, image) {
         t.ok(err);
         if (err) {
@@ -280,8 +302,7 @@ test('GetImage with dev channel cannot get instagingchan', function (t) {
 });
 
 test('GetImage with staging channel can get instagingchan', function (t) {
-    this.authClient.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-                             {query: {channel: 'staging'}},
+    this.authClients.staging.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
                              function (err, image) {
         t.ifError(err);
         t.ok(image);
@@ -292,8 +313,7 @@ test('GetImage with staging channel can get instagingchan', function (t) {
 });
 
 test('GetImage with staging channel cannot get innochan', function (t) {
-    this.authClient.getImage('c58161c0-2547-11e2-a75e-9fdca1940570',
-                             {query: {channel: 'staging'}},
+    this.authClients.staging.getImage('c58161c0-2547-11e2-a75e-9fdca1940570',
                              function (err, image) {
         t.ok(err);
         t.equal(err.body.code, 'ResourceNotFound');
@@ -302,8 +322,7 @@ test('GetImage with staging channel cannot get innochan', function (t) {
 });
 
 test('GetImage with staging channel cannot get indevchan', function (t) {
-    this.authClient.getImage('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-                             {query: {channel: 'staging'}},
+    this.authClients.staging.getImage('8ba6d20f-6013-f944-9d69-929ebdef45a2',
                              function (err, image) {
         t.ok(err);
         if (err) {
@@ -314,8 +333,7 @@ test('GetImage with staging channel cannot get indevchan', function (t) {
 });
 
 test('GetImage with bogus channel gets error', function (t) {
-    this.authClient.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-                             {query: {channel: 'bogus'}},
+    this.authClients.bogus.getImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
                              function (err, image) {
         t.plan(3);
         t.ok(err);
@@ -330,7 +348,7 @@ test('GetImage with bogus channel gets error', function (t) {
 
 
 test('GetImageFile with implied dev channel can get indevchan', function (t) {
-    this.authClient.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+    this.authClients.nochan.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
             tmpDownloadFile, function (err, res) {
         t.ifError(err);
         t.equal(res.statusCode, 200);
@@ -340,7 +358,7 @@ test('GetImageFile with implied dev channel can get indevchan', function (t) {
 });
 
 test('GetImageFile with implied dev channel cannot get innochan', function (t) {
-    this.authClient.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
+    this.authClients.nochan.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
             tmpDownloadFile, function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -351,7 +369,7 @@ test('GetImageFile with implied dev channel cannot get innochan', function (t) {
 
 test('GetImageFile with implied dev channel cannot get instagingchan',
      function (t) {
-    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+    this.authClients.nochan.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
             tmpDownloadFile, function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -361,8 +379,8 @@ test('GetImageFile with implied dev channel cannot get instagingchan',
 });
 
 test('GetImageFile with dev channel can get indevchan', function (t) {
-    this.authClient.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+    this.authClients.dev.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ifError(err);
         t.equal(res.statusCode, 200);
@@ -372,8 +390,8 @@ test('GetImageFile with dev channel can get indevchan', function (t) {
 });
 
 test('GetImageFile with dev channel cannot get innochan', function (t) {
-    this.authClient.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
-            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+    this.authClients.dev.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -383,8 +401,8 @@ test('GetImageFile with dev channel cannot get innochan', function (t) {
 });
 
 test('GetImageFile with dev channel cannot get instagingchan', function (t) {
-    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+    this.authClients.dev.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -394,8 +412,8 @@ test('GetImageFile with dev channel cannot get instagingchan', function (t) {
 });
 
 test('GetImageFile with staging channel can get instagingchan', function (t) {
-    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ifError(err);
         t.equal(res.statusCode, 200);
@@ -405,8 +423,8 @@ test('GetImageFile with staging channel can get instagingchan', function (t) {
 });
 
 test('GetImageFile with staging channel cannot get innochan', function (t) {
-    this.authClient.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
-            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageFile('c58161c0-2547-11e2-a75e-9fdca1940570',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -416,8 +434,8 @@ test('GetImageFile with staging channel cannot get innochan', function (t) {
 });
 
 test('GetImageFile with staging channel cannot get indevchan', function (t) {
-    this.authClient.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageFile('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -427,8 +445,8 @@ test('GetImageFile with staging channel cannot get indevchan', function (t) {
 });
 
 test('GetImageFile with bogus channel gets error', function (t) {
-    this.authClient.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            tmpDownloadFile, undefined, {query: {channel: 'bogus'}},
+    this.authClients.bogus.getImageFile('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.plan(2);
         t.ok(err);
@@ -439,8 +457,8 @@ test('GetImageFile with bogus channel gets error', function (t) {
 
 
 test('GetImageFile (stream) with staging channel can get instagingchan', function (t) {
-    this.authClient.getImageFileStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            undefined, {query: {channel: 'staging'}}, function (err, stream) {
+    this.authClients.staging.getImageFileStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            undefined, function (err, stream) {
         t.ifError(err);
         t.ok(stream);
 
@@ -459,8 +477,8 @@ test('GetImageFile (stream) with staging channel can get instagingchan', functio
 });
 
 test('GetImageFile (stream) with staging channel cannot get innochan', function (t) {
-    this.authClient.getImageFileStream('c58161c0-2547-11e2-a75e-9fdca1940570',
-            undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageFileStream('c58161c0-2547-11e2-a75e-9fdca1940570',
+            undefined,
             function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -470,8 +488,8 @@ test('GetImageFile (stream) with staging channel cannot get innochan', function 
 });
 
 test('GetImageFile (stream) with staging channel cannot get indevchan', function (t) {
-    this.authClient.getImageFileStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageFileStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            undefined,
             function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -482,7 +500,7 @@ test('GetImageFile (stream) with staging channel cannot get indevchan', function
 
 
 test('GetImageIcon with implied dev channel can get indevchan', function (t) {
-    this.authClient.getImageIcon('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+    this.authClients.dev.getImageIcon('8ba6d20f-6013-f944-9d69-929ebdef45a2',
             tmpDownloadFile, function (err, res) {
         t.ifError(err);
         t.equal(res.statusCode, 200);
@@ -493,7 +511,7 @@ test('GetImageIcon with implied dev channel can get indevchan', function (t) {
 
 test('GetImageIcon with implied dev channel cannot get instagingchan',
      function (t) {
-    this.authClient.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+    this.authClients.dev.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
             tmpDownloadFile, function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -503,8 +521,8 @@ test('GetImageIcon with implied dev channel cannot get instagingchan',
 });
 
 test('GetImageIcon with dev channel can get indevchan', function (t) {
-    this.authClient.getImageIcon('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+    this.authClients.dev.getImageIcon('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ifError(err);
         t.equal(res.statusCode, 200);
@@ -514,8 +532,8 @@ test('GetImageIcon with dev channel can get indevchan', function (t) {
 });
 
 test('GetImageIcon with dev channel cannot get instagingchan', function (t) {
-    this.authClient.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            tmpDownloadFile, undefined, {query: {channel: 'dev'}},
+    this.authClients.dev.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -525,8 +543,8 @@ test('GetImageIcon with dev channel cannot get instagingchan', function (t) {
 });
 
 test('GetImageIcon with staging channel can get instagingchan', function (t) {
-    this.authClient.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            tmpDownloadFile, undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            tmpDownloadFile, undefined,
             function (err, res) {
         t.ifError(err);
         t.equal(res.statusCode, 200);
@@ -537,8 +555,8 @@ test('GetImageIcon with staging channel can get instagingchan', function (t) {
 
 
 test('GetImageIcon (stream) with staging channel can get instagingchan', function (t) {
-    this.authClient.getImageIconStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            undefined, {query: {channel: 'staging'}}, function (err, stream) {
+    this.authClients.staging.getImageIconStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            undefined, function (err, stream) {
         t.ifError(err);
         if (!err) {
             t.ok(stream);
@@ -561,8 +579,8 @@ test('GetImageIcon (stream) with staging channel can get instagingchan', functio
 });
 
 test('GetImageIcon (stream) with staging channel cannot get innochan', function (t) {
-    this.authClient.getImageIconStream('c58161c0-2547-11e2-a75e-9fdca1940570',
-            undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageIconStream('c58161c0-2547-11e2-a75e-9fdca1940570',
+            undefined,
             function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -572,12 +590,190 @@ test('GetImageIcon (stream) with staging channel cannot get innochan', function 
 });
 
 test('GetImageIcon (stream) with staging channel cannot get indevchan', function (t) {
-    this.authClient.getImageIconStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            undefined, {query: {channel: 'staging'}},
+    this.authClients.staging.getImageIconStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            undefined,
             function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
         t.equal(stream.statusCode, 404);
+        t.end();
+    });
+});
+
+
+//---- UpdateImage (and many the endpoints in the same chain)
+
+test('UpdateImage with staging channel can get instagingchan', function (t) {
+    this.authClients.staging.updateImage(
+            '3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            {tags: {foo: "bar"}},
+            function (err, img, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.ok(img);
+        t.ok(img.channels.indexOf('staging') !== -1);
+        t.equal(img.tags.foo, 'bar');
+        t.end();
+    });
+});
+
+test('UpdateImage with staging channel cannot get indevchan', function (t) {
+    this.authClients.staging.updateImage(
+            '8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            {tags: {foo: "bar"}},
+            function (err, img, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+
+//---- CreateImage
+// Ensure the set channel gets assigned.
+
+test('CreateImage with implicit default channel', function (t) {
+    var data = {
+        name: 'my-CreateImage-staging-test',
+        version: '1.0.0',
+        os: 'other',
+        type: 'other',
+        owner: '639e90cd-71ec-c449-bc7a-2446651cce7c',
+        public: true
+    };
+    this.authClients.nochan.createImage(data, function (err, img, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.ok(img);
+        t.ok(img.channels.indexOf('dev') !== -1);
+        t.equal(img.state, 'unactivated');
+        t.end();
+    });
+});
+
+test('CreateImage with release channel', function (t) {
+    var data = {
+        name: 'my-CreateImage-staging-test',
+        version: '1.0.0',
+        os: 'other',
+        type: 'other',
+        owner: '639e90cd-71ec-c449-bc7a-2446651cce7c',
+        public: true
+    };
+    this.authClients.release.createImage(data, function (err, img, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 200);
+        t.ok(img);
+        t.ok(img.channels[0], 'release');
+        t.equal(img.state, 'unactivated');
+        t.end();
+    });
+});
+
+//test('UpdateImage with staging channel cannot get indevchan', function (t) {
+//    this.authClients.staging.updateImage(
+//            '8ba6d20f-6013-f944-9d69-929ebdef45a2',
+//            {tags: {foo: "bar"}},
+//            function (err, img, res) {
+//        t.ok(err);
+//        if (err) t.equal(err.body.code, 'ResourceNotFound');
+//        t.equal(res.statusCode, 404);
+//        t.end();
+//    });
+//});
+
+
+//----  AddImageAcl/RemoveImageAcl
+
+test('AddImageAcl with staging channel can get instagingchan', function (t) {
+    this.authClients.staging.addImageAcl('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            ['aa1c57aa-1451-11e4-a20c-13e606e498d1'],
+            undefined, function (err, img, res) {
+        t.ifError(err);
+        t.ok(img);
+        t.ok(img.channels.indexOf('staging') !== -1);
+        t.equal(res.statusCode, 200);
+        t.end();
+    });
+});
+
+test('AddImageAcl with staging channel cannot get indevchan', function (t) {
+    this.authClients.staging.addImageAcl('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            ['aa1c57aa-1451-11e4-a20c-13e606e498d1'],
+            undefined, function (err, img, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('RemoveImageAcl with staging channel can get instagingchan', function (t) {
+    this.authClients.staging.removeImageAcl('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            ['aa1c57aa-1451-11e4-a20c-13e606e498d1'],
+            undefined, function (err, img, res) {
+        t.ifError(err);
+        t.ok(img);
+        t.ok(img.channels.indexOf('staging') !== -1);
+        t.equal(res.statusCode, 200);
+        t.end();
+    });
+});
+
+test('RemoveImageAcl with staging channel cannot get indevchan', function (t) {
+    this.authClients.staging.removeImageAcl('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            ['aa1c57aa-1451-11e4-a20c-13e606e498d1'],
+            undefined, function (err, img, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+
+//----  DeleteImageIcon
+
+test('DeleteImageIcon with staging channel can get instagingchan', function (t) {
+    this.authClients.staging.deleteImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            undefined, function (err, img, res) {
+        t.ifError(err);
+        t.ok(img);
+        t.ok(img.channels.indexOf('staging') !== -1);
+        t.equal(res.statusCode, 200);
+        t.end();
+    });
+});
+
+test('DeleteImageIcon with staging channel cannot get indevchan', function (t) {
+    this.authClients.staging.deleteImageIcon('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            undefined, function (err, img, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+
+//----  DeleteImage
+
+test('DeleteImage with staging channel can get instagingchan', function (t) {
+    this.authClients.staging.deleteImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            undefined, function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 204);
+        t.end();
+    });
+});
+
+test('DeleteImage with staging channel cannot get indevchan', function (t) {
+    this.authClients.staging.deleteImage('8ba6d20f-6013-f944-9d69-929ebdef45a2',
+            undefined, function (err, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
         t.end();
     });
 });
