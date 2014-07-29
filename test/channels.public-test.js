@@ -733,6 +733,107 @@ test('RemoveImageAcl with staging channel cannot get indevchan', function (t) {
 });
 
 
+
+//---- ChannelAddImage
+
+test('ChannelAddImage instagingchan to bogus channel', function (t) {
+    var addOpts = {
+        uuid: '3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+        channel: 'bogus'
+    };
+    this.authClients.staging.channelAddImage(addOpts, function (err, img, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ValidationFailed');
+        t.equal(res.statusCode, 422);
+        t.end();
+    });
+});
+
+test('ChannelAddImage unknown image to release channel', function (t) {
+    var addOpts = {
+        uuid: '3e6ebb8c-bb37-9245-ba5d-999999999999',
+        channel: 'release'
+    };
+    this.authClients.staging.channelAddImage(addOpts, function (err, img, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('ChannelAddImage instagingchan image to release channel (using dev chan)', function (t) {
+    var addOpts = {
+        uuid: '3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+        channel: 'release'
+    };
+    this.authClients.dev.channelAddImage(addOpts, function (err, img, res) {
+        t.ok(err);
+        if (err) t.equal(err.body.code, 'ResourceNotFound');
+        t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+test('ChannelAddImage instagingchan to release channel', function (t) {
+    var addOpts = {
+        uuid: '3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+        channel: 'release'
+    };
+    this.authClients.staging.channelAddImage(addOpts, function (err, img, res) {
+        t.ifError(err);
+        t.ok(img);
+        t.ok(img.channels.indexOf('staging') !== -1);
+        t.ok(img.channels.indexOf('release') !== -1);
+        t.equal(res.statusCode, 200);
+        t.end();
+    });
+});
+
+test('ListImages in release channel to assert have new one', function (t) {
+    var uuid = '3e6ebb8c-bb37-9245-ba5d-43d172461be6';
+    this.authClients.release.listImages(function (err, images) {
+        t.ifError(err);
+        t.equal(
+            images.filter(function (img) { return img.uuid === uuid; }).length,
+            1);
+        t.end();
+    });
+});
+
+test('DeleteImage instagingchan to remove from release channel', function (t) {
+    this.authClients.release.deleteImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
+            undefined, function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 204);
+        t.end();
+    });
+});
+
+test('ListImages in release channel to assert removed', function (t) {
+    var uuid = '3e6ebb8c-bb37-9245-ba5d-43d172461be6';
+    this.authClients.release.listImages(function (err, images) {
+        t.ifError(err);
+        t.equal(
+            images.filter(function (img) { return img.uuid === uuid; }).length,
+            0);
+        t.end();
+    });
+});
+
+test('ListImages in staging channel to assert still there', function (t) {
+    var uuid = '3e6ebb8c-bb37-9245-ba5d-43d172461be6';
+    this.authClients.staging.listImages(function (err, images) {
+        t.ifError(err);
+        t.equal(
+            images.filter(function (img) { return img.uuid === uuid; }).length,
+            1);
+        t.end();
+    });
+});
+
+
+
 //----  DeleteImageIcon
 
 test('DeleteImageIcon with staging channel can get instagingchan', function (t) {
@@ -759,7 +860,7 @@ test('DeleteImageIcon with staging channel cannot get indevchan', function (t) {
 
 //----  DeleteImage
 
-test('DeleteImage with staging channel can get instagingchan', function (t) {
+test('DeleteImage (ch=staging) can get instagingchan', function (t) {
     this.authClients.staging.deleteImage('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
             undefined, function (err, res) {
         t.ifError(err);
@@ -768,12 +869,47 @@ test('DeleteImage with staging channel can get instagingchan', function (t) {
     });
 });
 
-test('DeleteImage with staging channel cannot get indevchan', function (t) {
+test('ListImages (ch=*) shows instagingchan is really gone', function (t) {
+    this.authClients.star.listImages(function (err, imgs) {
+        t.ifError(err);
+        t.equal(
+            imgs.filter(function (img) { return img.name === 'instagingchan'; }).length,
+            0);
+        t.end();
+    });
+});
+
+test('DeleteImage (ch=staging) cannot get indevchan', function (t) {
     this.authClients.staging.deleteImage('8ba6d20f-6013-f944-9d69-929ebdef45a2',
             undefined, function (err, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
         t.equal(res.statusCode, 404);
+        t.end();
+    });
+});
+
+
+//---- DeleteImage with ?force_all_channels works as expected
+
+test('DeleteImage (ch=dev) with ?force_all_channels fully deletes inmultichan', function (t) {
+    var uuid = '4e6ebb8c-bb37-9245-ba5d-43d172461be6';
+    var delOpts = {
+        forceAllChannels: true
+    };
+    this.authClients.dev.deleteImage(uuid, delOpts, function (err, res) {
+        t.ifError(err);
+        t.equal(res.statusCode, 204);
+        t.end();
+    });
+});
+
+test('ListImages (ch=*) shows inmultichan is really gone', function (t) {
+    this.authClients.star.listImages(function (err, imgs) {
+        t.ifError(err);
+        t.equal(
+            imgs.filter(function (img) { return img.name === 'inmultichan'; }).length,
+            0);
         t.end();
     });
 });
