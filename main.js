@@ -18,6 +18,7 @@ var format = require('util').format;
 
 var createApp = require('./lib/app').createApp;
 var objCopy = require('./lib/utils').objCopy;
+var images = require('./lib/images');
 
 
 
@@ -194,11 +195,7 @@ function handleArgv() {
             logSrc = true;
     }
     var serializers = objCopy(restify.bunyan.serializers);
-    serializers.image = function (image) {
-        // 'config.mode' isn't know yet, but that doesn't matter for internal
-        // logging.
-        return ((image && image.serialize) ? image.serialize('dc') : image);
-    };
+    serializers.image = images.bunyanImageSerializer;
     log = bunyan.createLogger({  // `log` is intentionally global.
         name: NAME,
         level: logLevel,
