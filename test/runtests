@@ -1,13 +1,9 @@
 #!/bin/bash
 #
-# Copyright (c) 2012, Joyent, Inc. All rights reserved.
+# Copyright (c) 2014, Joyent, Inc. All rights reserved.
 #
 # Run the IMGAPI tests. This is expected to be run from an IMGAPI zone
 # in a full SDC (and Manta) setup.
-#
-# This creates .tap files in the OUTPUT_DIR (/var/tmp/imgapitest) that
-# can be processed by a TAP reader. Testing config and log files are
-# also placed in this dir.
 #
 # Run `./runtests -h` for usage info.
 #
@@ -49,7 +45,8 @@ function usage () {
     echo "  -c          Just clean up test data, don't run the tests."
     echo "  -q          Quick. Don't reload the test data."
     echo "  -f FILTER   Filter pattern (substring match) for test files to run."
-    echo "  -p          Run tests against 'public' mode IMGAPI."
+    echo "  -p          Run tests against 'public' mode IMGAPI, as opposed to"
+    echo "              a 'dc' mode IMGAPI (the default)."
     echo "  -l          Start a local IMGAPI using './imgapi-config-local-MODE.json'"
     echo "              and test against that."
     echo "  -o          Offline. Skip tests and setup that require the internet."
@@ -156,11 +153,13 @@ fi
 fi
 
 
-# Setup a clean output dir.
-OUTPUT_DIR=/var/tmp/imgapitest
-echo "# Setup a clean output dir ($OUTPUT_DIR)."
-rm -rf $OUTPUT_DIR
-mkdir -p $OUTPUT_DIR
+if [[ $opt_reporter == "tap" ]]; then
+    # Setup a clean output dir for TAP output if using that reporter.
+    OUTPUT_DIR=/var/tmp/imgapitest
+    echo "# Setup a clean output dir ($OUTPUT_DIR)."
+    rm -rf $OUTPUT_DIR
+    mkdir -p $OUTPUT_DIR
+fi
 
 
 # Gather IMGAPI/datacenter data to be used by the test suite.
@@ -248,7 +247,7 @@ if [[ -z "$opt_quick" ]]; then
     bash $TOP/test/reload-test-data.sh $script_opts
 fi
 
-# Start the imgapi service, if necessary (only for local testing).
+# Start the two imgapi services, if necessary (only for local testing).
 if [[ -n "$opt_local" ]]; then
     echo '# Start local imgapi (`tail -f tmp/local.log | bunyan`).'
     mkdir -p tmp

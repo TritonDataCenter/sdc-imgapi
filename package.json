@@ -23,7 +23,7 @@
     "posix-getopt": "1.0.0",
     "restify": "git+ssh://git@github.com:mcavage/node-restify.git#43ee356",
     "rimraf": "2.2.6",
-    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#9012ead",
+    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#7cf3e3e",
     "semver": "3.0.1",
     "vasync": "1.5.0",
     "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#9bcb3a0ebec7cd5b4052acaacde8fd6e3e2dfcf9"

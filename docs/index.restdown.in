@@ -2923,7 +2923,7 @@ Other inputs:
 || channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 ||action||String||Yes||"import"||
 ||skip_owner_check||Boolean||No||Defaults to `false`. Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
-||source||URL||No||URL of the source IMGAPI repository. If called with a `source` then only the `uuid` input field is relevant.||
+||source||URL||No||URL of the source IMGAPI repository. If the source IMGAPI uses channels, a channel may be given via `...?channel=<channel>`. If called with a `source` then only the `uuid` input field is relevant.||
 
 ### Returns
 
@@ -2970,7 +2970,7 @@ This creates an active image ready for consumption.
 || **Field** || **Type** || **Required?** || **Notes** ||
 || channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 ||action||String||Yes||"import-remote"||
-||source||URL||Yes||URL of the source IMGAPI repository||
+||source||URL||No||URL of the source IMGAPI repository. If the source IMGAPI uses channels, a channel may be given via `...?channel=<channel>`.||
 ||skip_owner_check||Boolean||No||Defaults to `false`. Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
 
 
