@@ -10,7 +10,7 @@
     "bunyan": "0.22.3",
     "dashdash": "1.5.0",
     "expiring-lru-cache": "2.1.0",
-    "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#1c31106",
+    "imgmanifest": "git+ssh://git@git.joyent.com:node-imgmanifest.git#70558d7",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
     "libuuid": "0.1.2",
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#5b8010d",
@@ -23,7 +23,7 @@
     "posix-getopt": "1.0.0",
     "restify": "git+ssh://git@github.com:mcavage/node-restify.git#43ee356",
     "rimraf": "2.2.6",
-    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#7cf3e3e",
+    "sdc-clients": "git+ssh://git@git.joyent.com:node-sdc-clients.git#af8ea3d",
     "semver": "3.0.1",
     "vasync": "1.5.0",
     "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#9bcb3a0ebec7cd5b4052acaacde8fd6e3e2dfcf9"
