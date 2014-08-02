@@ -22,7 +22,7 @@ function usage
     echo "  ./test/rm-test-data.sh [OPTIONS...]"
     echo ""
     echo "Options:"
-    echo "  -l          Remove data for an imgapi using 'test/local.json'."
+    echo "  -l          Remove data for a *local* testing imgapi."
 }
 
 function fatal
@@ -81,9 +81,8 @@ elif [[ "$opt_mode" == "dc" ]]; then
         i=$(($i + 1))
     done
 
-    # All the test-data.ldif dns.
-    dns=" $(grep '^dn' $TOP/test/test-data.ldif | cut -d' ' -f2- | sed 's/, /,/g' | xargs)"
-
+    # All the test users.
+    dns=" $(grep '^dn' $TOP/test/dc-test-users.ldif | cut -d' ' -f2- | sed 's/, /,/g' | xargs)"
     for dn in $dns; do
         dn=$(echo $dn | sed 's/,/, /g')
         uuid_query=$(echo $dn | cut -d, -f1)
