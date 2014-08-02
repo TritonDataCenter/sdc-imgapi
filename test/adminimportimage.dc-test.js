@@ -600,9 +600,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
         });
     }
     function create(next) {
-        var iOpts = {skipOwnerCheck: true};
-        self.client.adminImportImage(manifest, iOpts,
-                                     function (err, image, res) {
+        self.client.adminImportImage(manifest, {}, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             if (image) {
@@ -861,8 +859,7 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
     var imagesUrl = 'https://images.joyent.com';
 
     function importRemote(next) {
-        var iOpts = {skipOwnerCheck: true};
-        self.client.adminImportRemoteImageAndWait(uuid, imagesUrl, iOpts,
+        self.client.adminImportRemoteImageAndWait(uuid, imagesUrl, {},
             function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
@@ -907,6 +904,87 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
 
     async.series(
         [
+            importRemote,
+            getFile,
+            deleteImage
+        ],
+        function (err) {
+            t.end();
+        }
+    );
+});
+
+
+/**
+ * AdminImportRemoteImage from updates.joyent.com.
+ */
+if (!process.env.IMGAPI_TEST_OFFLINE)
+test('AdminImportRemoteImage from updates.joyent.com (dev chan)', function (t) {
+    var self = this;
+    var name = 'assets';  // The 'assets' images are typically small.
+    var sourceImage;
+    var uuid;
+    var aImage;
+    var source = 'https://updates.joyent.com';
+
+    function pickUuid(next) {
+        var updates = new IMGAPI({url: source, agent: false, channel: 'dev'});
+        updates.listImages({name: name}, function (err, imgs) {
+            t.ifError(err, err);
+            t.ok(imgs, 'got images');
+            t.ok(imgs.length > 1, 'have ' + name + ' images to choose from');
+            sourceImage = imgs[0];
+            uuid = sourceImage.uuid;
+            next(err);
+        });
+    }
+    function importRemote(next) {
+        self.client.adminImportRemoteImageAndWait(uuid, source, {},
+            function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            if (image) {
+                t.ok(image.uuid);
+                t.ok(image.published_at);
+                t.equal(image.state, 'active');
+                aImage = image;
+            }
+            next(err);
+        });
+    }
+    function getFile(next) {
+        var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
+            process.pid);
+        self.client.getImageFile(uuid, tmpFilePath, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            var hash = crypto.createHash('sha1');
+            var s = fs.createReadStream(tmpFilePath);
+            s.on('data', function (d) { hash.update(d); });
+            s.on('end', function () {
+                var actual_sha1 = hash.digest('hex');
+                t.equal(aImage.files[0].sha1, actual_sha1,
+                    'sha1 matches image data');
+                next();
+            });
+        });
+    }
+    function deleteImage(next) {
+        self.client.deleteImage(uuid, function (err, res) {
+            t.ifError(err, err);
+            if (err) {
+                return next(err);
+            }
+            t.equal(res.statusCode, 204, 'res.statusCode 204');
+            next();
+        });
+    }
+
+    async.series(
+        [
+            pickUuid,
             importRemote,
             getFile,
             deleteImage

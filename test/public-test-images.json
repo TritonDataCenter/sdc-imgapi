@@ -1,0 +1,133 @@
+[
+  {
+    "v": 2,
+    "uuid": "c58161c0-2547-11e2-a75e-9fdca1940570",
+    "name": "innochan",
+    "version": "1.2.3",
+    "owner": "00000000-0000-0000-0000-000000000000",
+    "public": true,
+    "activated": true,
+    "disabled": false,
+    "state": "active",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "published_at": "2012-11-02T22:46:45.992Z",
+    "files": [
+      {
+        "sha1": "046c168df2244d3a13985f042a50e479fe56455e",
+        "size": 4,
+        "contentMD5": "jH3ZIq1HSU/ALDiOEsAOrA==",
+        "mtime": "2013-08-22T20:41:08.978Z",
+        "stor": "local",
+        "compression": "none"
+      }
+    ],
+    "icon": {
+      "sha1": "1b8961b8a349ed987f73d3c5117e970e006b5b7e",
+      "size": 4,
+      "contentMD5": "uuxkYbDWnd4bhhrvvjddig==",
+      "contentType": "image/png",
+      "mtime": "2013-08-22T20:41:09.978Z",
+      "stor": "local"
+    }
+  },
+  {
+    "v": 2,
+    "uuid": "8ba6d20f-6013-f944-9d69-929ebdef45a2",
+    "name": "indevchan",
+    "version": "1.2.3",
+    "owner": "00000000-0000-0000-0000-000000000000",
+    "public": true,
+    "activated": true,
+    "disabled": false,
+    "state": "active",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "published_at": "2012-11-02T22:46:45.992Z",
+    "files": [
+      {
+        "sha1": "046c168df2244d3a13985f042a50e479fe56455e",
+        "size": 4,
+        "contentMD5": "jH3ZIq1HSU/ALDiOEsAOrA==",
+        "mtime": "2013-08-22T20:41:08.978Z",
+        "stor": "local",
+        "compression": "none"
+      }
+    ],
+    "icon": {
+      "sha1": "1b8961b8a349ed987f73d3c5117e970e006b5b7e",
+      "size": 4,
+      "contentMD5": "uuxkYbDWnd4bhhrvvjddig==",
+      "contentType": "image/png",
+      "mtime": "2013-08-22T20:41:09.978Z",
+      "stor": "local"
+    },
+    "channels": ["dev"]
+  },
+  {
+    "v": 2,
+    "uuid": "3e6ebb8c-bb37-9245-ba5d-43d172461be6",
+    "name": "instagingchan",
+    "version": "1.2.3",
+    "owner": "00000000-0000-0000-0000-000000000000",
+    "public": true,
+    "activated": true,
+    "disabled": false,
+    "state": "active",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "published_at": "2012-11-02T22:46:45.992Z",
+    "files": [
+      {
+        "sha1": "046c168df2244d3a13985f042a50e479fe56455e",
+        "size": 4,
+        "contentMD5": "jH3ZIq1HSU/ALDiOEsAOrA==",
+        "mtime": "2013-08-22T20:41:08.978Z",
+        "stor": "local",
+        "compression": "none"
+      }
+    ],
+    "icon": {
+      "sha1": "1b8961b8a349ed987f73d3c5117e970e006b5b7e",
+      "size": 4,
+      "contentMD5": "uuxkYbDWnd4bhhrvvjddig==",
+      "contentType": "image/png",
+      "mtime": "2013-08-22T20:41:09.978Z",
+      "stor": "local"
+    },
+    "channels": ["staging"]
+  },
+  {
+    "v": 2,
+    "uuid": "4e6ebb8c-bb37-9245-ba5d-43d172461be6",
+    "name": "inmultichan",
+    "version": "1.2.3",
+    "owner": "00000000-0000-0000-0000-000000000000",
+    "public": true,
+    "activated": true,
+    "disabled": false,
+    "state": "active",
+    "os": "smartos",
+    "type": "zone-dataset",
+    "published_at": "2012-11-02T22:46:45.992Z",
+    "files": [
+      {
+        "sha1": "046c168df2244d3a13985f042a50e479fe56455e",
+        "size": 4,
+        "contentMD5": "jH3ZIq1HSU/ALDiOEsAOrA==",
+        "mtime": "2013-08-22T20:41:08.978Z",
+        "stor": "local",
+        "compression": "none"
+      }
+    ],
+    "icon": {
+      "sha1": "1b8961b8a349ed987f73d3c5117e970e006b5b7e",
+      "size": 4,
+      "contentMD5": "uuxkYbDWnd4bhhrvvjddig==",
+      "contentType": "image/png",
+      "mtime": "2013-08-22T20:41:09.978Z",
+      "stor": "local"
+    },
+    "channels": ["dev", "staging", "release"]
+  }
+]

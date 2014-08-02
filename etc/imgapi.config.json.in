@@ -20,6 +20,12 @@
         }
     },
 
+    "// channels": [
+        {"name": "dev", "description": "all development builds", "default": true},
+        {"name": "staging", "description": "builds for testing in staging in prep for production release"},
+        {"name": "release", "description": "release gold bits"}
+    ],
+
     "storage": {
         "local": {
             "baseDir": "/var/tmp/imgapi"

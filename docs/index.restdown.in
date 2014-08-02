@@ -2,7 +2,7 @@
 title: Image API (IMGAPI)
 markdown2extras: wiki-tables, code-friendly, cuddled-lists, link-patterns
 markdown2linkpatternsfile: link-patterns.txt
-apisections: Miscellaneous API, Image API
+apisections: Images, Channels, Miscellaneous API
 ---
 
 # Image API (IMGAPI)
@@ -18,7 +18,7 @@ ecosystem.
 An "image" is virtual machine image content (e.g. a zfs dataset for a
 SmartOS zone or a KVM machine image) plus [the metadata for the image (called
 the "manifest")](#image-manifest-data). The following API instances and tools
-are relevant for managing images in SmartOS and SDC.
+are relevant for managing images in and for SmartOS and SDC.
 
 <!-- #ifdef PRIVATE -->
 The old Datasets API (DSAPI, e.g. https://datasets.joyent.com) will live
@@ -54,6 +54,7 @@ endpoints.
 See [Use Cases](#use-cases) for details on how IMGAPI is (designed to be)
 used.
 <!-- #endif -->
+
 
 
 <!-- #ifdef PRIVATE -->
@@ -596,6 +597,7 @@ A summary of fields (details are provided below):
 ||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||Yes||Disk driver used by this VM image.||
 ||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||Yes||The QEMU CPU model to use for this VM image.||
 ||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||Yes||The size (in MiB) of this VM image's disk.||
+||[channels](#manifest-channels)||Array||Yes (if server uses channels)||Yes||Array of channel names to which this image belongs.||
 
 "Mutable?" refers to whether this field can be edited via
 [UpdateImage](#UpdateImage). The `icon` boolean is effectively changed by
@@ -1056,6 +1058,12 @@ This is a required field for `type === "zvol"` images.
 The size (in MiB) of the VM's disk, and hence the required size of allocated
 disk for provisioning.
 This is a required field for `type === "zvol"` images.
+
+
+## Manifest: channels
+
+Array of channel names to which this image belongs. This is only present
+and relevant for images in an IMGAPI server that uses [channels](#channels).
 
 
 
@@ -1674,9 +1682,10 @@ Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO
 ||[CopyRemoteImage](#CopyRemoteImage)||POST /images/$uuid?action=copy-remote&dc=us-west-1||**NYI (IMGAPI-278)** Copy one's own image from another DC in the same cloud.||
 ||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
-||- - -||- - -|| - - - ||
 ||[AdminGetState](#AdminGetState)||GET /state||Dump internal server state (for dev/debugging)||
 <!-- #endif -->
+||[ListChannels](#ListChannels)||GET /channels||List image channels (if the server uses channels).||
+||[ChannelAddImage](#ChannelAddImage)||POST /images/:uuid?action=channel-all||Add an existing image to another channel.||
 ||[Ping](#Ping)||GET /ping||Ping if the server is up.||
 
 
@@ -1685,8 +1694,7 @@ Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO
 
 <!-- #include "build/errors.restdown" -->
 
-
-# Image API
+# Images
 
 An "image" object is the metadata for an image file, also called the manifest.
 See [Image manifest data](#image-manifest-data) above for a summary of all
@@ -1704,19 +1712,20 @@ authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
-||**Field**||**Type**||**Description**||
-||account||UUID||Only list images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are listed in the ACL, and (c) their own images.||
-||owner||UUID||Only list images owned by this account.||
-||state||String||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
-||name||String||List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
-||version||String||List images with the given version. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
-||public||Boolean||List just public or just private images.||
-||os||String||List images with the given os.||
-||type||String||List images of the given type.||
-||tag.{key}||String||List images by tags. See below||
-||billing_tag||String||List images by billing tags. See below||
-||limit||Number||Maximum number of images to return. Images are sorted by creation date (ASC) by default. The default (and maximum) limit value is 1000||
-||marker||UUID||Only return images created after the creation date of the image specified by the marker (including the marker image).||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+||owner||UUID||No||Only list images owned by this account.||
+||state||String||No||List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.||
+||name||String||No||List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
+||version||String||No||List images with the given version. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.||
+||public||Boolean||No||List just public or just private images.||
+||os||String||No||List images with the given os.||
+||type||String||No||List images of the given type.||
+||tag.{key}||String||No||List images by tags. See below||
+||billing_tag||String||No||List images by billing tags. See below||
+||limit||Number||No||Maximum number of images to return. Images are sorted by creation date (ASC) by default. The default (and maximum) limit value is 1000||
+||marker||UUID||No||Only return images created after the creation date of the image specified by the marker (including the marker image).||
 
 ### Filtering Images
 
@@ -1860,8 +1869,9 @@ authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
-||**Field**||**Type**||**Description**||
-||account||UUID||Only return an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. ||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 
 ### Returns
 
@@ -1945,7 +1955,9 @@ Get the image file.
 
 ### Inputs
 
-None.
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. ||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 
 ### Returns
 
@@ -1988,7 +2000,9 @@ Get the image icon file.
 
 ### Inputs
 
-None.
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. ||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 
 ### Returns
 
@@ -2030,8 +2044,9 @@ authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
-||**Field**||**Type**||**Description**||
-||account||UUID||Only allow deletion of icons on images owned by this account.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 
 ### Returns
 
@@ -2046,7 +2061,7 @@ See [Errors](#errors) section above.
 CLI tool:
 
     $ joyent-imgadm delete-icon 01b2c898-945f-11e1-a523-af1afbe22822
-    Delete icon from image 01b2c898-945f-11e1-a523-af1afbe22822
+    Deleted icon from image 01b2c898-945f-11e1-a523-af1afbe22822
 
 Raw API tool:
 
@@ -2057,14 +2072,19 @@ Raw API tool:
 
 Delete this image (and its file and icon, if any).
 
-There are two typical calling styles to this endpoint: with 'account=$UUID' and
-without. The former is what cloudapi uses to ask on behalf of a particular
-authenticated account. The latter is for operator-only querying.
+There are two typical calling styles to this endpoint on DC mode IMGAPI servers:
+with 'account=$UUID' and without. The former is what cloudapi uses to ask on
+behalf of a particular authenticated account. The latter is for operator-only
+querying.
+
+For IMGAPI servers that support image channels (e.g. updates.joyent.com)
 
 ### Inputs
 
-||**Field**||**Type**||**Description**||
-||account||UUID||Only allow deletion of images owned by this account.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+|| force_all_channels (query_param) ||Boolean||No||Set this true to force deletion even if the image exists in multiple channels. Only relevant for IMGAPI servers using [channels](#channels).||
 
 ### Returns
 
@@ -2104,32 +2124,32 @@ provisioning.
 
 ### Inputs
 
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||account||UUID||Yes\*||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[owner](#manifest-owner)||UUID||Yes\*||-||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
-||[name](#manifest-name)||String||Yes||-||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
-||[version](#manifest-version)||String||Yes||-||A version string for this image. Max 128 characters. No uniqueness guarantee.||
-||[description](#manifest-description)||String||No||-||A short description of the image.||
-||[homepage](#manifest-homepage)||URL||No||-||Homepage URL where users can find more information about the image.||
-||[eula](#manifest-eula)||URL||No||-||URL of the End User License Agreement (EULA) for the image.||
-||[disabled](#manifest-disabled)||Boolean||No||false||Indicates if this image should be available for provisioning.||
-||[public](#manifest-public)||Boolean||No||false||Indicates if this image is publicly available.||
-||[type](#manifest-type)||String||Yes||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
-||[os](#manifest-os)||String||Yes||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
-||[origin](#manifest-origin)||UUID||No||-||The origin image UUID if this is an incremental image.||
-||[acl](#manifest-acl)||Array||No||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
-||[requirements](#manifest-requirements)||Object||No||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
-||[users](#manifest-users)||Array||No||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
-||[billing_tags](#manifest-billing-tags)||Array||No||-||A list of tags that can be used by operators for additional billing processing.||
-||[traits](#manifest-traits)||Object||No||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
-||[tags](#manifest-tags)||Object||No||-||An object of key/value pairs that allows clients to categorize images by any given criteria.||
-||[generate_passwords](#manifest-generate-passwords)||Boolean||No||-||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
-||[inherited_directories](#manifest-inherited-directories)||Array||No||-||A list of inherited directories (other than the defaults for the brand).||
-||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||-||NIC driver used by this VM image.||
-||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||-||Disk driver used by this VM image.||
-||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||-||The QEMU CPU model to use for this VM image.||
-||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||-||The size (in MiB) of this VM image's disk.||
-
+||**Field**||**Type**||**Required?**||**Notes**||
+|| account (query param) ||UUID||Yes\*||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+||[owner](#manifest-owner)||UUID||Yes\*||The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.||
+||[name](#manifest-name)||String||Yes||A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.||
+||[version](#manifest-version)||String||Yes||A version string for this image. Max 128 characters. No uniqueness guarantee.||
+||[description](#manifest-description)||String||No||A short description of the image.||
+||[homepage](#manifest-homepage)||URL||No||Homepage URL where users can find more information about the image.||
+||[eula](#manifest-eula)||URL||No||URL of the End User License Agreement (EULA) for the image.||
+||[disabled](#manifest-disabled)||Boolean||No||Indicates if this image should be available for provisioning. Default is `false`.||
+||[public](#manifest-public)||Boolean||No||Indicates if this image is publicly available. Default is `false`.||
+||[type](#manifest-type)||String||Yes||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
+||[os](#manifest-os)||String||Yes||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[origin](#manifest-origin)||UUID||No||The origin image UUID if this is an incremental image.||
+||[acl](#manifest-acl)||Array||No||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+||[requirements](#manifest-requirements)||Object||No||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
+||[users](#manifest-users)||Array||No||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[billing_tags](#manifest-billing-tags)||Array||No||A list of tags that can be used by operators for additional billing processing.||
+||[traits](#manifest-traits)||Object||No||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
+||[tags](#manifest-tags)||Object||No||An object of key/value pairs that allows clients to categorize images by any given criteria.||
+||[generate_passwords](#manifest-generate-passwords)||Boolean||No||A boolean indicating whether to generate passwords for the users in the "users" field. If not present, the default value is true.||
+||[inherited_directories](#manifest-inherited-directories)||Array||No||A list of inherited directories (other than the defaults for the brand).||
+||[nic_driver](#manifest-nic-driver)||String||Yes (if `type==="zvol"`)||NIC driver used by this VM image.||
+||[disk_driver](#manifest-disk-driver)||String||Yes (if `type==="zvol"`)||Disk driver used by this VM image.||
+||[cpu_type](#manifest-cpu-type)||String||Yes (if `type==="zvol"`)||The QEMU CPU model to use for this VM image.||
+||[image_size](#manifest-image-size)||Number||Yes (if `type==="zvol"`)||The size (in MiB) of this VM image's disk.||
 
 ### Returns
 
@@ -2199,11 +2219,12 @@ going to be directly computed from the source VM.
 
 ### Query String Inputs
 
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||account||UUID||Yes||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||vm_uuid||UUID||Yes||-||The UUID of the source VM.||
-||incremental||Boolean||No||false||Whether to create an incremental image.||
-||max_origin_depth||Number||-||If the image is incremental, this number allows setting a limit in the number of child incremental images. E.g. a value of 3 means that the image will only be created if there are no more than 3 parent images in the origin chain.||
+|| **Field**        || **Type** || **Required?** ||**Default**||**Notes**||
+|| account          || UUID     || Yes           ||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+|| channel          || String   || No            || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+|| vm_uuid          || UUID     || Yes           ||The UUID of the source VM.||
+|| incremental      || Boolean  || No            ||Whether to create an incremental image. Default is `false`.||
+|| max_origin_depth || Number   || No            ||If the image is incremental, this number allows setting a limit in the number of child incremental images. E.g. a value of 3 means that the image will only be created if there are no more than 3 parent images in the origin chain.||
 
 ### Manifest Inputs
 
@@ -2290,8 +2311,9 @@ in Manta can be exported, locally stored images are not supported.
 ### Inputs
 
 ||**Field**||**Type**||**Required?**||**Notes**||
-||account||UUID||No\*||The account UUID on behalf of whom this request is being made. If given then the manta_path prefix must resolve to a location that is owned by the account. If not given then the manta_path prefix is assumed to (and must) resolve to a path that is owned by the admin user.||
-||manta_path||String||Yes\*||Manta path prefix where the image file and manifest should be exported to. If "manta_path" is a dir, then the files are saved to it. If the basename of "PATH" is not a dir, then "PATH.imgmanifest" and "PATH.zfs[.EXT]" are created.||
+|| account (query param) || UUID || No\* || The account UUID on behalf of whom this request is being made. If given then the manta_path prefix must resolve to a location that is owned by the account. If not given then the manta_path prefix is assumed to (and must) resolve to a path that is owned by the admin user.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+|| manta_path ||String||Yes\*||Manta path prefix where the image file and manifest should be exported to. If "manta_path" is a dir, then the files are saved to it. If the basename of "PATH" is not a dir, then "PATH.imgmanifest" and "PATH.zfs[.EXT]" are created.||
 
 ### Returns
 
@@ -2342,19 +2364,20 @@ for provisioning, `state == "active"`.
 
 ### Inputs
 
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||account||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+||**Field**||**Type**||**Required?**||**Notes**||
+|| account (query param) || UUID||No||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 <!-- #ifdef PRIVATE -->
-||storage||String||No||-||The type of storage preferred for this image file. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
+||storage||String||No||The type of storage preferred for this image file. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
 <!-- #else -->
-||storage||String||No||-||The type of storage preferred for this image file. Admin-only.||
+||storage||String||No||The type of storage preferred for this image file. Admin-only.||
 <!-- #endif -->
-||[compression](#manifest-files)||UUID||Yes||-||The type of compression used for the file content. One of 'none', 'gzip' or 'bzip2'.||
-||[sha1](#manifest-files)||SHA-1 Hash||No||-||SHA-1 of the uploaded file to allow the server to check for data corruption.||
+||[compression](#manifest-files)||UUID||Yes||The type of compression used for the file content. One of 'none', 'gzip' or 'bzip2'.||
+||[sha1](#manifest-files)||SHA-1 Hash||No||SHA-1 of the uploaded file to allow the server to check for data corruption.||
 <!-- #ifdef PRIVATE -->
-||dataset_guid||GUID||No||-||The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`).||
+||dataset_guid||GUID||No||The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`).||
 <!-- #endif -->
-||(file content in the body)||binary||Yes||-||The image file content.||
+||(file content in the body)||binary||Yes||The image file content.||
 
 ### Returns
 
@@ -2418,15 +2441,16 @@ formats: PNG, GIF or JPG.
 
 ### Inputs
 
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||account||UUID||No||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[sha1](#manifest-files)||SHA-1 Hash||No||-||SHA-1 of the uploaded icon file to allow the server to check for data corruption.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID||No||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+||[sha1](#manifest-files)||SHA-1 Hash||No||SHA-1 of the uploaded icon file to allow the server to check for data corruption.||
 <!-- #ifdef PRIVATE -->
-||storage||String||No||-||The type of storage preferred for the image icon. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
+||storage||String||No||The type of storage preferred for the image icon. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
 <!-- #else -->
-||storage||String||No||-||The type of storage preferred for the image icon. Admin-only.||
+||storage||String||No||The type of storage preferred for the image icon. Admin-only.||
 <!-- #endif -->
-||(file content in the body)||binary||Yes||-||The icon file content.||
+||(file content in the body)||binary||Yes||The icon file content.||
 
 ### HTTP Request Headers
 
@@ -2499,7 +2523,9 @@ or [*deleted*](#DeleteImage) permanently.
 
 ### Inputs
 
-None.
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 
 ### Returns
 
@@ -2558,7 +2584,9 @@ Disables the image. This makes the image unavailable for provisioning -- the
 
 ### Inputs
 
-None.
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 
 ### Returns
 
@@ -2617,7 +2645,9 @@ the `state` field will be "active".
 
 ### Inputs
 
-None.
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 
 ### Returns
 
@@ -2681,9 +2711,10 @@ the **AddImageAcl** action is valid in either of the two following forms:
 
 ### Inputs
 
-||**Field**||**Type**||**Default**||**Notes**||
-||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs to give access to a private image. The field is only relevant to private images.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) ||UUID||No||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+|| [acl](#manifest-acl) ||Array||Yes||Access Control List. An array of account UUIDs to give access to a private image. The field is only relevant to private images.||
 
 ### Returns
 
@@ -2746,9 +2777,10 @@ requires the action parameter to be present and to be equal to 'remove'.
 
 ### Inputs
 
-||**Field**||**Type**||**Default**||**Notes**||
-||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs to remove access to a private image. The field is only relevant to private images.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) ||UUID||No||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+|| [acl](#manifest-acl) ||Array||Yes||Access Control List. An array of account UUIDs to remove access to a private image. The field is only relevant to private images.||
 
 ### Returns
 
@@ -2805,35 +2837,34 @@ CLI tool:
 ## UpdateImage (POST /images/:uuid?action=update)
 
 Update some fields in the image manifest. Not all fields can be updated. The
-inputs section lists every image attribute that can be modified. Note that this
-action is a complete replace of the attributes specified in the request and not
-a partial update. Any input is optional but at least one attribute must be
-updated.
+inputs section lists every image attribute that can be modified.
+Any input is optional but at least one attribute must be updated.
 
 **NOTE** Public images residing on a public mode server cannot be made private.
 
 ### Inputs
 
-||**Field**||**Type**||**Default**||**Notes**||
-||account||UUID||-||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
-||[description](#manifest-description)||String||-||A short description of the image.||
-||[homepage](#manifest-homepage)||URL||-||Homepage URL where users can find more information about the image.||
-||[eula](#manifest-eula)||URL||-||URL of the End User License Agreement (EULA) for the image.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| account (query param) || UUID || No || Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+||[description](#manifest-description)||String||No||A short description of the image.||
+||[homepage](#manifest-homepage)||URL||No||Homepage URL where users can find more information about the image.||
+||[eula](#manifest-eula)||URL||No||URL of the End User License Agreement (EULA) for the image.||
 ||[public](#manifest-public)||Boolean||false||Indicates if this image is publicly available.||
-||[type](#manifest-type)||String||-||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
-||[os](#manifest-os)||String||-||The OS family this image provides. One of "smartos", "windows", and "linux".||
-||[acl](#manifest-acl)||Array||-||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
-||[requirements](#manifest-requirements)||Object||-||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
-||[users](#manifest-users)||Array||-||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
-||[billing_tags](#manifest-billing-tags)||Array||-||A list of tags that can be used by operators for additional billing processing.||
-||[traits](#manifest-traits)||Object||-||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
-||[tags](#manifest-tags)||Object||-||An object of key/value pairs that allows clients to categorize images by any given criteria.||
-||[inherited_directories](#manifest-inherited-directories)||Array||-||A list of inherited directories (other than the defaults for the brand).||
-||[generate_passwords](#manifest-generate-passwords)||Boolean||-||A boolean indicating whether to generate passwords for the users in the "users" field.||
-||[nic_driver](#manifest-nic-driver)||String||-||NIC driver used by this VM image. Required if `type==="zvol"`||
-||[disk_driver](#manifest-disk-driver)||String||-||Disk driver used by this VM image. Required if `type==="zvol"`||
-||[cpu_type](#manifest-cpu-type)||String||-||The QEMU CPU model to use for this VM image. Required if `type==="zvol"`||
-||[image_size](#manifest-image-size)||Number||-||The size (in MiB) of this VM image's disk. Required if `type==="zvol"`||
+||[type](#manifest-type)||String||No||The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose.||
+||[os](#manifest-os)||String||No||The OS family this image provides. One of "smartos", "windows", and "linux".||
+||[acl](#manifest-acl)||Array||No||Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.||
+||[requirements](#manifest-requirements)||Object||No||A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.||
+||[users](#manifest-users)||Array||No||A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`||
+||[billing_tags](#manifest-billing-tags)||Array||No||A list of tags that can be used by operators for additional billing processing.||
+||[traits](#manifest-traits)||Object||No||An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.||
+||[tags](#manifest-tags)||Object||No||An object of key/value pairs that allows clients to categorize images by any given criteria.||
+||[inherited_directories](#manifest-inherited-directories)||Array||No||A list of inherited directories (other than the defaults for the brand).||
+||[generate_passwords](#manifest-generate-passwords)||Boolean||No||A boolean indicating whether to generate passwords for the users in the "users" field.||
+||[nic_driver](#manifest-nic-driver)||String||No||NIC driver used by this VM image.||
+||[disk_driver](#manifest-disk-driver)||String||No||Disk driver used by this VM image.||
+||[cpu_type](#manifest-cpu-type)||String||No||The QEMU CPU model to use for this VM image.||
+||[image_size](#manifest-image-size)||Number||No||The size (in MiB) of this VM image's disk.||
 
 ### Returns
 
@@ -2886,12 +2917,13 @@ and changes:
 ||published_at||Date||No||-||The published date/time of the image.||
 ||...||...||...||...||Other fields from [CreateImage](#CreateImage).||
 
-Query params:
+Other inputs:
 
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||action||String||Yes||-||"import"||
-||skip_owner_check||Boolean||No||false||Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
-||source||URL||No||-||URL of the source IMGAPI repository. If called with a `source` then only the `uuid` input field is relevant.||
+||**Field**||**Type**||**Required?**||**Notes**||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+||action||String||Yes||"import"||
+||skip_owner_check||Boolean||No||Defaults to `false`. Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
+||source||URL||No||URL of the source IMGAPI repository. If the source IMGAPI uses channels, a channel may be given via `...?channel=<channel>`. If called with a `source` then only the `uuid` input field is relevant.||
 
 ### Returns
 
@@ -2935,15 +2967,11 @@ This creates an active image ready for consumption.
 
 ### Inputs
 
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||uuid||UUID||Yes||-||The existing image UUID.||
-
-Query params:
-
-||**Field**||**Type**||**Required?**||**Default**||**Notes**||
-||action||String||Yes||-||"import-remote"||
-||source||URL||Yes||-||URL of the source IMGAPI repository||
-||skip_owner_check||Boolean||No||false||Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
+|| **Field** || **Type** || **Required?** || **Notes** ||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+||action||String||Yes||"import-remote"||
+||source||URL||No||URL of the source IMGAPI repository. If the source IMGAPI uses channels, a channel may be given via `...?channel=<channel>`.||
+||skip_owner_check||Boolean||No||Defaults to `false`. Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances.||
 
 
 ### Returns
@@ -2953,7 +2981,6 @@ A job response object with the following fields:
 ||**Field**||**Type**||**Notes**||
 ||image_uuid||UUID||UUID of the image being imported||
 ||job_uuid||UUID||The job UUID. In SDC use `sdc-workflow /jobs/$job_uuid` to inspect.||
-
 
 ### Errors
 
@@ -3030,6 +3057,137 @@ See [Errors](#errors) section above.
     ...
 
 <!-- #endif -->
+
+
+# Channels
+
+An IMGAPI server can use "channels". Each channel is an independent set of
+images in the same server. The set of channels is a [static
+configured](#configuration) set of channel names, optionally with a default
+channel. Use [ListChannels](#ListChannels) to see the server's configured
+channels.
+
+Each relevant IMGAPI endpoint has a "?channel=<channel>" query param to work
+with images in that channel. Without it the server's configured default channel
+is implied. The [IMGAPI
+client](https://mo.joyent.com/node-sdc-clients/blob/master/lib/imgapi.js) takes
+a new `channel` constructor option. Image manifests have a new "channels"
+field that is an array of the channel names to which the image belongs.
+
+In a server that uses channels, an image can be in one or more channels. An
+existing image is added to additional channels via
+[ChannelAddImage](#ChannelAddImage). An image is removed from a channel via
+[DeleteImage](#DeleteImage) -- the image is not fully deleted from the
+repository until it is removed from its last channel.
+
+The current canonical example of an IMGAPI server using channels is the
+SmartDataCenter updates server (https://updates.joyent.com). The
+[`updates-imgadm`](https://mo.joyent.com/imgapi-cli/blob/channels/bin/updates-imgadm)
+CLI takes a `-C <channel>` option or `UPDATES_IMGADM_CHANNEL=<channel>`
+environment variable to specify the channel. Additionally on a SmartDataCenter
+headnode the `updates-imgadm` will default to the DC's configured update
+channel (see the `update_channel` SDC config var).
+
+A channel object has the following fields:
+
+||**Field**||**Description**||
+||name||The channel name. This is the unique id.||
+||default||Boolean. Only set for the default channel, if any.||
+||description||A short prose description of the channel's purpose.||
+
+
+## ListChannels (GET /channels)
+
+List the IMGAPI server's channels.
+
+### Inputs
+
+None.
+
+### Returns
+
+An array of channel objects (see above).
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+
+CLI tool:
+
+    $ updates-imgadm channels
+    NAME     DEFAULT  DESCRIPTION
+    dev      true     all development builds
+    staging  -        builds for testing in staging in prep for production release
+    release  -        release gold bits
+
+Raw curl (from updates.joyent.com):
+
+    $ curl -kisS https://updates.joyent.com/channels
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 280
+    Date: Tue, 29 Jul 2014 21:56:17 GMT
+    Server: IMGAPI/1.2.0
+    x-request-id: 2aa89bb0-176b-11e4-b4fe-f1422f0ce754
+    x-response-time: 1
+    x-server-name: ...
+    Connection: keep-alive
+
+    [
+      {
+        "name": "dev",
+        "description": "all development builds",
+        "default": true
+      },
+      {
+        "name": "staging",
+        "description": "builds for testing in staging in prep for production release"
+      },
+      {
+        "name": "release",
+        "description": "release gold bits"
+      }
+    ]
+
+
+## ChannelAddImage (POST /images/:uuid?action=channel-add)
+
+Add an image (on the current channel) to a new channel.
+
+### Inputs
+
+||**Field**||**Type**||**Required?**||**Notes**||
+|| uuid (path) ||UUID||Yes||The existing image UUID.||
+|| action (query param) ||String||Yes||"channel-add"||
+|| channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
+|| channel (body) ||String||Yes||The channel to which to add the image.||
+
+Note: Somewhat confusingly, this endpoint uses *two* independent `channel`
+field inputs:
+
+1. The "channel" query param, used to find the given image (as with
+   most other endpoints), and
+2. the "channel" param in the *body*, giving the channel to which to
+   add image.
+
+### Returns
+
+The updated image object. The new channel should now be a member of the
+image object's [`channels`](#manifest-channels) array.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+CLI tool:
+
+    $ updates-imgadm channel-add staging 25ab9ddf-96e8-4157-899d-1dc8be7b9810
+    Added image 25ab9ddf-96e8-4157-899d-1dc8be7b9810 to channel "staging"
 
 
 
@@ -3226,9 +3384,10 @@ top-level keys in the factory settings. For example: if providing
 ||serverName||String||IMGAPI/$version||Name of the HTTP server. This value is present on every HTTP response in the 'server' header.||
 ||logLevel||String/Number||debug||Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch.||
 ||maxSockets||Number||100||Maximum number of sockets for external API calls||
-||mode||String||public||One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically public server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter).||
+||mode||String||public||One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter).||
 ||datacenterName||String||-||Name of the SDC datacenter on which IMGAPI is running.||
 ||adminUuid||String||-||The UUID of the admin user in this SDC.||
+||channels||Array||-||Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. See the example in "etc/imgapi.config.json.in".||
 ||placeholderImageLifespanDays||Number||7||The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database.||
 ||allowLocalCreateImageFromVm||Boolean||false||Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this.||
 ||minImageCreationPlatform||Array||see defaults.json||The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm).||
