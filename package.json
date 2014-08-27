@@ -27,7 +27,7 @@
     "semver": "3.0.1",
     "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#1ace075d7c89579c1ee547e50812c4d73890efab",
     "vasync": "1.5.0",
-    "wf-client": "git+ssh://git@git.joyent.com:wf-client.git#9bcb3a0ebec7cd5b4052acaacde8fd6e3e2dfcf9"
+    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#9bcb3a0ebec7cd5b4052acaacde8fd6e3e2dfcf9"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0",
