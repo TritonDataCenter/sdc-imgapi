@@ -1,9 +1,15 @@
 #!/opt/smartdc/imgapi/build/node/bin/node
-/**
- * -*- mode: js -*-
- *
- * Copyright (c) 2013, Joyent, Inc. All rights reserved.
- *
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+/*
+ * Copyright (c) 2014, Joyent, Inc.
+ */
+
+/*
  * Setup this IMGAPI to use a Manta (for storage) that shares the same master
  * UFDS as this IMGAPI. This IMGAPI+Manta setup (provide the Manta is local,
  * i.e. not across the WAN) is the preferred setup.: local Manta, uses the
