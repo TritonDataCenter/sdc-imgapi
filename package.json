@@ -16,7 +16,7 @@
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#5b8010d",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
-    "moray": "git+ssh://git@git.joyent.com:node-moray.git#93e1648",
+    "moray": "git+ssh://git@github.com:joyent/node-moray.git#93e1648",
     "nopt": "2.2.0",
     "once": "1.3.0",
     "passwd": "0.0.11",
