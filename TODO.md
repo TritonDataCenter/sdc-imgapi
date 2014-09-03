@@ -12,10 +12,15 @@
 
 Process: Add tests to channels.public-test.js. Test with 'runtests -lp'.
 
+- hack migration to add 'dev' channel to current set of images on updates.jo
+        cd dir/with/the/manifests
+        for f in $(ls -1 *.raw); do echo "$f"; json -f $f -I -e 'this.channels=["dev"]'; done
+        cd ..
+        chown -R nobody:nobody manifests/
+    TODO: doc these commands
 - check that image import from channel-IMGAPI (local test first) still works
   (i.e. extra 'channels' field doesn't break things): nope -> IMGAPI versioning
     - black book items
-- hack migration to add 'dev' channel to current set of images on updates.jo
 - update_channel in prompt-config.sh, SAPI 'sdc' app metadata,
   updates-imgadm.config.json manifest and updates-imgadm using that,
   sdcadm using that config var for channel. `sdcadm channel` command to list,
