@@ -17,6 +17,7 @@
 #
 NAME		:= imgapi
 DOC_FILES	 = index.restdown public.restdown design.restdown search.restdown
+EXTRA_DOC_DEPS += deps/restdown-brand-remora/.git
 RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/') \
