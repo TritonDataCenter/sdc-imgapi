@@ -47,7 +47,7 @@ to import images.
 
 <!-- #ifdef PRIVATE -->
 Administration of https://images.joyent.com is via the `joyent-imgadm`
-tool (currently available in `git@git.joyent.com:imgapi-cli.git`).
+tool (currently available in `git@github.com:joyent/sdc-imgapi-cli.git`).
 
 There is an IMGAPI in each SDC datacenter that manages images available in
 that datacenter. "IMGAPI" without scoping typically refers to this IMGAPI

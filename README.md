@@ -19,8 +19,8 @@ contribution guidelines, issues, and general documentation, visit the main
 
 # Development
 
-    git clone git@git.joyent.com:imgapi.git
-    cd imgapi
+    git clone git@github.com:joyent/sdc-imgapi.git
+    cd sdc-imgapi
     git submodule update --init
     make all
     node main.js [OPTIONS]
