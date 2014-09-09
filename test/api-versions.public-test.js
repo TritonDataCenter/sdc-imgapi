@@ -76,7 +76,7 @@ before(function (next) {
         star:       imgapi.createClient(mergeObjs(opts, {version: '*'})),
         one:        imgapi.createClient(mergeObjs(opts, {version: '~1'})),
         two:        imgapi.createClient(mergeObjs(opts, {version: '~2'})),
-        gretsky:    imgapi.createClient(mergeObjs(opts, {version: '~99'})),
+        gretsky:    imgapi.createClient(mergeObjs(opts, {version: '~99'}))
     };
     next();
 });

@@ -8,7 +8,7 @@
     },
     "storage": {
         "local": {
-            "dir": "/var/tmp/imgapi/db/images"
+            "baseDir": "/var/tmp/imgapi/db/images"
         }
     }
 }

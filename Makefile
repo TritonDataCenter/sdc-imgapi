@@ -102,6 +102,13 @@ test-images.joyent.com: | $(NODEUNIT)
 	./test/runtests -p -r default
 
 
+.PHONY: test-coal
+COAL=root@10.99.99.7
+test-coal:
+	./tools/rsync-to coal
+	ssh $(COAL) "/opt/smartdc/bin/sdc-login imgapi /opt/smartdc/imgapi/test/runtests"
+
+
 # Doc preprocessing to get public and private IMGAPI docs out of the same
 # docs/index.restdown.in.
 build/errors.restdown: lib/errors.js | node_modules/restify $(NODE_EXEC)

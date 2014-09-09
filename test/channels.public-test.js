@@ -454,15 +454,17 @@ test('GetImageFile with bogus channel gets error', function (t) {
 });
 
 
-test('GetImageFile (stream) with staging channel can get instagingchan', function (t) {
-    this.clients.staging.getImageFileStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            undefined, function (err, stream) {
+test('GetImageFile (stream) with staging channel can get instagingchan',
+function (t) {
+    this.clients.staging.getImageFileStream(
+        '3e6ebb8c-bb37-9245-ba5d-43d172461be6', undefined,
+    function (err, stream) {
         t.ifError(err);
         t.ok(stream);
 
-        function finish_(err) {
-            t.ifError(err);
-            if (!err) t.equal(fs.readFileSync(tmpDownloadFile), 'file');
+        function finish_(err2) {
+            t.ifError(err2);
+            if (!err2) t.equal(fs.readFileSync(tmpDownloadFile), 'file');
             t.end();
         }
         var finish = once(finish_);
@@ -474,10 +476,11 @@ test('GetImageFile (stream) with staging channel can get instagingchan', functio
     });
 });
 
-test('GetImageFile (stream) with staging channel cannot get innochan', function (t) {
-    this.clients.staging.getImageFileStream('c58161c0-2547-11e2-a75e-9fdca1940570',
-            undefined,
-            function (err, stream) {
+test('GetImageFile (stream) with staging channel cannot get innochan',
+function (t) {
+    this.clients.staging.getImageFileStream(
+        'c58161c0-2547-11e2-a75e-9fdca1940570', undefined,
+    function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
         t.equal(stream.statusCode, 404);
@@ -485,10 +488,11 @@ test('GetImageFile (stream) with staging channel cannot get innochan', function 
     });
 });
 
-test('GetImageFile (stream) with staging channel cannot get indevchan', function (t) {
-    this.clients.staging.getImageFileStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            undefined,
-            function (err, stream) {
+test('GetImageFile (stream) with staging channel cannot get indevchan',
+function (t) {
+    this.clients.staging.getImageFileStream(
+        '8ba6d20f-6013-f944-9d69-929ebdef45a2', undefined,
+    function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
         t.equal(stream.statusCode, 404);
@@ -552,16 +556,18 @@ test('GetImageIcon with staging channel can get instagingchan', function (t) {
 });
 
 
-test('GetImageIcon (stream) with staging channel can get instagingchan', function (t) {
-    this.clients.staging.getImageIconStream('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            undefined, function (err, stream) {
+test('GetImageIcon (stream) with staging channel can get instagingchan',
+function (t) {
+    this.clients.staging.getImageIconStream(
+        '3e6ebb8c-bb37-9245-ba5d-43d172461be6', undefined,
+    function (err, stream) {
         t.ifError(err);
         if (!err) {
             t.ok(stream);
 
-            function finish_(err) {
-                t.ifError(err);
-                if (!err) t.equal(fs.readFileSync(tmpDownloadFile), 'icon');
+            function finish_(err2) {
+                t.ifError(err2);
+                if (!err2) t.equal(fs.readFileSync(tmpDownloadFile), 'icon');
                 t.end();
             }
             var finish = once(finish_);
@@ -576,10 +582,11 @@ test('GetImageIcon (stream) with staging channel can get instagingchan', functio
     });
 });
 
-test('GetImageIcon (stream) with staging channel cannot get innochan', function (t) {
-    this.clients.staging.getImageIconStream('c58161c0-2547-11e2-a75e-9fdca1940570',
-            undefined,
-            function (err, stream) {
+test('GetImageIcon (stream) with staging channel cannot get innochan',
+function (t) {
+    this.clients.staging.getImageIconStream(
+        'c58161c0-2547-11e2-a75e-9fdca1940570', undefined,
+    function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
         t.equal(stream.statusCode, 404);
@@ -587,10 +594,11 @@ test('GetImageIcon (stream) with staging channel cannot get innochan', function 
     });
 });
 
-test('GetImageIcon (stream) with staging channel cannot get indevchan', function (t) {
-    this.clients.staging.getImageIconStream('8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            undefined,
-            function (err, stream) {
+test('GetImageIcon (stream) with staging channel cannot get indevchan',
+function (t) {
+    this.clients.staging.getImageIconStream(
+        '8ba6d20f-6013-f944-9d69-929ebdef45a2', undefined,
+    function (err, stream) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
         t.equal(stream.statusCode, 404);
@@ -604,7 +612,7 @@ test('GetImageIcon (stream) with staging channel cannot get indevchan', function
 test('UpdateImage with staging channel can get instagingchan', function (t) {
     this.clients.staging.updateImage(
             '3e6ebb8c-bb37-9245-ba5d-43d172461be6',
-            {tags: {foo: "bar"}},
+            {tags: {foo: 'bar'}},
             function (err, img, res) {
         t.ifError(err);
         t.equal(res.statusCode, 200);
@@ -618,7 +626,7 @@ test('UpdateImage with staging channel can get instagingchan', function (t) {
 test('UpdateImage with staging channel cannot get indevchan', function (t) {
     this.clients.staging.updateImage(
             '8ba6d20f-6013-f944-9d69-929ebdef45a2',
-            {tags: {foo: "bar"}},
+            {tags: {foo: 'bar'}},
             function (err, img, res) {
         t.ok(err);
         if (err) t.equal(err.body.code, 'ResourceNotFound');
@@ -749,7 +757,8 @@ test('ChannelAddImage unknown image to release channel', function (t) {
     });
 });
 
-test('ChannelAddImage instagingchan image to release channel (using dev chan)', function (t) {
+test('ChannelAddImage instagingchan image to release channel (using dev chan)',
+function (t) {
     var addOpts = {
         uuid: '3e6ebb8c-bb37-9245-ba5d-43d172461be6',
         channel: 'release'
@@ -823,7 +832,8 @@ test('ListImages in staging channel to assert still there', function (t) {
 
 //----  DeleteImageIcon
 
-test('DeleteImageIcon with staging channel can get instagingchan', function (t) {
+test('DeleteImageIcon with staging channel can get instagingchan',
+function (t) {
     this.clients.staging.deleteImageIcon('3e6ebb8c-bb37-9245-ba5d-43d172461be6',
             undefined, function (err, img, res) {
         t.ifError(err);
@@ -860,7 +870,9 @@ test('ListImages (ch=*) shows instagingchan is really gone', function (t) {
     this.clients.star.listImages(function (err, imgs) {
         t.ifError(err);
         t.equal(
-            imgs.filter(function (img) { return img.name === 'instagingchan'; }).length,
+            imgs.filter(function (img) {
+                return img.name === 'instagingchan'; }
+            ).length,
             0);
         t.end();
     });
@@ -879,7 +891,8 @@ test('DeleteImage (ch=staging) cannot get indevchan', function (t) {
 
 //---- DeleteImage with ?force_all_channels works as expected
 
-test('DeleteImage (ch=dev) with ?force_all_channels fully deletes inmultichan', function (t) {
+test('DeleteImage (ch=dev) with ?force_all_channels fully deletes inmultichan',
+function (t) {
     var uuid = '4e6ebb8c-bb37-9245-ba5d-43d172461be6';
     var delOpts = {
         forceAllChannels: true
@@ -895,8 +908,9 @@ test('ListImages (ch=*) shows inmultichan is really gone', function (t) {
     this.clients.star.listImages(function (err, imgs) {
         t.ifError(err);
         t.equal(
-            imgs.filter(function (img) { return img.name === 'inmultichan'; }).length,
-            0);
+            imgs.filter(function (img) {
+                return img.name === 'inmultichan'; }
+            ).length, 0);
         t.end();
     });
 });

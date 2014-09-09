@@ -35,10 +35,9 @@ There are two common flavours of IMGAPI server:
 
 There are different testing entry points for testing these.
 
-1. Test DC-flavour locally (i.e. startup a local IMGAPI server as part of
-   the test suite.):
+1. Test a COAL SDC standup's IMGAPI.:
 
-        ./test/runtests -l
+        make test-coal
 
 2. Test an SDC standup's IMGAPI.
 
@@ -68,5 +67,3 @@ There are different testing entry points for testing these.
 
     These are required to authenticate with image.joyent.com's HTTP signature
     auth.
-
-The `make test` target will run both #1 and #2.
