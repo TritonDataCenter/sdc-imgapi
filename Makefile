@@ -105,7 +105,7 @@ test-images.joyent.com: | $(NODEUNIT)
 .PHONY: test-coal
 COAL=root@10.99.99.7
 test-coal:
-	./tools/rsync-to coal
+	./tools/rsync-to $(COAL)
 	ssh $(COAL) "/opt/smartdc/bin/sdc-login imgapi /opt/smartdc/imgapi/test/runtests"
 
 
