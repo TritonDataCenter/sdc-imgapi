@@ -3076,7 +3076,7 @@ configured](#configuration) set of channel names, optionally with a default
 channel. Use [ListChannels](#ListChannels) to see the server's configured
 channels.
 
-Each relevant IMGAPI endpoint has a "?channel=<channel>" query param to work
+Each relevant IMGAPI endpoint has a `?channel=<channel>` query param to work
 with images in that channel. Without it the server's configured default channel
 is implied. The [IMGAPI
 client](https://mo.joyent.com/node-sdc-clients/blob/master/lib/imgapi.js) takes
