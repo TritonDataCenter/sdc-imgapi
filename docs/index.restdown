@@ -16,36 +16,26 @@ apisections: Images, Channels, Miscellaneous API
 
 # Image API (IMGAPI)
 
-The Image API (or Images API, or IMGAPI) is the SDC7 replacement for the Dataset
-API (DSAPI) in earlier versions of SDC. Along with the SmartOS `imgadm`
-tool, various instances of the IMGAPI manage images in the SDC and SmartOS
-ecosystem.
+The Image API (IMGAPI) is the SmartDataCenter (SDC) service that manages
+virtual machine images. Along with the SmartOS `imgadm` tool, various instances
+of the IMGAPI manage images in the SDC and SmartOS ecosystem.
 
 
 # Introduction
 
 An "image" is virtual machine image content (e.g. a zfs dataset for a
 SmartOS zone or a KVM machine image) plus [the metadata for the image (called
-the "manifest")](#image-manifest-data). The following API instances and tools
+the "manifest")](#image-manifests). The following API instances and tools
 are relevant for managing images in and for SmartOS and SDC.
 
-<!-- #ifdef PRIVATE -->
-The old Datasets API (DSAPI, e.g. https://datasets.joyent.com) will live
-until all SDC 6 instances are done. This provides Joyent-vetted images
-(a.k.a. datasets) for use in SDC 6 standups. In SDC 6, MAPI (the Master API)
-running inside each datacenter manages datasets within that datacenter.
-MAPI's "/datasets" endpoints provide a subset of the DSAPI API.
-<!-- #endif -->
-
-The joyent IMGAPI (https://images.joyent.com) is the central repository
+The Joyent IMGAPI (https://images.joyent.com) is the central repository
 of Joyent-vetted base images for usage in SmartOS. (Images from software
 vendors may exist here, but are still vetted by Joyent.) All images here are
 public -- no read auth, no private images. SmartOS' `imgadm` version 2
 is configured to use this image repository by default. SDC's operator portal
-(a.k.a. adminui) is configured by default to list this repository from which
+(a.k.a. adminui) is configured by default to use this repository from which
 to import images.
 
-<!-- #ifdef PRIVATE -->
 Administration of https://images.joyent.com is via the `joyent-imgadm`
 tool (currently available in `git@github.com:joyent/sdc-imgapi-cli.git`).
 
@@ -59,476 +49,6 @@ customer-owned images, etc. Cloud API speaks to IMGAPI for its
 ['/images'](https://mo.joyent.com/docs/cloudapi/master/#images) and legacy
 ['/datasets'](https://mo.joyent.com/docs/cloudapi/master/#datasets)
 endpoints.
-
-See [Use Cases](#use-cases) for details on how IMGAPI is (designed to be)
-used.
-<!-- #endif -->
-
-
-
-<!-- #ifdef PRIVATE -->
-# Current Status
-
-- Good: The 'imgapi' zone is available and running in sdc with most endpoints
-  implemented (see [API Summary](#api-summary)).
-
-- Good: `sdc-imgadm` is available in SDC GZs for managing the datacenter's
-  IMGAPI from the command-line.
-
-- Good: `imgadm` v2 for SmartOS (imgadm v2) is in.
-
-- Good: Manta as a storage backend support is in.
-
-- Good: SDC 6.5 backward compatibility, i.e. providing images to 6.5 CNs
-  with IMGAPI, is working fine in JPC now.
-
-- Bad: The full process for a user creating a custom image (IMGAPI-93)
-  in incomplete. See [Custom Image Management
-  Roadmap](#custom-image-management-roadmap) below.
-
-- Bad: Notably unimplemented is MigrateImage for copying images
-  between datacenters in the same SDC cloud.
-
-
-# Custom Image Management Roadmap
-
-From a discussion with Trent, Bryan and Carlos 3 Jun 2013, the MVP image mgmt
-plan is to:
-
-- wait until we fully implement support for both zones and KVM (common case
-  in JPC is custom KVM images);
-- implement incremental images (because we need a manta for storage of
-  customer images, we only have the Manta in us-east, we want image mgmt in
-  other DCs so we'll pull images across the WAN, incr images will help a
-  *lot* here, also a great differentiator);
-
-Top-level ticket (FWIW) is IMGAPI-93.
-
-## M1: basics
-
-*Done.* (1-2 weeks) First, getting the basic full stack creation of non-KVM
-images, walking up the stack from the platform level:
-
-- [done, IMGAPI-95, trent, platform] `imgadm create` and `imgadm publish`
-  'create' is just for non-KVM VMs so far
-- [done, OS-2323, andres] bug in 'imgadm create' work that breaks
-  'imgadm import'
-- [done, AGENT-605] machine_image_create task for custom image creation
-- [done, CNAPI-259] [https://mo.joyent.com/docs/cnapi/master/#VmImagesCreate]
-- [done, IMGAPI-191, andres] CreateImageFromVm
-- [done, PUBAPI-591, trent/pedro] CreateImageFromMachine
-- [done, RELENG-491, trent]: sdc-system-tests tests for this. Create an image
-  from cloudapi and use it from cloudapi.
-- [done, PUBAPI-639, trent] Cloud API docs for CreateImageFromMachine.
-  Hidden behind a guard so only at
-  <https://mo.joyent.com/docs/cloudapi/master/#CreateImageFromMachine> for now.
-- [done, PUBAPI-653, trent] enable cloudapi img mgmt endpoints for whitelist of users
-
-
-## M2: incremental images
-
-*Done.* Incremental images. Plan is that all custom images created via
-cloudapi are incremental.
-
-- [done, IMGAPI-124] incremental images support: manifest fields, CreateImage,
-  AdminImportImage
-- [done, OS-2401] incremental images support in 'imgadm create', 'imgadm
-  install', 'imgadm import'
-- [done, PUBAPI-655, trent] Get cloudapi to pass incremental:true
-
-
-## M3: Working with mixed CNs
-
-*Done.* Working with mixed CNs: some with sufficient support, some not.
-This means documenting usage in a DC (e.g. JPC) for a subset of packages for
-proto VMs.
-
-- [done, DAPI-143, marsell] add handling for a min_platform package field
-- [done, PAPI-22, pedro] add min_platform package field. As long as JPC is
-  not switched over the PAPI, this ticket doesn't need to be completed.
-- [done, IMAGE-318, carlos]: spec small set of packages using min_platform for
-  use for VMs for image creation
-  SYSOPS-6061 to add these to us-east-1.
-- [done, IMGAPI-251, trent] add requirements.min_platform to created incremental
-  images to the platform with OS-2401
-- [done, AGENT-644, orlando] *6.5* provisioner agent support for incremental images
-- [done, RELENG-496, john] Set up staging to more closely reflect JPC
-- [done, RELENG-497, john] sdc-system-tests tests for image
-  creation in the mixed CN environment in staging
-- [done, IMGAPI-262, trent/ops] Add a 'img_mgmt: true' trait on the seed
-  packages and the designated CNs for image creation: to ensure that CN is
-  *only* used for image creation.
-
-
-## M4: more basics
-
-*Done.* The remaining scraps from M1 to help clarify required remaining work.
-
-- [done, IMGAPI-250, andres]: state=error|creating|... for better UX for
-  cloudapi's CreateImageFromMachine
-- [done, IMGAPI-256, andres] imgapi zone should tune TCP for talking to Manta
-- [done, IMGAPI-252, andres] placeholder images shall have a one week lifespan
-- [done, IMGAPI-257, andres] get $dcname in the Manta storage of images
-- [done, PUBAPI-675, trent] ability for sdc-listImages to filter on
-  public/private images
-- [done, PUBAPI-660, john] node-smartdc: add sdc-createimagefrommachine,
-  sdc-deleteimage
-
-
-## M5: Linux KVM image support
-
-*Done.*
-
-- [done, OS-2410, trent]: kvm support for 'imgadm create'
-- [done, IMGAPI-274, trent/derek/carlos] first stab at prepare-image scripts
-  (currently in smartos-vmtools2.git)
-- [done, IMGAPI-269, carlos]: name linux-prepare-image
-- [done, IMGAPI-270, carlos]: include shutdown into prepare-image script
-- [done, IMGAPI-271, trent]: 'curl .../foo.sh | sh' oneliner for prepare-image usage.
-- [done, RELENG-498, john]: tests for image creation and provisioning of kvm images
-
-
-## M6: customer moving images between DCs
-
-(~1 week)
-
-- IMGAPI-278: CopyRemoteImage
-- PORTAL-??? Does the portal deal properly with a customer's image only existing
-  in a subset of DCs?
-
-
-## M7: automated snapshot and prepare image
-
-We plan to have "sdc-createimagefrommachine" handle all of steps 3-6: snapshot,
-run prepare-image inside the customer's VM, shutdown, create image, rollback.
-This involves:
-
-- [done, OS-2482, joshw] "sdc:operator-script" metadata var pulling from
-  `internal_metadata['operator-script']`
-- [done, OS-2515, joshw] mdata:fetch/mdata:execute updates for running
-  operator-script for SmartOS guests.
-- [done, TOOLS-292, OS-2547, jclulow] mdata-put, improved mdata-*
-- [done, 1w, OS-2550, trent] `imgadm create -s prepare-image-script` and snapshotting
-- [done, 3d, IMGAPI-303, CNAPI-331, AGENT-674, trent] House the prepare-image scripts
-  in IMGAPI and pass those through to the 'imgadm create' call.
-- [done, 1d, IMGAPI-312, trent] min_platform to curr platform for smartos images
-- [done, 1w, IMAGE-370, trent] centos guest tools: operator-script, mdata-put,
-  remove prepare-image.
-- [done, 1w, IMAGE-374, trent/jclulow] Package builds of the guest tools with which
-  customers can upgrade proto VMs while we still have pre-"new Images with the
-  latest guest tools" in play.
-- [done, IMAGE-371, trent/jclulow] Old ubuntu guest tools
-- [done, DOC-501, trent] img mgmt v2 user docs
-- [all but freebsd done, IMAGE-375, christopher/trent] New releases of all
-  (non-Windows) KVM images with the new guest tools.
-- [done, IMAGE-406, ..., jclulow] Canonical Ubuntu guest tools
-- [done, 2d, OS-2484, andres] incr image of incr image should use the first's origin
-- [3d?, IMAGE-372, ?] debian guest tools: operator-script, mdata-put, ...
-- [3d?, IMAGE-373, ?] freebsd guest tools: operator-script, mdata-put, ...
-- [HEAD-1940, trent] mini-platform upgrade dependency to meaningfully deploy:
-  OS-2657. See HEAD-1940 dep below as well.
-
-Notes:
-
-- node-smartdc polishing: error reporting on sdc-createimagefrommachine sucks.
-  See the example at <http://wiki.joyent.com/wiki/display/jpc2/Troubleshooting+Image+Creation>
-- polish, error case in JPC: IMGAPI-320
-- cloudapi polishing:
-    - cloudapi: a disabled image should still be shown via cloudapi's ListImages
-      if the caller is the owner of the image. Right?
-        e.g. image 5053e8fa-47bb-c4a3-baca-8aa92509cc5c in my COAL right now
-        for admin user.
-      "Failed" ones show, so this is totally incongruous
-      Do "creating" ones show? E.g. on that gets *stuck* in creating (which
-      only happens due to a bug in the create-from-vm workflow)?
-      Note that "sdc-listimages" *has* a --state state option, and says
-      default is "all", but it isn't including disabled ones.
-      Might then want cloudapi internally to use _loadInactiveImages instead
-      of _loadDisabledImages because that isn't the right separation.
-- portal support: allow a "dry run" call to CreateImageFromMachine to validate
-  fields?
-
-
-## M8: supporting SDC image builds
-
-*Done.*
-
-The work required to be able to do SDC builds in JPC.
-
-- [done, MANTA-1638, mark] This blocks IMGAPI-249
-  *Note: not yet deployed.*
-- [done, IMGAPI-249, andres] ExportImage endpoint
-- [done, PUBAPI-674, andres]: ExportImage in cloudapi
-- [done, RELENG-492 et al] get builds to work with slaves in us-east-1 JPC zones
-
-
-## M9: incr of incr
-
-Note: OS-2811 blocks doing C->A incremental images. Therefore practically
-need to do C->B->A support. Plan:
-
-- C->B->A support has been implemented (B's `origin` is A, C's `origin` is B).
-- Longer term, if we want to support "C->A" once OS-2811 is fixed, then
-  we could have: `imgadm create -I <A-image-uuid> ...`. This mirrors
-  the `zfs snapshot -I <base-snapshot> ...` naming.
-
-TODOs:
-
-- [done, andres] OS-2484 'imgadm create -i' supporting incr of incr
-  including the quick 'imgadm create' change and recursive origin handling
-  in 'imgadm import'
-- [done, andres] OS-2484 'imgadm create -i --max-origin-depth=N' support to
-  allow having the create fail if the origin chain is too deep
-- [done, andres] OS-2484 CreateImageFromVm: add support for passing through maxOriginDepth
-- [done, andres] OS-2484 add support for passing through maxOriginDepth via
-  CNAPI and provisioner agent
-- [done, andres] OS-2484 Add support to AdminImportRemoteImage to do recursive
-  importing
-- [trent?] HEAD-1940: mini-platform upgrade. We need this to get new imgadm out in a
-  timely manner to JPC.
-
-
-## M10: local caching of remote image files
-
-(3 weeks, very rough estimate) When IMGAPI's Manta is remote, then it should
-intelligently cache image files locally. An obvious case is if a customer
-creates an image in west-1 (which gets published to the manta in east), then
-that image should be cached in west-1 for likely provisioning there.
-
-Proposed plan tl;dr: Each IMGAPI maintains an image file MRU cache on local
-disk. This is IMGAPI-235.
-
-Proposed plan: Each IMGAPI has a size-limited local MRU cache dir. Limited by
-two config vars: cacheLimitPercent, % available space on that mount
-(determined at start up and periodically re-checked for resizing) and
-cacheLimitSize, max absolute space (e.g. 20GB). Would also attempt to limit
-to <90% total usage for that disk. File caching is only done if the stored
-file is "remote". "Remote" is a boolean attribute of the "storage" config
-var. IMGAPI changes to manage this cache:
-
-- Add AdminFileCacheAdd to POST (or PUT) a file to the local cache
-  (a la AddImageFile)
-- Change GetImageFile: if file storage is remote, then use the local cache
-  if available there. Perhaps if NOT available locally, then stream to the
-  local cache. I.e., if used by one CN in this DC, then likely will be
-  wanted again soon for another one.
-- Change AdminGetState to also include the local file LRU cache index.
-- Add AdminFileCacheFlush (perhaps, if this is useful):
-  POST /state?flush-file-cache
-- Change AddImageFile, if file storage is remote, to stream to the local
-  file LRU cache.
-- Change CreateImageFromVm, if file storage is remote, to stream to the local
-  file LRU cache.
-- For HA (IMGAPI-140): Change AddImageFile, if file storage is remote, to
-  find other IMGAPIs in this DC and call AdminFileCacheAdd on those.
-
-Create a followable metric (via SDC log analysis) to track GetImageFile
-times to help improve this caching.
-
-
-## M11: capacity handling
-
-- [done, IMGAPI-182, IMGAPI-373, etc., andres/trent] Switch IMGAPI db to Moray
-  and support limit/marker for paging through results.
-- [???] Ability to have a limit of custom images per user, e.g. so that people
-  don't start using custom images as a cheap/easy way to do backups.
-- [???] How well does IMGAPI fail when its local dir for images files runs out
-  of space? Test it.
-
-
-## M12: tracking usage and billing
-
-This is underspecified. Some notes:
-
-- Image files are stored in manta under '/admin/imgapi', split out per customer
-  (and per DC). Billing should include a line item for storage usage for each
-  user.
-- What about zpool usage for custom images? Marsell notes: "As an aside, what
-  have the people above said about how we'll handle custom images taking up
-  space in a zpool? We don't charge ourselves for our images being cached on a
-  CN, but this could start presenting a serious problem once we support custom
-  images." Not sure how much of an issue this will be or how best to handle
-  it. Separate billing line items for this? Grace value? Zonetracker should
-  track this? Usage API work to store that data.
-
-
-## M13: windows support
-
-- Windows prepare-image support
-- windows image creation testing
-- (somewhat indep) status/ETA of console support in portal
-- [IMAGE-???] New version of guest tools for Windows.
-- [jclulow] mdata-* tools support for Windows
-
-
-## M14: misc
-
-A collection of tickets that should be address for robustness, UX, etc. but
-aren't strictly required for a starting rollout.
-
-- [trent] Docs/tooling for managing the 'image-creation' packages. My plan here
-  is to just come up with oneliners for these and document them in a section of
-  the
-  [IMGAPI Operator Guide](https://mo.joyent.com/docs/imgapi/master/#operator-guide).
-    - update min_platform for a new required fix: 'sdc-ldap' can't search fields
-      with an underscore, so might really want that 'sdc-ufds' replacement.
-      Or sdc-packageadm.
-    - list available CNs matching that platform
-    - list available capacity (a quick hack script for this if we don't have
-      a more complete "Capacity Aware Packages" answer by then)
-    - list all VMs provisioned with these packages. Consider them "dirty" if
-      they have a long life?
-- [done, PUBAPI-857/PUBAPI-692, trent/andres] UpdateImage, sdc-updateimage
-- PORTAL-??? How will public images from others be handled?
-- [done, OS-2203, trent] provision fails when import in progress: imgadm import must
-  coordinate
-- [WORKFLOW-113, pedro, done?] Workflow RFE to be able to serialize jobs on
-  the same vm_uuid. This to guard against an attempt to DeleteMachine
-  or StartMachine on a VM being used to create an image until
-  CreateImageFromMachine is complete. This isn't a blocker, *could*
-  just doc this.
-- [OS-???, IMGAPI-92, andres, minor] IMGAPI version header usage from imgadm for
-  future proofing.
-
-
-## Image Creation Test Matrix
-
-Here are tables of tested origin images for image creation to show that
-*at least once* image creation was successful with this origin image.
-
-||**UUID**||**Name/Ver**||**Successful?**||**Requirements**||**Notes**||
-||f669428c-a939-11e2-a485-b790efc0f0c1||base/13.1.0||yes||-||-||
-||e3364212-05c0-11e3-9576-3f3ee9e951a7||base/13.2.0||yes||-||-||
-||b83f8276-1fdd-11e3-989b-4bddb088a8a0||base/13.2.1||yes||-||-||
-||753ceee6-5372-11e3-8f4e-f79c1154e596||base/13.3.0||yes||-||-||
-||dee73ee2-69ab-11e3-b593-a3f1f80ef403||base/13.3.1||yes||-||-||
-||2b683a82-a066-11e3-97ab-2faa44701c5a||base/13.4.0||yes||-||-||
-||9eac5c0c-a941-11e2-a7dc-57a6b041988f||base64/13.1.0||yes||-||-||
-||0084dad6-05c1-11e3-9476-8f8320925eea||base64/13.2.0||yes||-||-||
-||17c98640-1fdb-11e3-bf51-3708ce78e75a||base64/13.2.1||yes||-||-||
-||87b9f4ac-5385-11e3-a304-fb868b82fe10||base64/13.3.0||yes||-||-||
-||c353c568-69ad-11e3-a248-db288786ea63||base64/13.3.1||yes||-||-||
-||ff86eb8a-a069-11e3-ae0e-4f3c8983a91c||base64/13.4.0||yes||-||-||
-||c56ed646-82d8-11e3-849e-eb2c0535bf06||java/13.3.1||???||-||-||
-||81223438-7874-11e3-9edf-8f1e15269924||nodejs/13.3.1||yes||-||-||
-||e7061478-9975-11e3-9e42-f3f53beea0c6||postgresql/13.3.1||yes||-||-||
-||6d03452a-9a3c-11e3-8773-23a29a9b75d8||hadoop/13.3.1||yes||-||-||
-||40d56fc2-788c-11e3-8e0e-ab90eb060ee7||standard/13.3.1||no||-||apache in maint, IMAGE-461||
-||74c3b232-7961-11e3-a7a7-935768270b93||standard64/13.3.1||no||-||apache in maint, IMAGE-461||
-||87c556ac-ab9d-11e2-914d-07682fcab47d||centos-6/2.4.1||???||guest tools upgrade||-||
-||30e9e4c8-bbf2-11e2-ac3b-3b598ee13393||centos-6/2.4.2||???||guest tools upgrade||-||
-||325dbc5e-2b90-11e3-8a3e-bfdcb1582a8d||centos-6/2.5.0||yes||guest tools upgrade||-||
-||df81f45e-8f9f-11e3-a819-93fab527c81e||centos-6/2.6.0||yes||-||-||
-||3162a91e-8b5d-11e2-a78f-9780813f9142||ubuntu-12.04/2.4.0||???||-||-||
-||da144ada-a558-11e2-8762-538b60994628||ubuntu-12.04/2.4.1||???||-||-||
-||d2ba0f30-bbe8-11e2-a9a2-6bc116856d85||ubuntu-12.04/2.4.2||yes||guest tools upgrade||-||
-||a0b441cc-22ac-40c8-a21f-345b734444ec||ubuntu-certified-12.04/20140219||yes||-||-||
-||46407334-9096-40ef-bb72-6f9a094f0507||ubuntu-certified-13.10/20140219||yes||-||-||
-||96aae6e5-c130-44aa-a4e3-d2394591eee5||ubuntu-certified-13.10/20140410||yes||-||-||
-
-
-I *think* the current img creation supported state is the following, but this
-test matrix is here to clarify that:
-
-- centos 2.6.0 or greater
-- ubuntu-certified (all)
-- base 13.3.x or greater
-- base64 13.3.x or greater
-- (other derivatives of base/base64, e.g. standard) 13.3.1 or greater
-- special cases (though for simpler instructions we aren't explicitly
-  mentioning these)
-  - a few older centos and ubuntu with a guest tools upgrade
-  - possibly could support older base-derivatives with a guest tools upgrade
-    (to get DATASET-934 fix), but we don't provide a package for doing that
-    right now
-
-Here is how to generate the template for this table:
-
-    sdc-imgadm list public=true -H -o type,name,published,version,uuid | sort \
-        | awk '{print $5 " " $2 " " $4}' \
-        | while read line; do printf "||%s||%s/%s||???||-||-||\n" $line; done
-
-
-
-
-### images for which image creation is *unsupported*
-
-Note that for many of these images the image creation process will naively
-*work*. However VMs provisioned using those custom images will likely break
-in various ways.
-
-Some of these are unsupported because they are older versions, with recent
-versions in that image family being supported. Some are unsupported OSes
-or licensed product lines.
-
-Regarding "stm" (Riverbed Stringray) images. I'm not going to test those right
-now. Not clear that image mgmt is a req for them. If any, possibly for the
-license-unencumbered one: "stm-developer".
-
-
-||**UUID**||**Name/Ver**||**Notes**||
-||55330ab4-066f-11e2-bd0f-434f2462fada||base/1.8.1||-||
-||84cb7edc-3f22-11e2-8a2a-3f2a7b148699||base/1.8.4||-||
-||60ed3a3e-92c7-11e2-ba4a-9b6d5feaa0c4||base/1.9.1||-||
-||60a3b1fa-0674-11e2-abf5-cb82934a8e24||base64/1.8.1||-||
-||fdea06b0-3f24-11e2-ac50-0b645575ce9d||base64/1.8.4||-||
-||cf7e2f40-9276-11e2-af9a-0bad2233fb0b||base64/1.9.1||-||
-||bae3f528-e01f-11e2-b2cb-1360087a7d5f||cassandra/13.1.0||-||
-||274bc2bc-d919-11e2-b797-83245409fbeb||hadoop/13.1.0||-||
-||48489174-e351-11e2-88c0-a31eb2b342ee||java/13.1.0||-||
-||2c6b0348-d8f6-11e2-91f4-ef498b553611||manta-build/13.1.0||-||
-||ec5defa8-16fe-11e3-948e-8f59b3488902||mongodb/13.2.0||-||
-||d2409672-29f3-11e3-ba86-6f782523cb41||mongodb/13.2.1||-||
-||f953e97e-4991-11e1-9ea4-27c6e7e8afda||nodejs/1.3.3||-||
-||1fc068b0-13b0-11e2-9f4e-2f3f6a96d9bc||nodejs/1.4.0||-||
-||beb2dbd4-b26f-11e2-8ad4-935c80092aa6||nodejs/13.1.0||-||
-||ffed3d9e-2c2f-11e3-9a12-bf5267821b0b||nodejs/13.2.1||-||
-||133263be-3c2c-11e3-8d3a-a30c43ae58fd||nodejs/13.2.2||-||
-||dc1a8b5e-043c-11e2-9d94-0f3fcb2b0c6d||percona/1.6.0||-||
-||3882b5da-b0e8-11e2-b3a9-dbcf26c3e051||percona/13.1.0||-||
-||fb6e7820-60ee-11e3-93b6-7f34ea3f2616||percona/13.3.0||-||
-||1567edb0-b33e-11e2-a0d2-bf73e2825ffe||riak/13.1.0||-||
-||489754f2-5e01-11e1-8ff8-f770c2116b0d||smartos/1.5.4||Image should be deprecated, right?||
-||01b2c898-945f-11e1-a523-af1afbe22822||smartos/1.6.3||Image should be deprecated, right?||
-||31bc4dbe-5e06-11e1-907c-5bed6b255fd1||smartos64/1.5.4||Image should be deprecated, right?||
-||f9e4be48-9466-11e1-bc41-9f993f5dff36||smartos64/1.6.3||Image should be deprecated, right?||
-||3390ca7c-f2e7-11e1-8818-c36e0b12e58b||standard/1.0.7||-||
-||34509f68-1ae7-11e3-b816-d3edf71c7840||standard/13.2.0||-||
-||dac2ad6e-2aa5-11e3-885f-8fd408fc6a82||standard/13.2.1||-||
-||56a0655c-3cc6-11e3-9c79-5701599fdf05||standard/13.2.3||-||
-||a0f8cf30-f2ea-11e1-8a51-5793736be67c||standard64/1.0.7||-||
-||399775e4-163e-11e3-8d42-7b14b732ae17||standard64/13.2.0||-||
-||b779b49a-29e4-11e3-9b1d-0b0b41ccdcad||standard64/13.2.1||-||
-||610e04c4-3cc4-11e3-9867-df64b21b66fe||standard64/13.2.3||-||
-||3cd9ef64-1fa5-11e3-be45-1fa28ec74f4a||stm-1000H/13.2.0||Need we support custom stm?||
-||efe2c3e8-1fb8-11e3-b4c4-eb64d18f0b71||stm-1000M/13.2.0||Need we support custom stm?||
-||6e99eff4-1fb9-11e3-9d00-3b6b25be1e62||stm-1000M-SAF/13.2.0||Need we support custom stm?||
-||ef905526-1fb9-11e3-a095-576400e02b54||stm-2000L/13.2.0||Need we support custom stm?||
-||6bf3c40e-1fba-11e3-9847-4f44ccd9abe9||stm-2000L-SAF/13.2.0||Need we support custom stm?||
-||0bcda78c-2066-11e3-8f62-d7edf9742dbd||stm-2000L-SAF-STX/13.2.0||Need we support custom stm?||
-||36f3b80c-2066-11e3-9215-5ffe647b58f0||stm-2000L-STX/13.2.0||Need we support custom stm?||
-||08c63ac6-2067-11e3-abea-a7c7c71e8f15||stm-2000M-SAF-STX/13.2.0||Need we support custom stm?||
-||8b503466-2066-11e3-b5c8-c7e50b85619c||stm-2000M-STX/13.2.0||Need we support custom stm?||
-||e96103b6-1fba-11e3-8dba-3b2f9d336fa1||stm-4000L/13.2.0||Need we support custom stm?||
-||67e5fc46-1fbb-11e3-b1c7-274da29ae2f6||stm-500L-10/13.2.0||Need we support custom stm?||
-||e4093946-1fbb-11e3-8b61-bb9e496e0da4||stm-500M-200/13.2.0||Need we support custom stm?||
-||4b4c141e-1fb4-11e3-a10e-6f99cfdf8806||stm-developer/13.2.0||Need we support custom stm?||
-||2539f6de-0b5a-11e2-b647-fb08c3503fb2||centos-5.7/1.3.0||-||
-||e4cd7b9e-4330-11e1-81cf-3bb50a972bda||centos-6/1.0.1||-||
-||8700b668-0da4-11e2-bde4-17221283a2f4||centos-6/1.3.0||-||
-||46ecf60e-52c8-11e2-b212-9b51fc749547||debian-6.0.6/2.3.1||-||
-||014e2254-a853-11e2-81c9-b318c31fa17a||debian-6.0.7/2.4.1||-||
-||94384a12-bbeb-11e2-aec2-2bfa9742484b||debian-6.0.7/2.4.2||-||
-||e6ac6784-44b3-11e1-8555-87c3dd87aafe||debian-6.03/1.0.0||-||
-||e42f8c84-bbea-11e2-b920-078fab2aab1f||fedora/2.4.2||-||
-||71101322-43a5-11e1-8f01-cf2a3031a7f4||ubuntu-10.04/1.0.1||-||
-||64e1b2ee-52c8-11e2-bedd-7f919cc63ab9||ubuntu-12.04/2.3.1||-||
-||13328c9a-9173-11e2-a9a5-2ff43d306c21||ws2008ent-r2-sp1/2.0.2||-||
-||5f101d16-90ac-11e2-b9c2-877979ff6041||ws2008std-r2-sp1/2.0.2||-||
-||95f6c9a6-a2bd-11e2-b753-dbf2651bf890||ws2012std/1.0.1||-||
-
-<!-- #endif -->
-
 
 
 # Image manifests
@@ -826,9 +346,7 @@ uploaded. A "file" entry has the following fields:
 ||sha1||SHA-1 hex digest of the file content. Used for upload/download corruption checking.||
 ||size||Number of bytes. Maximum 20GiB. This maximum is meant to be a "you'll never hit it" cap, the purpose is to inform cache handling in IMGAPI servers.||
 ||compression||The type of file compression used by the file. One of 'bzip2', 'gzip', 'none'.||
-<!-- #ifdef PRIVATE -->
 ||dataset_guid||Optional. The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`).||
-<!-- #endif -->
 
 Example:
 
@@ -1075,598 +593,6 @@ Array of channel names to which this image belongs. This is only present
 and relevant for images in an IMGAPI server that uses [channels](#channels).
 
 
-
-<!-- #ifdef PRIVATE -->
-# Use Cases
-
-Here we look at some SDC use cases that touch on IMGAPI, and hence drive
-its design.
-
-
-## Use Case 1: Bootstrap SDC core zones' images on headnode setup
-
-**Status**: complete.
-
-[headnode.sh](https://mo.joyent.com/usb-headnode/blob/master/scripts/headnode.sh)
-(see "/var/svc/log/system-smartdc-init:default.log") calls this:
-
-    /opt/smartdc/bin/sdc-imgadm import -m $manifest -f $file
-
-for all images used to provision SDC core zones.
-
-
-## Use Case 2: Operator adds new images.joyent.com image to the DC
-
-**Status**: complete (TODO: does adminui support this yet?)
-
-This can be done on the command-line via the following in the headnode GZ:
-
-    cd /var/tmp
-    joyent-imgadm list  # find the wanted image UUID
-    joyent-imgadm get $uuid > manifest
-    joyent-imgadm get-file -O $uuid     # creates $uuid-file.$ext
-    sdc-imgadm import -m manifest -f $uuid-file*
-
-Note: With IMGAPI-80, this will eventually become a one-liner.
-
-
-## Use Case 3: Operator adds a new image just for this cloud
-
-**Status**: Incomplete. Currently the image must be manually added to each DC
-as described below (the equivalent of SDC 6.5). Eventually, when IMGAPI has
-MigrateImage (and when adminui supports using it), this will be easier.
-
-How to add an image to a DC via the command-line:
-
-1. `scp` the image manifest and file to the headnode GZ.
-2. ssh to the headnode GZ and run:
-
-        sdc-imgadm import -m MANIFEST -f FILE
-
-
-
-## Use Case 4: User provisions with an image
-
-**Status**: Complete.
-
-This is via a normal
-[cloudapi#CreateMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateMachine)
-call. CloudAPI could use [GetImage](#GetImage) on behalf of the calling user
-to valid access to the `image_uuid`. VMAPI validates the `image_uuid`.
-The provisioner agent uses the local `imgadm` to lazily install the image
-if necessary (imgadm is configured to talk to the DC's local IMGAPI).
-
-
-## Use Case 5: User creates a custom image (smartos)
-
-**Status**: Incomplete. See roadmap section above.
-
-Create a "proto" machine (i.e. the machine with the customizations on which
-our custom image will be based). Currently JPC requires that you use one
-of the "image-creation" packages for this "proto" machine.
-
-    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="g3-standard-2-smartos-image-creation"' 0.id)
-    $ image_id=$(./bin/sdc-listimages | json -c 'this.name=="base"' 0.id)
-    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name proto1
-    {
-      "id": "5817ecef-a54f-42c7-96e5-5968b8e7c7b1",
-      "name": "proto1",
-      "type": "smartmachine",
-      "state": "provisioning",
-      "image": "e3364212-05c0-11e3-9576-3f3ee9e951a7",
-      "ips": [],
-      "memory": 2048,
-      "disk": 67584,
-      "metadata": {
-        "root_authorized_keys": "ssh-rsa AAA..."
-      },
-      "tags": {},
-      "created": "2013-08-28T06:22:58.348Z",
-      "updated": "2013-08-28T06:22:58.348Z",
-      "dataset": "sdc:sdc:base:13.2.0",
-      "firewall_enabled": false,
-      "package": "g3-standard-2-smartos-image-creation"
-    }
-
-
-SSH in, customize and *prepare* the machine once "./bin/sdc-getmachine UUID"
-reports "state=running":
-
-    $ machine_id=$(./bin/sdc-listmachines | json -c 'this.name=="proto1"' 0.id)
-    $ machine_ip=$(./bin/sdc-getmachine $machine_id | json primaryIp)
-    $ ssh root@$machine_ip
-
-    # Make one or more "customizations" to be able to verify later. E.g.:
-    $ echo "I was here" >/etc/motd
-    # Prepare image and shutdown for image creation:
-    $ sm-prepare-image -y
-
-Now back on your local machine. Create the image (--machine, --name and
---imageVersion are required):
-
-    $ ./bin/sdc-createimagefrommachine --machine $machine_id \
-        --name 'my-custom-image-1' --imageVersion 1.0.0 \
-        --description "This is just a throwaway tester image" \
-        --tags '{"foo": "bar"}'
-    {
-      "id": "1793ed05-03db-421b-b38d-f76e84d85679",
-      "name": "my-custom-image-1",
-      "version": "1.0.0",
-      "type": "smartmachine",
-      "requirements": {},
-      "description": "This is just a throwaway tester image",
-      "tags": {
-        "foo": "bar"
-      }
-    }
-
-After a while it will have gone to either state=failed or state=active.
-(Note: IMGAPI-267 is a bug where it can get stuck in state=creating.
-You should expect image creation to be pretty quick. Less than a minute
-certainly.)
-
-    $ ./bin/sdc-getimage eac686e8-3bad-4c91-b22d-c197b543cb29
-    {
-      "id": "eac686e8-3bad-4c91-b22d-c197b543cb29",
-      "name": "my-custom-image-1",
-      "version": "1.0.3",
-      "os": "smartos",
-      "type": "smartmachine",
-      "requirements": {},
-      "description": "This is just a throwaway tester image",
-      "tags": {
-        "foo": "bar"
-      },
-      "published_at": "2013-08-28T07:45:44.599Z",
-      "owner": "950cf163-b314-4ee8-ab46-08c884b9387c",
-      "public": false,
-      "state": "active"
-    }
-
-Now you should be able to create a machine using this image UUID (and
-now using any package, no longer restricted to the 'image creation'
-packages).
-
-    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="g3-standard-0.25-smartos"' 0.id)
-    $ image_id=eac686e8-3bad-4c91-b22d-c197b543cb29
-    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name custom1
-
-
-## Use Case 5: User creates a custom image (windows)
-
-See the previous section for more explanation. This only explains steps that
-differ for Windows VMs/images.
-
-There are currently three windows flavours:
-
-    $ sdc-imgadm list os=windows
-    UUID                                  NAME              VERSION  FLAGS  OS       PUBLISHED
-    5f101d16-90ac-11e2-b9c2-877979ff6041  ws2008std-r2-sp1  2.0.2    P      windows  2013-03-19T20:11:08Z
-    13328c9a-9173-11e2-a9a5-2ff43d306c21  ws2008ent-r2-sp1  2.0.2    P      windows  2013-03-20T18:59:47Z
-    95f6c9a6-a2bd-11e2-b753-dbf2651bf890  ws2012std         1.0.1    P      windows  2013-04-11T21:04:37Z
-
-Each of these has a slightly different prepare-image batch file script. See
-below. For this example we'll use Windows 2008 Standard.
-
-Create the proto VM:
-
-    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="g3-standard-4-kvm-image-creation"' 0.id)
-    $ image_id=$(./bin/sdc-listimages | json -c 'this.name=="ws2008std-r2-sp1"' 0.id)
-    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name proto2
-
-Get the IP and administrator password via:
-
-    $ machine_id=$(./bin/sdc-listmachines | json -c 'this.name=="proto2"' 0.id)
-    $ ./bin/sdc-getmachine --credentials $machine_id
-
-Then get in via Remote Desktop using the ip and administrator password. Note
-that it can take a number of minutes after the Windows VM is running to get
-in. Troubleshooting: If this still fails after a number of minutes, please
-try creating a new proto VM. If *that* still fails, then we should dig in on
-the VNC console to see if Windows crashed or is hung in interactive startup.
-
-Once you are in, make a customization to verify later, e.g. create a text file
-on the desktop.
-
-Then prepare the VM for image creation by downloading the appropriate batch
-file for your Windows flavor and running it in cmd.exe:
-
-- Windows 2008 Server Standard: https://us-east.manta.joyent.com/derek/public/prepare-image.ws2008std.bat
-- Windows 2008 Server Enterprise: https://us-east.manta.joyent.com/derek/public/prepare-image.ws2008ent.bat
-- Windows 2012 Server Standard: https://us-east.manta.joyent.com/derek/public/prepare-image.ws2012std.bat
-
-This should shutdown the VM. Now on your local machine again, create the image
-(I suggest using a reasonably identifiable "name" to assist with debugging):
-
-    $ ./bin/sdc-createimagefrommachine --machine $machine_id \
-        --name 'trent-custom-win2008' --imageVersion 1.0.0
-    {
-        "id": "...",
-        ...
-    }
-
-After a while it will have gone to either state=failed or state=active.
-(Note: IMGAPI-267 is a bug where it can get stuck in state=creating.
-You should expect image creation to be pretty quick. Less than a minute
-certainly.)
-
-    $ ./bin/sdc-getimage $uuid
-    ...
-
-Now you should be able to create a machine using this image UUID (and
-now using any package with sufficient RAM for Windows, no longer restricted to
-the 'image creation' packages).
-
-    $ package_id=$(./bin/sdc-listpackages | json -c 'this.name=="sdc_4096"' 0.id)
-    $ image_id=$uuid
-    $ ./bin/sdc-createmachine -e $image_id -p $package_id --name customwin1
-
-
-
-## Use Case 5: User creates a custom image (raw cloudapi)
-
-**Status**: Incomplete. See roadmap section above.
-
-An example using raw cloudapi (using the `sdc-cloudapi` tool in the 'sdc' zone
-that allows the *admin* user to talk to CloudAPI). This example is run in COAL,
-hence the packages, etc. are not practical JPC examples:
-
-1. Some COAL-only setup. (Note: This, or the equivalent, is all automatically
-   setup in staging.)
-
-    Provision a cloudapi:
-
-        cat <<EOM | sapiadm provision
-        {
-            "service_uuid": "$(sdc-sapi /services?name=cloudapi | json -H 0.uuid)",
-            "params": {
-                "alias": "cloudapi0",
-                "networks": [
-                    {
-                        "uuid": "$(sdc-napi /networks?name=admin | json -H 0.uuid)"
-                    },
-                    {
-                        "uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)",
-                        "primary": true
-                    }
-                ]
-            }
-        }
-        EOM
-
-    Turn on image management bleeding edge features in cloudapi for the 'admin'
-    user:
-
-        echo '{
-            "metadata": {
-                "CLOUDAPI_BLEEDING_EDGE_FEATURES": ["img_mgmt"],
-                "CLOUDAPI_BLEEDING_EDGE_LOGIN_WHITELIST": ["admin"]
-            }
-        }' | sapiadm update $(sdc-sapi /services?name=cloudapi | json -H 0.uuid)
-
-    Ensure that DAPI will allow using the headnode for provisioning:
-
-        sdc-login dapi
-
-        cd /opt/smartdc/dapi/sapi_manifests/dapi
-        json -f template -e '
-          this.allocationDescription = this.allocationDescription.filter(
-            function (e) {
-              return !~[
-                "hard-filter-min-ram",
-                "hard-filter-min-disk",
-                "hard-filter-min-cpu",
-                "hard-filter-headnode"
-              ].indexOf(e);
-            })
-          ' > template.new
-        mv template.new template
-        svcadm restart config-agent
-
-        exit
-
-    Need an external nic for the 'imgapi', 'sdc' and 'workflow' zones:
-
-        sdc-vmapi /vms/$(vmadm lookup -1 alias=imgapi0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
-        {
-            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)", "primary": true}]
-        }
-        EOP
-        sdc-vmapi /vms/$(vmadm lookup -1 alias=sdc0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
-        {
-            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)", "primary": true}]
-        }
-        EOP
-        sdc-vmapi /vms/$(vmadm lookup -1 alias=workflow0)?action=add_nics -X POST -d@- <<EOP | sdc sdc-waitforjob
-        {
-            "networks": [{"uuid": "$(sdc-napi /networks?name=external | json -H 0.uuid)", "primary": true}]
-        }
-        EOP
-        sleep 20  # workflow takes a while to come back
-
-    Get the base 13.1.0 image to work with:
-
-        sdc-imgadm import f669428c-a939-11e2-a485-b790efc0f0c1 -S https://images.joyent.com --skip-owner-check
-
-    Now get into the sdc zone where `sdc-cloudapi` is setup for the admin user:
-
-        [root@headnode (coal) ~]# sdc
-        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]#
-
-2.  Pick a package via ListPackages. Basically anyone should do.
-
-        package_id=$(sdc-cloudapi /my/packages | json -H -c 'this.name=="sdc_256"' 0.id)
-
-    E.g.:
-
-        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# sdc-cloudapi /my/packages | json -H -c 'this.name=="sdc_256"'
-        [
-          {
-            "name": "sdc_256",
-            "memory": 256,
-            "disk": 25600,
-            "swap": 512,
-            "vcpus": 1,
-            "default": "false",
-            "id": "78aa629d-04fc-4ee5-881b-0b4a914e0c52",
-            "version": "1.0.0"
-          }
-        ]
-
-3.  Pick a network:
-
-        network_id=$(sdc-cloudapi /my/networks | json -H 0.id)
-
-    E.g.:
-
-        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# sdc-cloudapi /my/networks | json -H 0
-        {
-          "id": "c1dc3561-86ad-4a14-a3e4-3db849f6e0d4",
-          "name": "external",
-          "public": true
-        }
-
-4.  Create the proto machine [CreateMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateMachine):
-
-        cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
-        {
-            "name": "proto1",
-            "package": "$package_id",
-            "image": "f669428c-a939-11e2-a485-b790efc0f0c1",
-            "networks": ["$network_id"]
-        }
-        EOM
-
-    E.g.:
-
-        HTTP/1.1 201 Created
-        Location: /admin/machines/076a52ff-e18e-4168-b62e-a06dd2af699b
-        Content-Type: application/json
-        Content-Length: 1579
-        ...
-        Api-Version: 7.0.0
-
-        {
-          "id": "076a52ff-e18e-4168-b62e-a06dd2af699b",
-          "name": "proto1",
-          "type": "smartmachine",
-          "state": "provisioning",
-          "image": "f669428c-a939-11e2-a485-b790efc0f0c1",
-          "ips": [],
-          "memory": 256,
-          "disk": 25600,
-          "metadata": {
-            "root_authorized_keys": "..."
-          },
-          "tags": {},
-          "created": "2013-07-30T23:12:57.197Z",
-          "updated": "2013-07-30T23:12:57.197Z",
-          "dataset": "sdc:sdc:base:13.1.0",
-          "firewall_enabled": false,
-          "package": "sdc_256"
-        }
-
-    So:
-
-        machine_id=076a52ff-e18e-4168-b62e-a06dd2af699b
-
-    Wait until it is running:
-
-        while [[ $(sdc-cloudapi /my/machines/$machine_id | json -H state) == "provisioning" ]]; do
-          sleep 2
-        done
-
-    ... and get its IP:
-
-        $ sdc-cloudapi /my/machines/$machine_id | json -Hj id name state ips
-        {
-          "id": "076a52ff-e18e-4168-b62e-a06dd2af699b",
-          "name": "proto1",
-          "state": "running",
-          "ips": [
-            "10.88.88.7"
-          ]
-        }
-
-5.  SSH in, make a change and prepare the instance:
-
-        [root@076a52ff-e18e-4168-b62e-a06dd2af699b (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.7
-        Last login: Thu Jul 11 04:29:02 2013 from 10.88.88.5
-           __        .                   .
-         _|  |_      | .-. .  . .-. :--. |-
-        |_    _|     ;|   ||  |(.-' |  | |
-          |__|   `--'  `-' `;-| `-' '  ' `-'
-                           /  ; SmartMachine (base 13.1.0)
-                           `-'  http://wiki.joyent.com/jpc2/SmartMachine+Base
-        [root@076a52ff-e18e-4168-b62e-a06dd2af699b ~]# echo 'Trent was here' > /etc/motd
-        [root@076a52ff-e18e-4168-b62e-a06dd2af699b ~]# sm-prepare-image -y
-        ...
-
-    This will stop the instance.
-
-6.  Create the custom image:
-
-        cat <<EOM | sdc-cloudapi /my/images -X POST -d@-
-        {
-          "machine": "076a52ff-e18e-4168-b62e-a06dd2af699b",
-          "name": "foo",
-          "version": "1.0.0",
-          "description": "my first image"
-        }
-        EOM
-
-    Cloudapi's response gives you the new image UUID:
-
-        {
-          "id": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
-          "name": "foo",
-          "type": "smartmachine",
-          "requirements": {},
-          "version": "1.0.0",
-          "description": "my first image"
-        }
-
-    So:
-
-        image_id=cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd
-
-    but without a "published_at". Wait (for up to 2 minutes) for it to be created
-    and published to the local IMGAPI:
-
-        for i in {40..1}; do
-            sleep 3
-            if [[ -n "$(sdc-cloudapi /my/images/$image_id | json published_at)" ]]; then
-                break
-            fi
-        done
-
-    Once it is published:
-
-        $ sdc-cloudapi /my/images/$image_id
-        [
-          {
-            "id": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
-            "name": "foo",
-            "os": "smartos",
-            "type": "smartmachine",
-            "requirements": {},
-            "version": "1.0.0",
-            "description": "my first image",
-            "published_at": "2013-07-11T04:40:10.364Z"
-          }
-        ]
-
-    If that returns an error (404), then the creation failed. Currently there
-    is no mechanism to report a specific creation error. There is a plan
-    in M1 of the roadmap to fix that.
-
-    The created image will have inherited relevant fields, e.g. billing_tags,
-    from the source image (in this case 'base 13.1.0').
-
-7.  Provision a new machine with this custom image.
-
-        cat <<EOM | sdc-cloudapi /my/machines -X POST -d@-
-        {
-            "name": "foo0",
-            "package": "$package_id",
-            "image": "$image_id",
-            "networks": ["$network_id"]
-        }
-        EOM
-
-    Get its IP:
-
-        $ sdc-cloudapi /my/machines/c4412958-0d6b-46c1-8b98-e4b52361e62c | json -Hj id name state ips
-        {
-          "id": "c4412958-0d6b-46c1-8b98-e4b52361e62c",
-          "name": "foo0",
-          "state": "running",
-          "ips": [
-            "10.88.88.8"
-          ]
-        }
-
-    SSH in to see if it worked:
-
-        [root@5edec2f5-2301-48cb-9306-e41237a2fbde (coal:sdc0) ~]# ssh -i ~/.ssh/sdc.id_rsa 10.88.88.8
-        The authenticity of host '10.88.88.8 (10.88.88.8)' can't be established.
-        RSA key fingerprint is 5c:6c:9e:50:95:36:5c:1c:17:8f:53:77:84:ee:81:e9.
-        Are you sure you want to continue connecting (yes/no)? yes
-        Warning: Permanently added '10.88.88.8' (RSA) to the list of known hosts.
-        Last login: Thu Jul 11 04:49:11 2013 from 10.88.88.5
-        Trent was here
-        [root@c4412958-0d6b-46c1-8b98-e4b52361e62c ~]#
-
-It worked!
-
-
-### Thoughts
-
-Obviously that process (do this; wait for this to be done) is a bit onerous
-on the user. It is scriptable so the node-smartdc tooling should facilitate
-that waiting.
-
-We will be exposing more fields in "GET /my/images/:uuid", e.g. "public". For
-comparison, here is the full internal data on the image:
-
-        $ sdc-imgadm get cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd
-        {
-          "v": "2",
-          "uuid": "cf3ef5fb-9a53-4c33-9c81-3ebab13a09fd",
-          "owner": "930896af-bf8c-48d4-885c-6573a94b1853",
-          "name": "foo",
-          "version": "1.0.0",
-          "state": "active",
-          "disabled": false,
-          "public": false,
-          "published_at": "2013-07-11T04:40:10.364Z",
-          "type": "zone-dataset",
-          "os": "smartos",
-          "files": [
-            {
-              "sha1": "3b52cd61463ee1b0c6551a3789b9db7e591fa410",
-              "size": 381619144,
-              "compression": "none"
-            }
-          ],
-          "description": "my first image",
-          "requirements": {
-            "networks": [
-              {
-                "name": "net0",
-                "description": "public"
-              }
-            ]
-          }
-        }
-
-TODO: Redo this example using the node-smartdc CLI.
-
-
-## Use Case 6: User modifies an image they own
-
-**Status**: Incomplete. UpdateImage is implemented to support this, but
-remaining work include custom image creation (Use Case 5) and exposing
-UpdateImage via cloudapi (TODO: ticket for this).
-
-
-## Use Case 7: User easily gets custom image from an Ubuntu ISO
-
-**Status**: Incomplete. This is not an SDC 7.0 requirement and will not
-be implemented for SDC 7.0.
-
-Mark:
-
-    i would like it to be that i _start_ in JPC with imgadm as ISO images
-    i.e., i say "here's the ubuntu ISO image" i want to boot off of.
-    i then do whatever the fuck i want to my VM
-    i take a snapshot. and right there, that's now a new image available to me and anyone i share with (later)
-
-Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO?
-
-<!-- #endif -->
-
-
 # API Summary
 
 ||**Name**||**Endpoint**||**Notes**||
@@ -1685,14 +611,12 @@ Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO
 ||[AddImageIcon](#AddImageIcon)||POST /images/:uuid/icon||Add the image icon.||
 ||[GetImageIcon](#GetImageIcon)||GET /images/:uuid/icon||Get the image icon file.||
 ||[DeleteImageIcon](#DeleteImageIcon)||DELETE /images/:uuid/icon||Remove the image icon.||
-<!-- #ifdef PRIVATE -->
 ||[CreateImageFromVm](#CreateImageFromVm)||POST /images?action=create-from-vm||Create a new (activated) image from an existing VM.||
 ||[ExportImage](#ExportImage)||POST /images/:uuid?action=export||Exports an image to the specified Manta path.||
 ||[CopyRemoteImage](#CopyRemoteImage)||POST /images/$uuid?action=copy-remote&dc=us-west-1||**NYI (IMGAPI-278)** Copy one's own image from another DC in the same cloud.||
 ||[AdminImportRemoteImage](#AdminImportRemoteImage)||POST /images/$uuid?action=import-remote&source=$imgapi-url||Import an image from another IMGAPI||
 ||[AdminImportImage](#AdminImportImage)||POST /images/$uuid?action=import||Only for operators to import an image and maintain `uuid` and `published_at`.||
 ||[AdminGetState](#AdminGetState)||GET /state||Dump internal server state (for dev/debugging)||
-<!-- #endif -->
 ||[ListChannels](#ListChannels)||GET /channels||List image channels (if the server uses channels).||
 ||[ChannelAddImage](#ChannelAddImage)||POST /images/:uuid?action=channel-all||Add an existing image to another channel.||
 ||[Ping](#Ping)||GET /ping||Ping if the server is up.||
@@ -1701,7 +625,40 @@ Q: how do I create an image from an ISO. Say a slackware, debian or whatever ISO
 
 # Errors
 
-<!-- #include "build/errors.restdown" -->
+Error codes that can be returned from IMGAPI endpoints.
+
+<!-- This table is generated by `make doc-update-error-table`. -->
+<!-- ERROR TABLE START -->
+
+||**Code**||**HTTP status code**||**Description**||
+||ValidationFailed||422||Validation of parameters failed.||
+||InvalidParameter||422||Given parameter was invalid.||
+||ImageFilesImmutable||422||Cannot modify files on an activated image.||
+||ImageAlreadyActivated||422||Image is already activated.||
+||NoActivationNoFile||422||Image must have a file to be activated.||
+||OperatorOnly||403||Operator-only endpoint called by a non-operator.||
+||ImageUuidAlreadyExists||409||Attempt to import an image with a conflicting UUID||
+||Upload||400||There was a problem with the upload.||
+||StorageIsDown||503||Storage system is down.||
+||StorageUnsupported||503||The storage type for the image file is unsupported.||
+||RemoteSourceError||503||Error contacting the remote source.||
+||OwnerDoesNotExist||422||No user exists with the UUID given in the "owner" field for image creation or import.||
+||AccountDoesNotExist||422||No account exists with the UUID/login given.||
+||NotImageOwner||422||The caller is not the owner of this image.||
+||NotMantaPathOwner||422||The caller is not the owner of this Manta path.||
+||OriginDoesNotExist||422||No image exists with the UUID given in the "origin" field for image creation or import.||
+||InsufficientServerVersion||422||Image creation is not supported for this VM because the host server version is not of a recent enough version.||
+||ImageHasDependentImages||422||An error raised when attempting to delete an image which has dependent incremental images (images whose "origin" is this image).||
+||NotAvailable||501||Functionality is not available.||
+||InternalError||500||Internal Server Error||
+||ResourceNotFound||404||Not Found||
+||InvalidHeader||400||An invalid header was given in the request.||
+||ServiceUnavailableError||503||Service Unavailable||
+||UnauthorizedError||401||Unauthorized||
+||BadRequestError||400||Bad Request||
+
+<!-- ERROR TABLE END -->
+
 
 # Images
 
@@ -2217,8 +1174,6 @@ CLI tool (against an SDC's IMGAPI):
     Imported image 25ab9ddf-96e8-4157-899d-1dc8be7b9810 (foo, 1.0.0, state=unactivated)
 
 
-<!-- #ifdef PRIVATE -->
-
 ## CreateImageFromVm (POST /images?action=create-from-vm)
 
 Create a new (activated) image from an existing VM. The VM from which the Image
@@ -2361,7 +1316,6 @@ CLI tool:
     Image a93fda38-80aa-11e1-b8c1-8b1f33cd9007 exported to Manta path /user/stor/imgapi
 
 
-<!-- #endif -->
 
 ## AddImageFile (PUT /images/:uuid/file)
 
@@ -2376,16 +1330,10 @@ for provisioning, `state == "active"`.
 ||**Field**||**Type**||**Required?**||**Notes**||
 || account (query param) || UUID||No||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
 || channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
-<!-- #ifdef PRIVATE -->
 ||storage||String||No||The type of storage preferred for this image file. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
-<!-- #else -->
-||storage||String||No||The type of storage preferred for this image file. Admin-only.||
-<!-- #endif -->
 ||[compression](#manifest-files)||UUID||Yes||The type of compression used for the file content. One of 'none', 'gzip' or 'bzip2'.||
 ||[sha1](#manifest-files)||SHA-1 Hash||No||SHA-1 of the uploaded file to allow the server to check for data corruption.||
-<!-- #ifdef PRIVATE -->
 ||dataset_guid||GUID||No||The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`).||
-<!-- #endif -->
 ||(file content in the body)||binary||Yes||The image file content.||
 
 ### Returns
@@ -2454,11 +1402,7 @@ formats: PNG, GIF or JPG.
 || account (query param) || UUID||No||The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.||
 || channel (query param) || String || No || The image channel to use. (Only relevant for servers using [channels](#channels).) ||
 ||[sha1](#manifest-files)||SHA-1 Hash||No||SHA-1 of the uploaded icon file to allow the server to check for data corruption.||
-<!-- #ifdef PRIVATE -->
 ||storage||String||No||The type of storage preferred for the image icon. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage.||
-<!-- #else -->
-||storage||String||No||The type of storage preferred for the image icon. Admin-only.||
-<!-- #endif -->
 ||(file content in the body)||binary||Yes||The icon file content.||
 
 ### HTTP Request Headers
@@ -2900,7 +1844,6 @@ CLI tool:
 
 
 
-<!-- #ifdef PRIVATE -->
 ## AdminImportImage (POST /images/:uuid?action=import)
 
 Import an image (preserving its `uuid` and `published_at` fields).
@@ -3065,7 +2008,6 @@ See [Errors](#errors) section above.
           },
     ...
 
-<!-- #endif -->
 
 
 # Channels
@@ -3202,7 +2144,6 @@ CLI tool:
 
 # Miscellaneous API
 
-<!-- #ifdef PRIVATE -->
 ## Ping (GET /ping)
 
 A simple ping to check to health of the IMGAPI server. Here "pid" is the PID
@@ -3269,43 +2210,8 @@ Ping can also be used to simulate error responses from the IMGAPI:
       "errors": []
     }
 
-<!-- #else -->
-
-## Ping (GET /ping)
-
-A simple ping to check to health of the IMGAPI server.
-
-### Returns
-
-A "pong" object is returned:
-
-||**Field**||**Type**||**Description**||
-||ping||String||"pong"||
-||version||String||The version of the IMGAPI app.||
-||imgapi||Boolean||true||
-
-### Examples
-
-    $ curl -i https://images.joyent.com/ping
-    HTTP/1.1 200 OK
-    Date: Fri, 22 Feb 2013 23:52:18 GMT
-    Content-Type: application/json
-    Connection: keep-alive
-    Content-Length: 60
-    Server: Joyent Image API
-    x-request-id: e41046a0-7d4a-11e2-8ad6-7ff4644169eb
-    x-response-time: 1
-    x-server-name: b908c5b2-ccd9-4f43-b5ff-2997eb6bd682.local
-
-    {
-      "ping": "pong",
-      "version": "1.0.0",
-      "imgapi": true
-    }
-<!-- #endif -->
 
 
-<!-- #ifdef PRIVATE -->
 ## AdminGetState (GET /state)
 
 Return server internal state. For debugging/dev only.
@@ -3330,25 +2236,26 @@ A JSON representation of some internal state.
       },
       ...
     }
-<!-- #endif -->
 
 
-<!-- #ifdef PRIVATE -->
 # Image file storage
 
 There are two possible storage mechanisms for the (large) image files (and image
 icon files). Which are in use depend on the IMGAPI configuration (and
 availability in the DC).
 
-1. manta: Requires an available Manta for this DC's region. All files are
-   store in the "imgapi" user's Manta area. Manta storage may be local
-   (preferred) or remote.
-2. local: A local dir (or locally mounted dir). Only really mean for testing,
+1. manta: Requires an available Manta. All files are stored in the configured
+   user's Manta area (e.g. under "/a-dc-operator/stor/imgapi/"), as opposed
+   to storing images own by Bob under Bob's area in Manta.
+   Manta storage may be local (i.e. within the same region, this is preferred)
+   or remote (a Manta across the WAN).
+2. local: A local dir (or locally mounted dir). Only really meant for testing,
    development and bootstrapping. Generally 'local' usage is insufficient
    for producion usage because a locally mounted dir can't handle HA (imgapi
    zones on more than one server).
 
-The set of available storages is set in the configuration. E.g.:
+The set of available storages is set in the [configuration](#configuration).
+For example:
 
     "storage": {
         "manta": {
@@ -3364,9 +2271,14 @@ The set of available storages is set in the configuration. E.g.:
         }
     }
 
+The [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-manta-setup)
+and [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-external-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-external-manta-setup)
+scripts are intended for use in setting up an IMGAPI to use a Manta.
+
 Local Manta storage, if available, is used in preference to "local" storage.
 Manta storage is *required* for user custom image creation, i.e. CloudAPI's
-[CreateImageFromMachine](http://apidocs.joyent.com/cloudapi/#CreateImageFromMachine).
+[CreateImageFromMachine](http://apidocs.joyent.com/cloudapi/#CreateImageFromMachine),
+unless [overriden](howto-enable-custom-image-creation-without-manta).
 
 If Manta storage is available *but is remote*, then which storage is used is a
 little more complicated. The intention is that user-created custom images
@@ -3375,10 +2287,8 @@ to Manta. However, admin-managed public images for the DC are typically large
 and can't practically live in a remote Manta. Therefore the algorithm is that
 "admin"-owned images prefer local storage to "remote Manta" storage. Images
 owned by others prefer remote Manta storage to local storage.
-<!-- #endif -->
 
 
-<!-- #ifdef PRIVATE -->
 # Configuration
 
 Reference docs on configuration vars to imgapi. Default values are in
@@ -3427,22 +2337,6 @@ top-level keys in the factory settings. For example: if providing
 
 
 
-# Developer Guide
-
-## Repositories
-
-    node-sdc-clients.git    # Includes imgapi.js node library for using IMGAPI.
-    node-imgmanifest.git    # Defines the SmartDataCenter Image manifest spec
-                            #   and support for validation and upgrade.
-    imgapi-cli.git          # `*-imgadm` tools for common IMGAPI servers,
-                            #   e.g. `joyent-imgadm`, `sdc-imgadm`,
-                            #   `updates-imgadm` and a framework for tools
-                            #   for other IMGAPI servers.
-    smartos-live.git        # Holds the SmartOS base `imgadm` tool
-                            #   (in src/img). Currently in "imgadm2.git".
-    imgapi.git              # The IMGAPI server
-
-
 # Operator Guide
 
 This section is intended to give necessary information for diagnosing and
@@ -3453,22 +2347,6 @@ one "imgapi" zone for HA. Use this to list the imgapi zones in a DC:
 
     sdc-vmapi /vms?owner_uuid=$(bash /lib/sdc/config.sh -json | json ufds_admin_uuid) \
         | json -H -c "this.tags.smartdc_role=='imgapi'"
-
-
-## Health
-
-An IMGAPI server has a "/ping" endpoint to indicate if it is up
-
-    $ sdc-imgapi /ping
-
-or if there are multiple IMGAPI servers:
-
-    $ for ip in $(bash /lib/sdc/config.sh -json | json imgapi_admin_ips | tr ',' ' '); do \
-        echo "# $ip" ; \
-        curl -sS http://$ip/ping | json ; \
-    done
-
-TODO: sdc-healthcheck, sdc-webinfo
 
 
 ## Logs
@@ -3614,184 +2492,3 @@ confirm this with the help of the netstat command:
     127.0.0.1.8081             *.*                0      0 128000      0 LISTEN
           *.443                *.*                0      0 128000      0 LISTEN
 
-
-# Portal Guide
-
-This is a short guide to portal developers wanting to integrate image mgmt.
-
-The main cloudapi endpoints you'll be using for this are:
-- [CreateImageFromMachine](https://mo.joyent.com/docs/cloudapi/master/#CreateImageFromMachine)
-- [GetImage](https://mo.joyent.com/docs/cloudapi/master/#GetImage)
-- [DeleteImage](https://mo.joyent.com/docs/cloudapi/master/#DeleteImage)
-- UpdateImage (not yet exposed via cloudapi)
-
-You'll need to be using a recentish node-smartdc.git and calling the client with
-an Api-Version header that gets the 7.1 version of the API at least. E.g. in my
-test code my cloudapi client is created like this:
-
-    self._cloudapi = smartdc.createClient({
-        url: prof.url,
-        account: prof.account,
-        version: '*',    // <--- asking for latest version
-        noCache: true,
-        rejectUnauthorized: Boolean(prof.rejectUnauthorized),
-        sign: sign,
-        logLevel: this.log && this.log.level()
-    });
-
-The process for a user to create an image is to call CreateImageFromMachine
-with one of their machines that is setup the way they want it. This call also
-takes image manifest data: name, version, description, etc. Minimally the
-API requires 'machine', 'name' and 'version'. So presumably the "Create Image"
-flow in portal would include a form with all the CreateImageFromMachine
-fields.
-
-The initial call to CreateImageFromMachine will return a "placeholder" image
-object with the image UUID (the `id` field) and a `state` of "creating", e.g.:
-
-    {
-        "id": "62306cd7-7b8a-c5dd-d44e-8491c83b9974",
-        "name": "Priam",
-        "version": "1.2.3",
-        "requirements": {},
-        "owner": "930896af-bf8c-48d4-885c-6573a94b1853",
-        "public": false,
-        "state": "creating"
-    }
-
-There is some basic validation of the CreateImageFromMachine inputs. An error
-response example:
-
-    HTTP/1.1 422 Unprocessable Entity
-    content-type: application/json
-    content-length: 413
-    access-control-allow-origin: *
-    access-control-allow-headers: Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, Api-Version, Response-Time
-    access-control-allow-methods: GET, HEAD, POST
-    access-control-expose-headers: Api-Version, Request-Id, Response-Time
-    connection: Keep-Alive
-    content-md5: Q9a1XQBHShbKgT7ADF6Tgw==
-    date: Wed, 11 Dec 2013 19:02:40 GMT
-    server: Joyent SmartDataCenter 7.1.0
-    api-version: 7.1.0
-    request-id: ceb8a270-6296-11e3-9c6e-ad55ae466bcb
-    response-time: 277
-    x-request-id: ceb8a270-6296-11e3-9c6e-ad55ae466bcb
-    x-api-version: 7.1.0
-    x-response-time: 277
-
-    {
-        "code": "ValidationFailed",
-        "message": "invalid image data: name, version",
-        "errors": [
-          {
-            "field": "name",
-            "code": "Invalid",
-            "message": "image name has invalid characters (only alpha-numeric characters and \" \", \".\", \"-\", \"_\" and \"/\" are allowed)"
-          },
-          {
-            "field": "version",
-            "code": "Invalid",
-            "message": "image version has invalid characters (only alpha-numeric characters and \".\", \"-\", \"_\" and \"/\" are allowed)"
-          }
-        ]
-    }
-
-That `errors` array format is documented here:
-<https://mo.joyent.com/docs/eng/master/#error-handling>. Presumably this could
-be used for form validation.
-
-The image state can be retrieved with GetImage using the `id` from the original
-call. The placeholder image will also show up in ListImages if the `state=all`
-parameter is used. The image states are:
-
-- `failed`: The image creation failed. There will be an `error` object of the
-  form:
-
-        ...
-        "error": {
-            "code": "SomeCamelCaseErrorCode",
-            "message": "some description of the error"
-        },
-        ...
-
-  For example:
-
-        {
-            "id": "d4ac3751-64f1-6929-ee92-fe01e14743b7",
-            "name": "Briseis",
-            "version": "1.2.3",
-            "requirements": {},
-            "owner": "930896af-bf8c-48d4-885c-6573a94b1853",
-            "public": false,
-            "state": "failed",
-            "error": {
-                "code": "PrepareImageDidNotRun",
-                "message": "prepare-image script did not indicate it was run (old guest tools in VM 670e2535-9f3a-494f-d066-a280f4ab0d85?)"
-            }
-        }
-
-  The possible errors codes are documented in
-  [GetImage](https://mo.joyent.com/docs/cloudapi/master/#GetImage).
-
-  Note: I hope to eventually have a URL to a troubleshooting page for each
-  `error.code`. The URL will be in the error.message or perhaps in a separate
-  `error.url`. It might be interesting for portal to link to that if present.
-
-- `creating`: Still creating.
-
-- `unactivated`: The image has been created on the CN and is in the process
-  of being published to IMGAPI.
-
-- `active`: The image has been successfully created and is ready for use.
-
-
-ListImages shows all images to which a user has access. Images that the user
-*owns*, i.e. for which the `owner` field is the user's UUID, can be deleted
-by that user via DeleteImage.
-
-Caveats/Limitations:
-
-- Existing machines created *before* the img mgmt feature is released *might*
-  not support image creation. That sucks a little for portal providing a "create
-  image" link next to machines. The reasons pre-existing machines might be
-  un-imageable are:
-
-  1. They reside on a CN running a too old platform. The JPC reboot should fix
-     that by ~Feb. This case will error on the CreateImageFromMachine call
-     with error code `InsufficientServerVersionError`.
-
-  2. They were migrated. Our current and old migrator script broke a image link
-     at the ZFS level that image mgmt requires. This will be an async error,
-     but fairly quick, with an `error.code = "VmHasNoOrigin"` on the failed
-     image.
-
-  Theoretically we could mark each machine's "internal_metadata" in VMAPI with
-  whether they fall under this category 2. But I need to defer that until after
-  the initial rush.
-
-  For now, perhaps the portal could start by not allowing image creation on
-  machines with a created_at before $(date we release img mgmt to JPC).
-  Dev Note: This presumes the migrator script is fixed (SYSOPS-6491) for future
-  migrations.
-
-- Image creation for a Linux machine will fail with `PrepareImageDidNotRun`
-  (that will take ~5 minutes to timeout to that error) until they've done a one
-  time upgrade of their Linux guest tools. We'll have a one-liner for them to
-  run to do that, and the updated image creation docs will show how to do that.
-  I'm working no those this week.
-
-  We'll also have new Linux images soonish that will include the new Linux
-  guest tools.
-
-- We don't support image creation for machines created from images other than:
-  smartos images, CentOS images, Ubuntu images. Eventually others (like debian
-  and freebsd) will be added.
-
-Please ping me (Trent Mick <trent.mick@joyent.com>) if you need something from
-the API to reasonably integrate this into portal. The current relevant roadmap
-section is [M7 above](#m7-automated-snapshot-and-prepare-image). It includes
-some rough notes on planned and desireable polishing, some of this touch on
-the portal.
-
-<!-- #endif -->

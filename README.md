@@ -67,3 +67,18 @@ There are different testing entry points for testing these.
 
     These are required to authenticate with image.joyent.com's HTTP signature
     auth.
+
+
+# Related Repositories
+
+There are a number of repositories that are relevant for IMGAPI and image
+management in SmartDataCenter and SmartOS.
+
+
+| Repo | Description |
+| ---- | ----------- |
+| https://github/joyent/sdc-imgapi.git | The IMGAPI server. This repository. |
+| https://github/joyent/node-sdc-clients.git | Includes imgapi.js node client library for using IMGAPI. |
+| https://github/joyent/node-imgmanifest.git | Defines the SDC/SmartOS Image manifest spec and support for validation and upgrade of image manifests. |
+| https://github/joyent/sdc-imgapi-cli.git | Includes the `*-imgadm` tools for common IMGAPI servers, e.g. `joyent-imgadm`, `sdc-imgadm`, `updates-imgadm` and a framework for tools for other IMGAPI servers. |
+| https://github/joyent/smartos-live.git | Holds the SmartOS `imgadm` tool (in src/img). This is the tool used on any SmartOS global zone to install image datasets into the zpool to enable provisioning VMs with that image. |

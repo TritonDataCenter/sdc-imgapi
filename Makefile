@@ -16,7 +16,7 @@
 # Vars, Tools, Files, Flags
 #
 NAME		:= imgapi
-DOC_FILES	 = index.restdown public.restdown design.restdown search.restdown
+DOC_FILES	 = index.restdown design.restdown search.restdown
 EXTRA_DOC_DEPS += deps/restdown-brand-remora/.git
 RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 JS_FILES	:= $(shell ls *.js) \
@@ -109,14 +109,32 @@ test-coal:
 	ssh $(COAL) "/opt/smartdc/bin/sdc-login imgapi /opt/smartdc/imgapi/test/runtests"
 
 
-# Doc preprocessing to get public and private IMGAPI docs out of the same
-# docs/index.restdown.in.
-build/errors.restdown: lib/errors.js | node_modules/restify $(NODE_EXEC)
-	$(NODE) lib/errors.js > $@
-docs/index.restdown: docs/index.restdown.in build/errors.restdown
-	python tools/preprocess.py -o $@ -I. -D PRIVATE=1 $<
-docs/public.restdown: docs/index.restdown.in build/errors.restdown
-	python tools/preprocess.py -o $@ -I. $<
+# We get the IMGAPI errors table from "lib/errors.js". This should be re-run
+# for "lib/errors.js" changes!
+.PHONY: doc-update-error-table
+doc-update-error-table: lib/errors.js | node_modules/restify $(NODE_EXEC)
+	$(NODE) lib/errors.js > build/errors.md
+	$(NODE) -e ' \
+	    fs = require("fs"); \
+	    enc = {encoding: "utf8"}; \
+	    index = fs.readFileSync("docs/index.restdown", enc); \
+	    errors = fs.readFileSync("build/errors.md", enc); \
+	    start = "<!-- ERROR TABLE START -->\n"; \
+	    end = "<!-- ERROR TABLE END -->\n"; \
+	    startIdx = index.indexOf(start); \
+	    if (startIdx === -1) \
+		throw new Error("cannot find start marker in build/errors.md"); \
+	    endIdx = index.indexOf(end); \
+	    if (endIdx === -1) \
+		throw new Error("cannot find end marker in build/errors.md"); \
+	    index = ( \
+		index.slice(0, startIdx + start.length) \
+		+ "\n" \
+		+ errors \
+		+ "\n" \
+		+ index.slice(endIdx)); \
+	    fs.writeFileSync("docs/index.restdown", index, enc);'
+	@echo "'docs/index.restdown' updated"
 
 build/public/docs/index.html: build/docs/public/public.html
 	$(MKDIR) build/public/docs
@@ -129,10 +147,8 @@ public-docs: docs
 	$(CP) $(DOC_BUILD)/public.html build/public-docs/docs/public.html
 	$(CP) -PR $(DOC_BUILD)/media build/public-docs/docs/media
 
-DOC_CLEAN_FILES = docs/{index,design,public}.{html,json} \
-	docs/index.restdown \
-	docs/public.restdown \
-	build/errors.restdown \
+DOC_CLEAN_FILES = docs/{index,design}.{html,json} \
+	build/errors.md \
 	build/docs \
 	build/public-docs
 .PHONY: clean-docs
