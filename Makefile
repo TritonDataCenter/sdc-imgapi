@@ -59,7 +59,7 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack public-docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
 
 # Node hack for images.joyent.com and updates.joyent.com
@@ -136,21 +136,9 @@ doc-update-error-table: lib/errors.js | node_modules/restify $(NODE_EXEC)
 	    fs.writeFileSync("docs/index.restdown", index, enc);'
 	@echo "'docs/index.restdown' updated"
 
-build/public/docs/index.html: build/docs/public/public.html
-	$(MKDIR) build/public/docs
-	$(CP) $< $@
-
-.PHONY: public-docs
-public-docs: docs
-	$(RM) -r build/public-docs/docs
-	$(MKDIR) build/public-docs/docs
-	$(CP) $(DOC_BUILD)/public.html build/public-docs/docs/public.html
-	$(CP) -PR $(DOC_BUILD)/media build/public-docs/docs/media
-
 DOC_CLEAN_FILES = docs/{index,design}.{html,json} \
 	build/errors.md \
-	build/docs \
-	build/public-docs
+	build/docs
 .PHONY: clean-docs
 clean-docs:
 	-$(RMTREE) $(DOC_CLEAN_FILES)
@@ -158,7 +146,7 @@ clean:: clean-docs
 
 
 .PHONY: release
-release: all public-docs
+release: all
 	@echo "Building $(RELEASE_TARBALL)"
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
 	mkdir -p $(RELSTAGEDIR)/site
@@ -187,7 +175,7 @@ release: all public-docs
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/build/node \
-		$(TOP)/build/public-docs \
+		$(TOP)/build/docs \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
 	# Trim node
 	rm -rf \
