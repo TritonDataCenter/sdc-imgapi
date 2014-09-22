@@ -1,6 +1,6 @@
 ---
 title: Image API Design Discussions
-markdown2extras: wiki-tables, cuddled-lists
+markdown2extras: tables, cuddled-lists
 apisections:
 ---
 <!--
