@@ -16,9 +16,11 @@
 # Vars, Tools, Files, Flags
 #
 NAME		:= imgapi
-DOC_FILES	 = index.restdown design.restdown search.restdown
+
+DOC_FILES	 = index.md design.md search.md
 EXTRA_DOC_DEPS += deps/restdown-brand-remora/.git
 RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
+
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/') \
 	bin/imgapi-external-manta-setup \
