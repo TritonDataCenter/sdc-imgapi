@@ -10,12 +10,12 @@
 
 # sdc-imgapi
 
-The Image API (IMGAPI) is the API in each SDC data center for managing
-VM (i.e. KVM and Zones) images.
-
 This repository is part of the Joyent SmartDataCenter project (SDC).  For
 contribution guidelines, issues, and general documentation, visit the main
 [SDC](http://github.com/joyent/sdc) project page.
+
+The Image API (IMGAPI) is the API in each SDC data center for managing
+VM (i.e. KVM and Zones) images.
 
 # Development
 
