@@ -719,6 +719,20 @@ examples that demostrate their usage:
     Get the next 2 images after image d0f6f1a8-aef5-11e3-8002-28cfe91a33c9
       GET /images?limit=3&marker=d0f6f1a8-aef5-11e3-8002-28cfe91a33c9
 
+ListImages allows sorting the resulting collection by their published_at date.
+The *sort* direction can be 'asc' (ascending) or 'desc' (descending), and it is
+'asc' by default. It means that the default behavior in ListImages is to return
+older images first. At the moment published_at is the only supported sortable
+attribute for images. The following are some examples of valid values for the
+*sort* query parameter:
+
+    sort=published_at (results in 'published_at ASC', default behavior)
+    sort=published_at.desc (results in 'published_at DESC')
+    sort=published_at.asc (results in 'published_at ASC')
+
+    Get all images ordered by newest images first
+      GET /images?sort=published_at.desc
+
 
 ### Searching Images by Tags or Billing Tags
 
