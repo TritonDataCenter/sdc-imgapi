@@ -206,15 +206,11 @@ PRODUCT_FILE=/etc/product
 if [[ ! -f $PRODUCT_FILE ]]; then
     fatal "Unknown Distribution...exiting"
 fi
-TARGET_DISTRO=`grep -w Image $PRODUCT_FILE | awk '{print $2;}'`
+TARGET_DISTRO=$(grep -w Image $PRODUCT_FILE | awk '{print $2;}' | tr '[:upper:]' '[:lower:]')
 
-# Subtlety: the "Image" line in /etc/product in old ubuntu images has
-# "ubuntu" (lowercase). In the new ubuntu-certified images it is "Ubuntu"
-# (uppercase).
 if [ $TARGET_DISTRO == "centos" ] ; then
     prepare_centos
 elif [[ $TARGET_DISTRO == "ubuntu" ||
-	$TARGET_DISTRO == "Ubuntu" ||
 	$TARGET_DISTRO == "debian" ]] ; then
     prepare_ubuntu
 fi
