@@ -126,19 +126,17 @@ function prepare_lib_smartdc() {
 
 /usr/sbin/mdata-put prepare-image:state running
 
-TARGET_OS=$(uname -s)
-
 # Checks for OS version. We could have other BSD based
 # systems beside FreeBSD in the future.
-case TARGET_OS in
-    "FreeBSD")
-        prepare_freebsd
-        ;;
-    *)
-        echo "OS $TARGET_OS is not supported."
-        exit 1
-    ;;
-esac
+
+TARGET_OS=$(uname -s)
+
+if [[ "$TARGET_OS" == "FreeBSD" ]]; then
+    prepare_freebsd
+else
+    echo "OS $TARGET_OS is not supported."
+    exit 1
+fi
 
 
 prepare_lib_smartdc
