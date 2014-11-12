@@ -152,4 +152,4 @@ history -c
 # Successful, but we still emit tail of trace log for info.
 cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error || true
 sleep 3
-shutdown -h now
+shutdown -p now
