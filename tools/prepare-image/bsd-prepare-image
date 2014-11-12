@@ -71,6 +71,13 @@ function cleanup_tmp() {
 
 function cleanup_root() {
     # Cleaning up root account
+    
+    # Delete mail if it exists
+    if [[ -e /var/mail/root ]] ; then
+       rm -rf /var/mail/root
+    fi
+    
+    # Delete history
     rm -f /root/.history
     history -c
 
