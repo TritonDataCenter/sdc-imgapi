@@ -70,7 +70,7 @@ function cleanup_root() {
     history -c
 
     # Removing password for root
-    passwd -d root
+    pw mod user root -w none
 }
 
 function cleanup_ssh() {
