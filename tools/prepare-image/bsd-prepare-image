@@ -79,6 +79,10 @@ function cleanup_root() {
     
     # Delete history
     rm -f /root/.history
+    if [[ -e /root/.bash_history ]] ; then
+       rm -f /root/.bash_history
+    fi
+    
     history -c
 
     # Removing password for root
