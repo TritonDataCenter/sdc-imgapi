@@ -89,7 +89,7 @@ function cleanup_ssh() {
     find /etc/ssh -type f -name "ssh_host_*" | xargs rm -f
     FILELIST='authorized_keys known_hosts id_dsa id_dsa.pub id_rsa id_rsa.pub ssh_config'
     for FILE in $FILELIST; do
-        if [ -f "/root/.ssh/$FILE" ]; then
+        if [[ -f "/root/.ssh/$FILE" ]]; then
             rm -rf /root/.ssh/$FILE
         fi
     done
