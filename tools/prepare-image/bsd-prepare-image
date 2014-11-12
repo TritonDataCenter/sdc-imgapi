@@ -87,6 +87,7 @@ function cleanup_root() {
 
     # Removing password for root
     pw mod user root -w none
+    pw mod user toor -w none
 }
 
 function cleanup_ssh() {
