@@ -64,6 +64,11 @@ function cleanup_logs() {
     find /var/log -type f | xargs rm -f
 }
 
+function cleanup_tmp() {
+    rm -rf /var/tmp/*
+    rm -rf /tmp/*
+}
+
 function cleanup_root() {
     # Cleaning up root account
     rm -f /root/.history
@@ -141,6 +146,7 @@ fi
 
 prepare_lib_smartdc
 cleanup_logs
+cleanup_tmp
 cleanup_disks
 cleanup_ssh
 cleanup_hostname
