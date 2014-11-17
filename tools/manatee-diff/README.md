@@ -10,7 +10,7 @@
 
 # Comparing images in Manatee backups
 
-Warning: The scripts in here are not complete or fully supported. They
+**Warning**: The scripts in here are not complete or fully supported. They
 are relatively quick hacks to get some useful comparison output.
 
 
@@ -47,3 +47,22 @@ SDC data dump area in Manta.
 Example (using "BOB" as the Manta user under which our SDC data dumps are stored):
 
     $ ./manatee-diff-images /BOB/stor/sdc us-sw-1 2014/11/13 2014/11/17
+    $ ./manatee-diff-images /BOB/stor/sdc us-sw-1 2014/11/13 2014/11/17
+    work dir: /var/tmp/manatee-diff-images
+    start: /var/tmp/manatee-diff-images/imgapi_images-2014-11-13-00-01-58.gz
+    end: /var/tmp/manatee-diff-images/imgapi_images-2014-11-17-00-01-57.gz
+    --- /var/tmp/manatee-diff-images/imgapi_images-2014-11-13-00-01-58.gz.diffable	2014-11-17 12:34:08.000000000 -0800
+    +++ /var/tmp/manatee-diff-images/imgapi_images-2014-11-17-00-01-57.gz.diffable	2014-11-17 12:34:08.000000000 -0800
+    @@ -5007,6 +5015,56 @@
+      1eff0fc0-1125-11e4-bf8d-037bbc14ef69     "version": "master-20140721T221128Z-g1bc4471"
+      1eff0fc0-1125-11e4-bf8d-037bbc14ef69 }
+
+    + 1f061f26-6aa9-11e4-941b-ff1a9c437feb {
+    + 1f061f26-6aa9-11e4-941b-ff1a9c437feb     "acl": [],
+    + 1f061f26-6aa9-11e4-941b-ff1a9c437feb     "activated": true,
+    + 1f061f26-6aa9-11e4-941b-ff1a9c437feb     "cpu_type": "host",
+    + 1f061f26-6aa9-11e4-941b-ff1a9c437feb     "description": "CentOS 7 64-bit image with just essential packages installed. Ideal for users who are comfortable with setting up their own environment and tools.",
+    + 1f061f26-6aa9-11e4-941b-ff1a9c437feb     "disabled": false,
+    + 1f061f26-6aa9-11e4-941b-ff1a9c437feb     "disk_driver": "virtio",
+    ...
+
