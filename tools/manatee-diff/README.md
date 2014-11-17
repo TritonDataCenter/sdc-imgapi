@@ -47,7 +47,6 @@ SDC data dump area in Manta.
 Example (using "BOB" as the Manta user under which our SDC data dumps are stored):
 
     $ ./manatee-diff-images /BOB/stor/sdc us-sw-1 2014/11/13 2014/11/17
-    $ ./manatee-diff-images /BOB/stor/sdc us-sw-1 2014/11/13 2014/11/17
     work dir: /var/tmp/manatee-diff-images
     start: /var/tmp/manatee-diff-images/imgapi_images-2014-11-13-00-01-58.gz
     end: /var/tmp/manatee-diff-images/imgapi_images-2014-11-17-00-01-57.gz

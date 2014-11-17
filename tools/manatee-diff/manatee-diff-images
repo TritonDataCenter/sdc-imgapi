@@ -50,19 +50,19 @@ mkdir -p $WRKDIR
 echo "work dir: $WRKDIR" >&2
 
 name=$(mls $BASE_DIR/manatee_backups/$DC_NAME/$START_DAY/00 | grep ^imgapi_images)
-if [[ ! -f $WRKDIR/$name ]]; then
-    mget -o $WRKDIR/$name.partial $BASE_DIR/manatee_backups/$DC_NAME/$START_DAY/00/$name
-    mv $WRKDIR/$name.partial $WRKDIR/$name
+if [[ ! -f $WRKDIR/$DC_NAME.$name ]]; then
+    mget -o $WRKDIR/$DC_NAME.$name.partial $BASE_DIR/manatee_backups/$DC_NAME/$START_DAY/00/$name
+    mv $WRKDIR/$DC_NAME.$name.partial $WRKDIR/$DC_NAME.$name
 fi
-start=$WRKDIR/$name
+start=$WRKDIR/$DC_NAME.$name
 echo "start: $start" >&2
 
 name=$(mls $BASE_DIR/manatee_backups/$DC_NAME/$END_DAY/00 | grep ^imgapi_images)
-if [[ ! -f $WRKDIR/$name ]]; then
-    mget -o $WRKDIR/$name.partial $BASE_DIR/manatee_backups/$DC_NAME/$END_DAY/00/$name
-    mv $WRKDIR/$name.partial $WRKDIR/$name
+if [[ ! -f $WRKDIR/$DC_NAME.$name ]]; then
+    mget -o $WRKDIR/$DC_NAME.$name.partial $BASE_DIR/manatee_backups/$DC_NAME/$END_DAY/00/$name
+    mv $WRKDIR/$DC_NAME.$name.partial $WRKDIR/$DC_NAME.$name
 fi
-end=$WRKDIR/$name
+end=$WRKDIR/$DC_NAME.$name
 echo "end: $end" >&2
 
 gzcat $start | python $TOP/manatee2images.py | python $TOP/imgdiffable.py > $start.diffable
