@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2014, Joyent, Inc.
+#
+
+#
+# Compare IMGAPI image manifests in Manatee dumps for different days.
+# See the README.md for usage.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+TOP=$(cd $(dirname $0)/; pwd)
+
+
+#---- support stuff
+
+function fatal
+{
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+
+#---- mainline
+
+BASE_DIR=$1
+DC_NAME=$2
+START_DAY=$3
+END_DAY=$4
+
+[[ -n "$BASE_DIR" ]] || fatal "BASE_DIR not given"
+[[ -n "$DC_NAME" ]] || fatal "DC_NAME not given"
+[[ -n "$START_DAY" ]] || fatal "START_DAY not given"
+[[ -n "$END_DAY" ]] || fatal "END_DAY not given"
+
+WRKDIR=/var/tmp/manatee-diff-images
+mkdir -p $WRKDIR
+echo "work dir: $WRKDIR" >&2
+
+name=$(mls $BASE_DIR/manatee_backups/$DC_NAME/$START_DAY/00 | grep ^imgapi_images)
+if [[ ! -f $WRKDIR/$name ]]; then
+    mget -o $WRKDIR/$name.partial $BASE_DIR/manatee_backups/$DC_NAME/$START_DAY/00/$name
+    mv $WRKDIR/$name.partial $WRKDIR/$name
+fi
+start=$WRKDIR/$name
+echo "start: $start" >&2
+
+name=$(mls $BASE_DIR/manatee_backups/$DC_NAME/$END_DAY/00 | grep ^imgapi_images)
+if [[ ! -f $WRKDIR/$name ]]; then
+    mget -o $WRKDIR/$name.partial $BASE_DIR/manatee_backups/$DC_NAME/$END_DAY/00/$name
+    mv $WRKDIR/$name.partial $WRKDIR/$name
+fi
+end=$WRKDIR/$name
+echo "end: $end" >&2
+
+gzcat $start | python $TOP/manatee2images.py | python $TOP/imgdiffable.py > $start.diffable
+gzcat $end | python $TOP/manatee2images.py | python $TOP/imgdiffable.py > $end.diffable
+
+diff -u $start.diffable $end.diffable | less
+
