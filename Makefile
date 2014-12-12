@@ -146,6 +146,14 @@ clean-docs:
 	-$(RMTREE) $(DOC_CLEAN_FILES)
 clean:: clean-docs
 
+# See IMGAPI-445 for why this symlink.
+.PHONY: docs-symlink-for-restify-static
+docs-symlink-for-restify-static:
+	mkdir -p build/docs/public
+	(cd build/docs/public && ln -s . docs)
+
+docs:: docs-symlink-for-restify-static
+
 
 .PHONY: release
 release: all
@@ -175,7 +183,7 @@ release: all
 	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
 	cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
-	cp -r \
+	cp -PR \
 		$(TOP)/build/node \
 		$(TOP)/build/docs \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
