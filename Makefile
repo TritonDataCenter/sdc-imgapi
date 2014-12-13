@@ -52,8 +52,9 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 
-RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-RELSTAGEDIR       := /tmp/$(STAMP)
+VERSION			:= $(shell json -f package.json version)
+RELEASE_TARBALL	:= $(NAME)-pkg-$(VERSION)-$(STAMP).tar.bz2
+RELSTAGEDIR		:= /tmp/$(VERSION)-$(STAMP)
 
 
 

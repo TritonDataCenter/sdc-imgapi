@@ -43,5 +43,19 @@
   "engines": {
     "node": ">=0.10"
   },
-  "license": "MPL-2.0"
+  "license": "MPL-2.0",
+
+  "sdcImageOrigin": "fd2cc906-8938-11e3-beab-4359c665ac99",
+  "sdcImagePkgsrc": [],
+  "sdcImageDeps": [
+    "amon",
+    "config-agent",
+    "registrar",
+    "https://download.joyent.com/pub/build/sdcnode"
+  ],
+  "sdcImageTarballs": [
+    {"tarball": "registrar/registrar-pkg-*.tar.bz2", "sysroot": "/"},
+    {"tarball": "amon/amon-agent-*.tgz", "sysroot": "/opt"},
+    {"tarball": "config-agent/config-agent-*.tar.bz2", "sysroot": "/opt/smartdc"}
+  ]
 }
