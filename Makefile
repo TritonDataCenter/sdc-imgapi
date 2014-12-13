@@ -147,12 +147,11 @@ clean-docs:
 clean:: clean-docs
 
 # See IMGAPI-445 for why this symlink.
-.PHONY: docs-symlink-for-restify-static
-docs-symlink-for-restify-static:
+build/docs/public/docs:
 	mkdir -p build/docs/public
-	(cd build/docs/public && ln -s . docs)
+	(cd build/docs/public && rm -f docs && ln -s . docs)
 
-docs:: docs-symlink-for-restify-static
+docs:: build/docs/public/docs
 
 
 .PHONY: release
