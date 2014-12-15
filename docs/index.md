@@ -2356,7 +2356,7 @@ top-level keys in the factory settings. For example: if providing
 | --- | ---- | ------- | ----------- |
 | port | Number | 8080 | Port number on which to listen. |
 | serverName | String | IMGAPI/$version | Name of the HTTP server. This value is present on every HTTP response in the 'server' header. |
-| logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch. |
+| logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d,--debug` switch. |
 | maxSockets | Number | 100 | Maximum number of sockets for external API calls |
 | mode | String | public | One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter). |
 | datacenterName | String | - | Name of the SDC datacenter on which IMGAPI is running. |
