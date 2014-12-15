@@ -44,7 +44,7 @@ BRANCH := $(shell git symbolic-ref HEAD | $(_AWK) -F/ '{print $$3}')
 ifeq ($(TIMESTAMP),)
 	TIMESTAMP := $(shell date -u "+%Y%m%dT%H%M%SZ")
 endif
-_GITDESCRIBE := g$(shell git describe --all --long --dirty | $(_AWK) -F'-g' '{print $$NF}')
+_GITDESCRIBE := $(shell git describe --all --long --dirty | $(_AWK) -F'-g' '{print $$NF}')
 STAMP := $(BRANCH)-$(TIMESTAMP)-$(_GITDESCRIBE)
 
 # node-gyp will print build info useful for debugging with V=1
