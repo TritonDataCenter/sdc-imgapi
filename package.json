@@ -10,7 +10,7 @@
     "bunyan": "0.22.3",
     "dashdash": "1.5.0",
     "expiring-lru-cache": "2.1.0",
-    "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#19a702f",
+    "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#6fa438d",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
     "libuuid": "0.1.2",
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#5b8010d",
