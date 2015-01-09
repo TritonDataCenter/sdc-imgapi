@@ -185,6 +185,15 @@ test('CreateImage', function (t) {
             next();
         });
     }
+    function getIt(next) {
+        self.client.getImage(uuid, luke, function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image);
+            t.equal(image.tags.key, 'value');
+            aImage = image;
+            next();
+        });
+    }
     function disable(next) {
         self.client.disableImage(uuid, luke, function (err, image, res) {
             t.ifError(err, err);
@@ -206,12 +215,26 @@ test('CreateImage', function (t) {
         });
     }
     function update(next) {
-        var mod = { version: '1.1.0', description: 'awesome image'};
+        var mod = {
+            version: '1.1.0',
+            description: 'awesome image',
+            tags: {
+                str: 'bar',
+                num: 42,
+                bool: true,
+                bool2: false,
+            }
+        };
         self.client.updateImage(uuid, mod, luke, function (err, image, res) {
             t.ifError(err, err);
             t.ok(image);
             t.equal(image.description, 'awesome image');
             t.equal(image.version, '1.1.0');
+            t.equal(image.tags.str, 'bar');
+            t.equal(image.tags.num, 42);
+            t.equal(image.tags.bool, true);
+            t.equal(image.tags.bool2, false);
+            t.ok(image.tags.key === undefined);
             aImage = image;
             etag = res.headers['etag'];
             next();
@@ -402,6 +425,7 @@ test('CreateImage', function (t) {
             addFile,
             activate,
             disable,
+            getIt,
             enable,
             update,
             conditionalUpdateFailure,
