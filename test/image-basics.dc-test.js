@@ -222,7 +222,7 @@ test('CreateImage', function (t) {
                 str: 'bar',
                 num: 42,
                 bool: true,
-                bool2: false,
+                bool2: false
             }
         };
         self.client.updateImage(uuid, mod, luke, function (err, image, res) {
