@@ -53,6 +53,9 @@
     "cnapi": {
         "url": "http://{{{CNAPI_SERVICE}}}"
     },
+    "docker": {
+        "url": "http://docker.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
     "vmapi": {
         "url": "http://{{{VMAPI_SERVICE}}}"
     },
