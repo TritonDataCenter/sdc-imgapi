@@ -12,7 +12,13 @@
     "os": "smartos",
     "type": "zone-dataset",
     "published_at": "2012-11-02T22:46:45.992Z",
-    "files": [],
+    "files": [
+        {
+            "sha1": "25592745c0b06822e0a4c9e9945e67322bdfe619",
+            "size": 42,
+            "compression": "gzip"
+        }
+    ],
     "urn": "sdc:sdc:base:1.8.1",
     "objectclass": "sdcimage"
   },
@@ -29,7 +35,13 @@
     "os": "smartos",
     "type": "zone-dataset",
     "published_at": "2012-10-02T22:46:45.992Z",
-    "files": [],
+    "files": [
+        {
+            "sha1": "25592745c0b06822e0a4c9e9945e67322bdfe619",
+            "size": 42,
+            "compression": "gzip"
+        }
+    ],
     "urn": "sdc:sdc:nodejs:1.0.0",
     "objectclass": "sdcimage"
   },
@@ -60,7 +72,13 @@
     "os": "smartos",
     "type": "zone-dataset",
     "published_at": "2012-11-02T22:46:45.992Z",
-    "files": [],
+    "files": [
+        {
+            "sha1": "25592745c0b06822e0a4c9e9945e67322bdfe619",
+            "size": 42,
+            "compression": "gzip"
+        }
+    ],
     "acl": "91ba0e64-2547-11e2-a972-df579e5fddb3",
     "objectclass": "sdcimage"
   },
@@ -77,7 +95,13 @@
     "os": "smartos",
     "type": "zone-dataset",
     "published_at": "2012-10-02T22:46:45.992Z",
-    "files": [],
+    "files": [
+        {
+            "sha1": "25592745c0b06822e0a4c9e9945e67322bdfe619",
+            "size": 42,
+            "compression": "gzip"
+        }
+    ],
     "acl": "91ba0e64-2547-11e2-a972-df579e5fddb3",
     "objectclass": "sdcimage"
   },
