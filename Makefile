@@ -48,7 +48,10 @@ include ./tools/mk/Makefile.defs
 ifeq ($(shell uname -s),SunOS)
 	include ./tools/mk/Makefile.node_prebuilt.defs
 else
-	include ./tools/mk/Makefile.node.defs
+	NPM=npm
+	NODE=node
+	NPM_EXEC=$(shell which npm)
+	NODE_EXEC=$(shell which node)
 endif
 include ./tools/mk/Makefile.smf.defs
 
@@ -270,8 +273,6 @@ dumpvar:
 include ./tools/mk/Makefile.deps
 ifeq ($(shell uname -s),SunOS)
 	include ./tools/mk/Makefile.node_prebuilt.targ
-else
-	include ./tools/mk/Makefile.node.targ
 endif
 include ./tools/mk/Makefile.smf.targ
 include ./tools/mk/Makefile.targ
