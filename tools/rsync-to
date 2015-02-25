@@ -42,7 +42,6 @@ rsync -av ${TOP}/ \
     --exclude .git/ \
     --exclude /etc/imgapi.config.json \
     --exclude /deps/ \
-    --exclude /doc/ \
     --exclude /tools/ \
     --exclude /tmp/
 rsync -av ${TOP}/tools/seed-packages/ \
