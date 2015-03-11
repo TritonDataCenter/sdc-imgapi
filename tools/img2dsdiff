@@ -244,7 +244,11 @@ IMG_NAME_SKIPS = [
     # sngl images are only for images.joyent.com. Only works on recent
     # (post-6.5) platforms so don't want it exposed on datasets.jo.
     'sngl',
+
     'lx-ubuntu',
+    'ubuntu-certified-14.10',
+    'ubuntu-certified-14.04',
+    'ubuntu-certified-12.04',
 ]
 
 
