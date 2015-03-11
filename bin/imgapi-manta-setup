@@ -180,7 +180,7 @@ function getUfdsClient(master, sdcApp, callback) {
     assert.bool(master, 'master');
     assert.object(sdcApp, 'sdcApp');
     assert.func(callback, 'callback');
-    log.info('get ufds clients (master and local)');
+    log.info({master: master, sdcApp: sdcApp}, 'get ufds client');
 
     var ufdsHost;
     if (master) {
