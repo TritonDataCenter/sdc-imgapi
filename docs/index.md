@@ -1965,11 +1965,11 @@ This creates an active image ready for consumption.
 
 ### Inputs
 
-| Field                 | Type    | Required? | Notes                                                                                                                                                                                                                 |
-| --------------------- | ------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| channel (query param) | String  | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                    |
-| action                | String  | Yes       | "import-remote"                                                                                                                                                                                                       |
-| source                | URL     | No        | URL of the source IMGAPI repository. If the source IMGAPI uses channels, a channel may be given via `...?channel=<channel>`.                                                                                          |
+| Field                 | Type    | Required? | Notes |
+| --------------------- | ------- | --------- | ----- |
+| channel (query param) | String  | No        | The image channel to use. (Only relevant if the local IMGAPI is using [channels](#channels).) Note: This is the channel for the *local* IMGAPI. To specify the channel on the *remote* IMGAPI, see the `source` param. |
+| action                | String  | Yes       | "import-remote" |
+| source                | URL     | No        | URL of the source IMGAPI repository. If the source IMGAPI uses channels, a channel may be given via `...?channel=<channel>`. |
 | skip_owner_check      | Boolean | No        | Defaults to `false`. Pass in 'true' to skip the check that the image "owner" UUID exists in the user database (in SDC this database is UFDS). Note: The owner check is only done for `mode == "dc"` IMGAPI instances. |
 
 
