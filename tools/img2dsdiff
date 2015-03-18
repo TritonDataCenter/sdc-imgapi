@@ -246,6 +246,7 @@ IMG_NAME_SKIPS = [
     'sngl',
 
     'lx-ubuntu',
+    'lx-centos-6',
     'ubuntu-certified-14.10',
     'ubuntu-certified-14.04',
     'ubuntu-certified-12.04',
