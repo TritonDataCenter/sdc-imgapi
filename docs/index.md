@@ -688,10 +688,10 @@ authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
-| Field                 | Type    | Required? | Notes                                                                                                                                                                                                                                                              |
-| --------------------- | ------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Field                 | Type    | Required? | Notes |
+| --------------------- | ------- | --------- | ----- |
 | account (query param) | UUID    | No        | Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
-| channel (query param) | String  | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                 |
+| channel (query param) | String  | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
 | owner                 | UUID    | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
 | state                 | String  | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.                                                                                                                                                        |
 | name                  | String  | No        | List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                         |
