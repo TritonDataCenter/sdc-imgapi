@@ -31,6 +31,7 @@ from os.path import realpath, dirname
 from subprocess import check_call, check_output
 import logging
 import shutil
+import re
 
 
 
@@ -245,11 +246,13 @@ IMG_NAME_SKIPS = [
     # (post-6.5) platforms so don't want it exposed on datasets.jo.
     'sngl',
 
-    'lx-ubuntu',
-    'lx-centos-6',
     'ubuntu-certified-14.10',
     'ubuntu-certified-14.04',
     'ubuntu-certified-12.04',
+]
+IMG_NAME_REGEX_SKIPS = [
+    # Skip all 'lx' images. No way they work on SDC 6.5 platforms.
+    re.compile(r'^lx-.*$')
 ]
 
 
@@ -387,15 +390,22 @@ def img2dsdiff():
                     uuid, datasets[uuid]["name"], datasets[uuid]["version"])
             })
         elif uuid not in ds_uuids and uuid in img_uuids:
-            if (uuid not in IMG_UUID_SKIPS
-                    and images[uuid]["name"] not in IMG_NAME_SKIPS):
-                diffs.append({
-                    "uuid": uuid,
-                    "action": "add",
-                    "image": images[uuid],
-                    "msg": "Only in images.joyent.com: image %s (%s %s)" % (
-                        uuid, images[uuid]["name"], images[uuid]["version"])
-                })
+            if uuid in IMG_UUID_SKIPS:
+                pass
+            elif images[uuid]["name"] in IMG_NAME_SKIPS:
+                pass
+            else:
+                for regex in IMG_NAME_REGEX_SKIPS:
+                    if regex.search(images[uuid]["name"]):
+                        break
+                else:
+                    diffs.append({
+                        "uuid": uuid,
+                        "action": "add",
+                        "image": images[uuid],
+                        "msg": "Only in images.joyent.com: image %s (%s %s)" % (
+                            uuid, images[uuid]["name"], images[uuid]["version"])
+                    })
         else:
             #print "--", uuid
 
