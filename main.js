@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2015, Joyent, Inc.
  */
 
 /*
@@ -17,6 +17,7 @@ var util = require('util');
 var path = require('path');
 var fs = require('fs');
 
+var EffluentLogger = require('effluent-logger');
 var nopt = require('nopt');
 var restify = require('restify');
 var bunyan = require('bunyan');
@@ -228,6 +229,20 @@ function handleArgv() {
 }
 
 
+function addFluentdHost(log, host) {
+    var evtLogger = new EffluentLogger({
+        filter: function _evtFilter(obj) { return (!!obj.evt); },
+        host: host,
+        log: log,
+        port: 24224,
+        tag: 'debug'
+    });
+    log.addStream({
+        stream: evtLogger,
+        type: 'raw'
+    });
+}
+
 
 //---- mainline
 
@@ -239,6 +254,11 @@ function main() {
         if (log.level() <= bunyan.TRACE) {
           log.src = true;
         }
+    }
+
+    // EXPERIMENTAL
+    if (theConfig.fluentd_host) {
+        addFluentdHost(log, theConfig.fluentd_host);
     }
 
     // Log config (but don't put passwords in the log file).
