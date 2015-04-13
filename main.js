@@ -229,15 +229,15 @@ function handleArgv() {
 }
 
 
-function addFluentdHost(log, host) {
+function addFluentdHost(log_, host) {
     var evtLogger = new EffluentLogger({
         filter: function _evtFilter(obj) { return (!!obj.evt); },
         host: host,
-        log: log,
+        log: log_,
         port: 24224,
         tag: 'debug'
     });
-    log.addStream({
+    log_.addStream({
         stream: evtLogger,
         type: 'raw'
     });
