@@ -406,10 +406,9 @@ example shows an image that requires one VNIC:
 
 ## Manifest: requirements.brand
 
-Optional. Defines the brand that is required to provision with this image.
-Brands are related to the type of virtualization used among other factors.
-Currently there are four brands that can be used: 'joyent', 'joyent-minimal',
-'sngl' for OS virtualization and 'kvm' for hardware virtualization.
+Optional. Defines the SmartOS "brand" that is required to provision with this
+image.  Brands are related to the type of virtualization used among other
+factors. Common brands are: 'joyent', 'joyent-minimal', 'lx', 'kvm'.
 
 ## Manifest: requirements.ssh_key
 
