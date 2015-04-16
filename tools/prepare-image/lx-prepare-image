@@ -1,0 +1,151 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2015, Joyent, Inc.
+#
+
+#
+# A prepare-image script for `imgadm create -s prepare-image-script ...`
+# for a lx-brand guest of a SmartOS hypervisor. See the "PREPARE IMAGE SCRIPTS"
+# section of `man imgadm` and Joyent's OS-2550 for details.
+#
+# Intended supported distros: CentOS, Debian and Ubuntu.
+#
+
+set -o errexit
+set -o pipefail
+
+# Trace logging to /tmp/prepare-image-trace.log to be partially passed back
+# as prepare-image:error. Note that I would have used 'prepare-image:trace'
+# but deployed `imgadm` is already looking for the former.
+TRACELOG=/tmp/prepare-image-trace.log
+touch $TRACELOG
+exec 4<> $TRACELOG
+export PS4='[\D{%FT%TZ}] :${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+export BASH_XTRACEFD=4
+set -o xtrace
+
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+
+
+#---- error handling
+
+trap 'errexit $?' EXIT
+
+function fatal
+{
+    echo "lx-prepare-image: fatal error: $*"
+    exit 1
+}
+
+function errexit
+{
+    set +o xtrace
+    set +o errexit
+    set +o pipefail
+    if [[ $1 -eq 0 ]]; then
+        exit 0
+    fi
+    echo "error exit status $1"
+    cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error
+    /usr/sbin/mdata-put prepare-image:state error
+    fatal "error exit status $1"
+}
+
+
+#---- support routines
+
+function cleanup_logs() {
+    find /var/log -type f | xargs rm -f
+    # Create wtmp - this solves an issue where syslog would not start.
+    touch /var/log/wtmp
+    chmod 664 /var/log/wtmp
+}
+
+function cleanup_root() {
+    # Cleaning up root account
+    rm -f /root/.bash_history
+    history -c
+    history -w || true
+    rm -f /root/.bash_history
+    history -c
+    history -w || true
+    rm -f /root/.bash_history
+    rm -f /root/.lesshst
+    rm -f /root/.viminfo
+
+    # Removing password for root
+    passwd -d root
+}
+
+function cleanup_ssh() {
+    find /etc/ssh -type f -name "ssh_host_*" | xargs rm -f
+    FILELIST='authorized_keys known_hosts id_dsa id_dsa.pub id_rsa id_rsa.pub ssh_config'
+    for FILE in $FILELIST; do
+        if [ -f "/root/.ssh/$FILE" ]; then
+            rm -r /root/.ssh/$FILE
+        fi
+    done
+}
+
+function cleanup_hostname() {
+    rm -f /etc/hostname
+    touch /etc/hostname
+}
+
+function cleanup_network() {
+     # Cleaning up network devices.
+    if [[ -f /etc/udev/rules.d/70-persistent-net.rules ]] ; then
+        rm -f /etc/udev/rules.d/70-persistent-net.rules
+    fi
+}
+
+function prepare_redhat() {
+    # Clean up yum cache.
+    yum clean all 2>&1 >/dev/null
+
+}
+
+function prepare_debian() {
+    # Remove automatically installed package dependencies that
+    # are no longer needed.
+    apt-get -y autoremove
+    # Clean up apt-get cache
+    apt-get -y clean
+}
+
+#---- mainline
+
+/usr/sbin/mdata-put prepare-image:state running
+
+# Run distro specific scripts
+if [[ -f /etc/redhat-release ]] ; then
+    # Redhat, CentOS, and Fedora
+    prepare_redhat
+elif [[ -f /etc/debian_version ]] ; then
+    # Ubuntu and Debian
+    prepare_debian
+else
+    fatal "Distrubution is not supported...exiting"
+fi
+
+cleanup_logs
+cleanup_ssh
+cleanup_hostname
+cleanup_network
+cleanup_root
+
+history -c
+history -w || true
+
+
+/usr/sbin/mdata-put prepare-image:state success
+# Successful, but we still emit tail of trace log for info.
+cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error || true
+sleep 3
+shutdown -h now
