@@ -11,7 +11,7 @@ apisections: Images, Channels, Miscellaneous API
 -->
 
 <!--
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright (c) 2015, Joyent, Inc.
 -->
 
 # Image API (IMGAPI)
@@ -687,21 +687,21 @@ authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
-| Field                 | Type    | Required? | Notes |
-| --------------------- | ------- | --------- | ----- |
-| account (query param) | UUID    | No        | Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
-| channel (query param) | String  | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
-| owner                 | UUID    | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
-| state                 | String  | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.                                                                                                                                                        |
-| name                  | String  | No        | List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                         |
-| version               | String  | No        | List images with the given version. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                      |
-| public                | Boolean | No        | List just public or just private images.                                                                                                                                                                                                                           |
-| os                    | String  | No        | List images with the given os.                                                                                                                                                                                                                                     |
-| type                  | String  | No        | List images of the given type. The value can be prefixed with `!` to *exclude* that type.                                                                                                                                                                          |
-| tag.{key}             | String  | No        | List images by tags. See below                                                                                                                                                                                                                                     |
-| billing_tag           | String  | No        | List images by billing tags. See below                                                                                                                                                                                                                             |
-| limit                 | Number  | No        | Maximum number of images to return. Images are sorted by creation date (ASC) by default. The default (and maximum) limit value is 1000                                                                                                                             |
-| marker                | UUID    | No        | Only return images created after the creation date of the image specified by the marker (including the marker image).                                                                                                                                              |
+| Field                 | Type       | Required? | Notes |
+| --------------------- | ---------- | --------- | ----- |
+| account (query param) | UUID       | No        | Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| channel (query param) | String     | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
+| owner                 | UUID       | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
+| state                 | String     | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.                                                                                                                                                        |
+| name                  | String     | No        | List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                         |
+| version               | String     | No        | List images with the given version. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                      |
+| public                | Boolean    | No        | List just public or just private images.                                                                                                                                                                                                                           |
+| os                    | String     | No        | List images with the given os.                                                                                                                                                                                                                                     |
+| type                  | String     | No        | List images of the given type. The value can be prefixed with `!` to *exclude* that type.                                                                                                                                                                          |
+| tag.{key}             | String     | No        | List images by tags. See below                                                                                                                                                                                                                                     |
+| billing_tag           | String     | No        | List images by billing tags. See below                                                                                                                                                                                                                             |
+| limit                 | Number     | No        | Maximum number of images to return. Images are sorted by creation date (ASC) by default. The default (and maximum) limit value is 1000                                                                                                                             |
+| marker                | UUID, Date | No        | Only return images with a `published_at` >= that of the given image (if a UUID is given) or >= the given date (if a date string is given). |
 
 ### Filtering Images
 
