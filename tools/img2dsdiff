@@ -245,14 +245,11 @@ IMG_NAME_SKIPS = [
     # sngl images are only for images.joyent.com. Only works on recent
     # (post-6.5) platforms so don't want it exposed on datasets.jo.
     'sngl',
-
-    'ubuntu-certified-14.10',
-    'ubuntu-certified-14.04',
-    'ubuntu-certified-12.04',
 ]
 IMG_NAME_REGEX_SKIPS = [
     # Skip all 'lx' images. No way they work on SDC 6.5 platforms.
-    re.compile(r'^lx-.*$')
+    re.compile(r'^lx-.*$'),
+    re.compile(r'^ubuntu-certified-.*$'),
 ]
 
 
