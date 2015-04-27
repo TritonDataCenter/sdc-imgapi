@@ -122,7 +122,7 @@ doc-update-error-table: lib/errors.js | node_modules/restify $(NODE_EXEC)
 	$(NODE) -e ' \
 	    fs = require("fs"); \
 	    enc = {encoding: "utf8"}; \
-	    index = fs.readFileSync("docs/index.restdown", enc); \
+	    index = fs.readFileSync("docs/index.md", enc); \
 	    errors = fs.readFileSync("build/errors.md", enc); \
 	    start = "<!-- ERROR TABLE START -->\n"; \
 	    end = "<!-- ERROR TABLE END -->\n"; \
@@ -138,8 +138,8 @@ doc-update-error-table: lib/errors.js | node_modules/restify $(NODE_EXEC)
 		+ errors \
 		+ "\n" \
 		+ index.slice(endIdx)); \
-	    fs.writeFileSync("docs/index.restdown", index, enc);'
-	@echo "'docs/index.restdown' updated"
+	    fs.writeFileSync("docs/index.md", index, enc);'
+	@echo "'docs/index.md' updated"
 
 DOC_CLEAN_FILES = docs/{index,design}.{html,json} \
 	build/errors.md \
