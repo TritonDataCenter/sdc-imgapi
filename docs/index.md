@@ -320,6 +320,7 @@ The type of the image file. Must be one of:
 | zone-dataset | a ZFS dataset used to create a new SmartOS zone |
 | lx-dataset   | a dataset used to create a Lx-brand zone        |
 | zvol         | a KVM virtual machine image                     |
+| docker       | a Docker image                                  |
 | other        | an image that serves any other specific purpose |
 
 
@@ -1901,6 +1902,10 @@ This creates an unactivated image. The typical process is to subsequently
 call [AddImageFile](#AddImageFile) and then [ActivateImage](#ActivateImage)
 to finish with an image available for provisioning.
 
+This endpoint is similar in spirit to CreateImage, but called by the operator
+to preserve `uuid` et al. Typically it is called by the 'import-remote-image'
+workflow job initiated by [AdminImportRemoteImage](#AdminImportRemoteImage).
+
 ### Inputs
 
 The request body includes the same fields as for [CreateImage](#CreateImage),
@@ -2010,6 +2015,73 @@ CLI tool:
 
     $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -S https://images.joyent.com
     Imported image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 (base, 1.8.4, state=active)
+
+
+
+## AdminImportDockerImage (POST /images?action=import-docker-image)
+
+Import an image from a *Docker* repository. This endpoint maintains an open
+connection and streams out progress messages (single-line JSON objects) during
+the import process. On successful completion, the result is an active image
+ready for consumption. Typically this is never called by anyone other
+than sdc-docker, which uses the output stream to update sdc-docker-specific
+data.
+
+This endpoint is intended to only be called by operators. Typically it is
+called by the 'pull-image' workflow defined in
+[sdc-docker](https://github.com/joyent/sdc-docker).
+
+### Inputs
+
+Query params:
+
+| Field   | Type    | Required? | Notes |
+| ------  | ------- | --------- | ----- |
+| action  | String  | Yes       | "import-docker-image" |
+| repo    | String  | Yes       | The repository from which to pull, e.g. 'busybox' (implies docker hub), 'docker.io/foo/bar', 'my-reg.example.com:1234/busybox'. |
+| tag     | String  | Yes       | A Docker tag name, e.g. 'latest', in the given repository. |
+| public  | Boolean | No        | Whether to make the imported image public. Default is true. |
+
+Headers:
+
+| Header          | Required? | Notes |
+| --------------- | --------- | ----- |
+| x-registry-auth | No        | Optional target registry auth formatted as is the 'x-registry-auth' header from the Docker docker client: a base64 encoded JSON object. |
+
+
+### Returns
+
+A stream of progress messages.
+<!-- TODO: spec the messages -->
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw `curl`:
+
+    $ curl -4 --connect-timeout 10 -sS -i -H accept:application/json -H content-type:application/json --url 'http://imgapi.coal.joyent.us/images?action=import-docker-image&repo=busybox&tag=latest' -X POST
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Date: Tue, 12 May 2015 00:52:58 GMT
+    Server: imgapi/2.1.0
+    x-request-id: 3aeada30-f841-11e4-b9d9-2338e30ff146
+    x-response-time: 1483
+    x-server-name: ec0cd67d-7731-422a-a6c2-f91eb98c6c52
+    Connection: keep-alive
+    Transfer-Encoding: chunked
+
+    {"type":"status","payload":{"status":"Pulling repository busybox"},"id":"docker.io/busybox"}
+    {"type":"head","head":"8c2e06607696bd4afb3d03b687e361cc43cf8ec1a4a725bc96e39f05ba97dd55","id":"docker.io/busybox"}
+    {"type":"progress","payload":{"id":"8c2e06607696","status":"Pulling dependent layers"},"id":"docker.io/busybox"}
+    {"type":"data","id":"docker.io/busybox","payload":{...}}
+    {"type":"progress","id":"docker.io/busybox","payload":{"id":"8c2e06607696","status":"Pulling metadata."}}
+    {"type":"progress","id":"docker.io/busybox","payload":{"id":"cf2616975b4a","status":"Pulling metadata."}}
+    ...
+    {"type":"progress","id":"docker.io/busybox","payload":{"id":"8c2e06607696","status":"Download complete."}}
+    {"type":"status","id":"docker.io/busybox","payload":{"status":"Status: Downloaded newer image for busybox:latest"}}
 
 
 ## ListImageJobs (GET /images/:uuid/jobs)
