@@ -12,7 +12,7 @@
     "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#d66119d",
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "expiring-lru-cache": "2.1.0",
-    "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#5e266a6",
+    "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#e21ea53",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
     "libuuid": "0.1.2",
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#56e8761",
