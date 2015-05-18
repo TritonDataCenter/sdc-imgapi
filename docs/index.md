@@ -320,6 +320,7 @@ The type of the image file. Must be one of:
 | zone-dataset | a ZFS dataset used to create a new SmartOS zone |
 | lx-dataset   | a dataset used to create a Lx-brand zone        |
 | zvol         | a KVM virtual machine image                     |
+| docker       | a Docker image                                  |
 | other        | an image that serves any other specific purpose |
 
 
@@ -2026,30 +2027,32 @@ ready for consumption. Typically this is never called by anyone other
 than sdc-docker, which uses the output stream to update sdc-docker-specific
 data.
 
-This may only be used by operators. All usage of IMGAPI on behalf of end users
-is required to use `account=UUID`; operator usage (e.g. from AdminUI) is
-not.
+This endpoint is intended to only be called by operators. Typically it is
+called by the 'pull-image' workflow defined in
+[sdc-docker](https://github.com/joyent/sdc-docker).
 
 ### Inputs
 
 Query params:
 
-| Field   | Type   | Required? | Notes |
-| ------  | ------ | --------- | ----- |
-| action  | String | Yes       | "import-docker-image" |
-| repo    | String | Yes       | The repository from which to pull, e.g. 'busybox' (implies docker hub), 'docker.io/foo/bar', 'my-reg.example.com:1234/busybox'. |
-| tag     | String | Yes       | A tag name, e.g. 'latest', in the given repository. |
-
+| Field   | Type    | Required? | Notes |
+| ------  | ------- | --------- | ----- |
+| action  | String  | Yes       | "import-docker-image" |
+| repo    | String  | Yes       | The repository from which to pull, e.g. 'busybox' (implies docker hub), 'docker.io/foo/bar', 'my-reg.example.com:1234/busybox'. |
+| tag     | String  | Yes       | A Docker tag name, e.g. 'latest', in the given repository. |
+| public  | Boolean | No        | Whether to make the imported image public. Default is true. |
 
 Headers:
 
 | Header          | Required? | Notes |
+| --------------- | --------- | ----- |
 | x-registry-auth | No        | Optional target registry auth formatted as is the 'x-registry-auth' header from the Docker docker client: a base64 encoded JSON object. |
 
 
 ### Returns
 
 A stream of progress messages.
+<!-- TODO: spec the messages -->
 
 ### Errors
 
@@ -2073,6 +2076,7 @@ Raw `curl`:
     {"type":"status","payload":{"status":"Pulling repository busybox"},"id":"docker.io/busybox"}
     {"type":"head","head":"8c2e06607696bd4afb3d03b687e361cc43cf8ec1a4a725bc96e39f05ba97dd55","id":"docker.io/busybox"}
     {"type":"progress","payload":{"id":"8c2e06607696","status":"Pulling dependent layers"},"id":"docker.io/busybox"}
+    {"type":"data","id":"docker.io/busybox","payload":{...}}
     {"type":"progress","id":"docker.io/busybox","payload":{"id":"8c2e06607696","status":"Pulling metadata."}}
     {"type":"progress","id":"docker.io/busybox","payload":{"id":"cf2616975b4a","status":"Pulling metadata."}}
     ...
