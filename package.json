@@ -8,6 +8,7 @@
     "assert-plus": "0.1.5",
     "async": "0.7.0",
     "bunyan": "1.3.3",
+    "bytes": "2.1.0",
     "dashdash": "1.5.0",
     "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#d6c01fe",
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
@@ -15,6 +16,7 @@
     "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#7dda1e5",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
     "libuuid": "0.1.2",
+    "lru-cache": "2.6.4",
     "manta": "git+ssh://git@github.com:joyent/node-manta.git#56e8761",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
@@ -38,7 +40,8 @@
   },
   "devDependencies": {
     "jshint": "2.1",
-    "nodeunit": "0.8.1"
+    "nodeunit": "0.8.1",
+    "tape": "^3.2.0"
   },
   "scripts": {
     "test": "make test"

@@ -1,6 +1,6 @@
 {
     "port": 80,
-    "logLevel": "info",
+    "logLevel": "debug",
     "mode": "dc",
     "datacenterName": "{{{datacenter_name}}}",
     "adminUuid": "{{{ufds_admin_uuid}}}",
@@ -36,7 +36,21 @@
             "keyId": "{{IMGAPI_KEY_ID}}",
             "insecure": {{IMGAPI_MANTA_INSECURE}},
             "remote": {{IMGAPI_MANTA_REMOTE}},
-            "baseDir": "{{{STORAGE_MANTA_BASEDIR}}}"
+            "baseDir": "{{{STORAGE_MANTA_BASEDIR}}}",
+        {{#STORAGE_LOCAL_FILECACHE_ENABLED}}
+            "filecache": {
+                "// maxDiskUsage": "max ondisk size for the image cache in",
+                "// maxDiskUsage": "bytes - can use suffix: Kb, Mb, Gb, Tb",
+                "// maxDiskUsage": "or percentage (e.g. 20%) of total space",
+                "maxDiskUsage": "20%",
+            {{#STORAGE_LOCAL_FILECACHE_BASEDIR}}
+                "baseDir": "{{{STORAGE_LOCAL_FILECACHE_BASEDIR}}}"
+            {{/STORAGE_LOCAL_FILECACHE_BASEDIR}}
+            {{^STORAGE_LOCAL_FILECACHE_BASEDIR}}
+                "baseDir": "/data/filecache"
+            {{/STORAGE_LOCAL_FILECACHE_BASEDIR}}
+        {{/STORAGE_LOCAL_FILECACHE_ENABLED}}
+            }
         },
 {{/IMGAPI_MANTA_URL}}
         "local": {

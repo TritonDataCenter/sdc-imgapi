@@ -39,6 +39,13 @@ if [[ ! -d $STORAGE_LOCAL_BASEDIR ]]; then
 fi
 chown nobody:nobody $STORAGE_LOCAL_BASEDIR
 
+# Create the manta local filecache area.
+# XXX - This needs to be configurable?
+if [[ ! -d $STORAGE_LOCAL_BASEDIR ]]; then
+    zfs create /zones/$(zonename)/data/filecache
+fi
+chown nobody:nobody /zones/$(zonename)/data/filecache
+
 $(/opt/local/bin/gsed -i"" -e "s/@@PREFIX@@/\/opt\/smartdc\/imgapi/g" /opt/smartdc/imgapi/smf/manifests/imgapi.xml)
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi.xml
 
