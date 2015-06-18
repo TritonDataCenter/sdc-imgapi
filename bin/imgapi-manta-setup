@@ -136,7 +136,10 @@ function getMantaUrl(mantaUrl, sdcApp, callback) {
         agent: false
     });
 
-    sapi.listApplications({name: 'manta'}, function (aErr, apps) {
+    sapi.listApplications({
+        name: 'manta',
+        include_master: true
+    }, function (aErr, apps) {
         if (aErr)
             return callback(aErr);
         if (apps.length === 0) {
