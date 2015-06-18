@@ -148,7 +148,8 @@ function getMantaUrl(mantaUrl, sdcApp, callback) {
         // Find the first local manta LB.
         var search = {
             owner_uuid: mantaOwner,
-            'tag.manta_role': 'loadbalancer'
+            'tag.manta_role': 'loadbalancer',
+            state: 'running'
         };
         vmapi.listVms(search, function (vErr, vms) {
             if (vErr)
