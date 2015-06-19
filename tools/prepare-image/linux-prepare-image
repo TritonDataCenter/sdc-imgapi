@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2014, Joyent, Inc.
+# Copyright (c) 2015, Joyent, Inc.
 #
 
 #
@@ -71,10 +71,6 @@ function cleanup_logs() {
 
 function cleanup_root() {
     # Cleaning up root account
-    rm -f /root/.bash_history
-    history -c
-    history -w || true
-    rm -f /root/.bash_history
     history -c
     history -w || true
     rm -f /root/.bash_history
@@ -112,87 +108,52 @@ function cleanup_hostname() {
     touch /etc/hostname
 }
 
-function prepare_centos() {
-    # Cleaning up network devices.
-
+function cleanup_network_devices() {
     if [[ -f /etc/udev/rules.d/70-persistent-net.rules ]] ; then
         rm -f /etc/udev/rules.d/70-persistent-net.rules
     fi
-
-    find /etc/sysconfig/network-scripts -name "ifcfg-eth*" | xargs rm -f
+    
+    if [[ -d /etc/sysconfig/network-scripts ]] ; then
+        find /etc/sysconfig/network-scripts -name "ifcfg-eth*" | xargs rm -f
+    fi
 
     if [[ -d /var/lib/dhcp3 ]] ; then
         find /var/lib/dhcp3 -type f -name "*.leases" | xargs rm -f
     elif [[ -d /var/lib/dhcp ]] ; then
         find /var/lib/dhcp -type f -name "*.leases" | xargs rm -f
     elif [[ -d /var/lib/dhclient ]] ; then
-        find /var/lib/dhclient -type f | xargs rm -f
+        find /var/lib/dhclient -type f -name "*.leases" | xargs rm -f
     fi
+}
 
-    # Create a eth0, eth1 and loopback by default
-    if [[ -d /etc/sysconfig/network-scripts ]] ; then
-        echo "# Created by Joyent linux-prepare-image" >> /etc/sysconfig/network-scripts/ifcfg-eth0
-        echo "DEVICE=\"eth0\"" >> /etc/sysconfig/network-scripts/ifcfg-eth0
-        echo "ONBOOT=\"yes\"" >> /etc/sysconfig/network-scripts/ifcfg-eth0
-        echo "BOOTPROTO=\"dhcp\"" >> /etc/sysconfig/network-scripts/ifcfg-eth0
-
-        echo "# Created by Joyent linux-prepare-image" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "DEVICE=\"eth1\"" >>  /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "ONBOOT=\"yes\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-        echo "BOOTPROTO=\"dhcp\"" >> /etc/sysconfig/network-scripts/ifcfg-eth1
-
-        echo "# Created by Joyent linux-prepare-image" > /etc/sysconfig/network-scripts/ifcfg-lo
-        echo "DEVICE=lo" >> /etc/sysconfig/network-scripts/ifcfg-lo
-        echo "IPADDR=127.0.0.1" >> /etc/sysconfig/network-scripts/ifcfg-lo
-        echo "NETMASK=255.0.0.0" >> /etc/sysconfig/network-scripts/ifcfg-lo
-        echo "NETWORK=127.0.0.0" >> /etc/sysconfig/network-scripts/ifcfg-lo
-        echo "BROADCAST=127.255.255.255" >> /etc/sysconfig/network-scripts/ifcfg-lo
-        echo "ONBOOT=yes" >> /etc/sysconfig/network-scripts/ifcfg-lo
-        echo "NAME=loopback" >> /etc/sysconfig/network-scripts/ifcfg-lo
-    fi
-
+function prepare_centos() {
     # Cleaning up package cache.
     yum clean all 2>&1 >/dev/null
 
+    # TODO: Remove this? Doesn't seem necessary
     # Make sure locale is set to prevent error when system is SSH'ed into.
     localedef --no-archive -i en_US -f UTF-8 en_US.UTF-8
 }
 
 function prepare_ubuntu() {
-    # Cleaning up network devices.
-    if [[ -f /etc/udev/rules.d/70-persistent-net.rules ]] ; then
-        rm -f /etc/udev/rules.d/70-persistent-net.rules
-    fi
-
-    if [[ -d /var/lib/dhcp3 ]] ; then
-        find /var/lib/dhcp3 -type f -name "*.leases" | xargs rm -f
-    elif [[ -d /var/lib/dhcp ]] ; then
-        find /var/lib/dhcp -type f -name "*.leases" | xargs rm -f
-    fi
-
-    # Use DHCP.
-    # These are already configured in ubuntu-certified (presumably by
-    # cloud-init) in /etc/network/interfaces.d/eth{0,1}.cfg. Skip there.
-    if [[ -f /etc/network/interfaces && ! -d /etc/network/interfaces.d ]]; then
-        rm -f /etc/network/interfaces
-        out=$(dpkg-reconfigure ifupdown 2>&1 > /dev/null)
-        echo "" >> /etc/network/interfaces
-        echo "auto eth0" >> /etc/network/interfaces
-        echo "iface eth0 inet dhcp" >> /etc/network/interfaces
-        echo "auto eth1" >> /etc/network/interfaces
-        echo "iface eth1 inet dhcp" >> /etc/network/interfaces
-    fi
+    # Clean up package cache
+    apt-get -y clean
 }
 
 # Makes sure that /lib/smartdc et al are sane.
 function prepare_lib_smartdc() {
-    local DISTRO=$1
-
     # Per IMAGE-446 we need to remove the firstboot guard file for a new image.
     rm -f /lib/smartdc/.firstboot-complete-do-not-delete
 
     # Note: Not sure this is currently necessary.
     chown -R root:root /lib/smartdc
+}
+
+# Required for lx-brand
+function reset_provision_status() {
+    if [[ -f /var/svc/provision_success ]] ; then
+        rm -f /var/svc/provision_success
+    fi
 }
 
 
@@ -201,20 +162,26 @@ function prepare_lib_smartdc() {
 
 /usr/sbin/mdata-put prepare-image:state running
 
-# TODO: change to using lsb_* info
-PRODUCT_FILE=/etc/product
-if [[ ! -f $PRODUCT_FILE ]]; then
+# Source /etc/os-release if it's available to determine distribution.
+# Fallback to distro specific *release files and fail if they are nonexistant.
+if [[ -f /etc/os-release ]]; then
+    . /etc/os-release
+    if [[ "$ID" == "centos" ]]; then
+        prepare_centos
+    elif [[ "$ID" == "debian" ]]; then
+        prepare_ubuntu
+    elif [[ "$ID" == "ubuntu" ]]; then
+        prepare_ubuntu
+    fi
+elif [[ -f /etc/redhat-release ]]; then
+    prepare_centos
+elif [[ -f /etc/debian_version ]]; then
+    prepare_ubuntu
+else
     fatal "Unknown Distribution...exiting"
 fi
-TARGET_DISTRO=$(grep -w Image $PRODUCT_FILE | awk '{print $2;}' | tr '[:upper:]' '[:lower:]')
 
-if [ $TARGET_DISTRO == "centos" ] ; then
-    prepare_centos
-elif [[ $TARGET_DISTRO == "ubuntu" ||
-	$TARGET_DISTRO == "debian" ]] ; then
-    prepare_ubuntu
-fi
-
+reset_provision_status
 prepare_lib_smartdc
 cleanup_logs
 cleanup_disks
@@ -222,6 +189,7 @@ cleanup_ssh
 cleanup_root
 cleanup_metadata
 cleanup_hostname
+cleanup_network_devices
 
 history -c
 history -w || true
