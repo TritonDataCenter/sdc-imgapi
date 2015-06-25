@@ -251,6 +251,9 @@ IMG_NAME_REGEX_SKIPS = [
     re.compile(r'^lx-.*$'),
     re.compile(r'^ubuntu-certified-.*$'),
 ]
+IMG_TYPE_SKIPS = [
+    'lx-dataset'
+]
 
 
 
@@ -390,6 +393,8 @@ def img2dsdiff():
             if uuid in IMG_UUID_SKIPS:
                 pass
             elif images[uuid]["name"] in IMG_NAME_SKIPS:
+                pass
+            elif images[uuid]["type"] in IMG_TYPE_SKIPS:
                 pass
             else:
                 for regex in IMG_NAME_REGEX_SKIPS:
