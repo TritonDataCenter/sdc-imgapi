@@ -101,6 +101,15 @@ function cleanup_metadata() {
     # ubuntu-certified images.
     rm -f /var/run/smartdc/user-script
     rm -f /var/lock/smartdc/user-script.lock
+    
+    # Per IMAGE-771: Cleanup user-data and user-script on lx-brand
+    if [[ -f /var/db/mdata-user-data ]] ; then
+        rm -f /var/db/mdata-user-data
+    fi
+    
+    if [[ -f /var/svc/mdata-user-script ]] ; then
+        rm -f /var/svc/mdata-user-script
+    fi
 }
 
 function cleanup_hostname() {
