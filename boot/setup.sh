@@ -30,7 +30,7 @@ zfs set mountpoint=/data zones/$(zonename)/data
 
 # Add build/node/bin and node_modules/.bin to PATH
 echo "" >>/root/.profile
-echo "export PATH=/opt/smartdc/$role/build/node/bin:/opt/smartdc/$role/node_modules/.bin:\$PATH" >>/root/.profile
+echo "export PATH=/opt/smartdc/$role/bin:/opt/smartdc/$role/build/node/bin:/opt/smartdc/$role/node_modules/.bin:\$PATH" >>/root/.profile
 echo '[[ -f $HOME/.mantaprofile ]] && source $HOME/.mantaprofile' >>/root/.profile
 
 STORAGE_LOCAL_BASEDIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.baseDir)
