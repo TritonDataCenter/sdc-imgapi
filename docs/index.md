@@ -572,8 +572,7 @@ datasets of type "zone-dataset". Example:
 
 ## Manifest: nic_driver
 
-The NIC driver used by this VM image. Examples are 'virtio', 'ne2k_pci',
-'rtl8139', 'e1000', 'pcnet'.
+The NIC driver used by this VM image. Examples are 'virtio' and 'e1000'.
 This is a required field for `type === "zvol"` images.
 
 
