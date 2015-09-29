@@ -2038,7 +2038,8 @@ Query params:
 | ------  | ------- | --------- | ----- |
 | action  | String  | Yes       | "import-docker-image" |
 | repo    | String  | Yes       | The repository from which to pull, e.g. 'busybox' (implies docker hub), 'docker.io/foo/bar', 'my-reg.example.com:1234/busybox'. |
-| tag     | String  | Yes       | A Docker tag name, e.g. 'latest', in the given repository. |
+| tag     | String  | Yes*      | A Docker tag name, e.g. 'latest', in the given repository. Exactly one of 'tag' or 'digest' is required. |
+| digest  | String  | Yes*      | A Docker digest, e.g. 'sha256:a3ed95caeb02ffe68cdd9fd84406680ae93d633cb16422d00e8a7c22955b46d4', in the given repository. Exactly one of 'tag' or 'digest' is required. |
 | public  | Boolean | No        | Whether to make the imported image public. Default is true. |
 
 Headers:
