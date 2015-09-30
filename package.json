@@ -10,7 +10,7 @@
     "bunyan": "1.3.3",
     "cmdln": "3.2.1",
     "dashdash": "1.10.0",
-    "docker-registry-client": "git+https://github.com/joyent/node-docker-registry-client.git#e9b8cfe",
+    "docker-registry-client": "git+https://github.com/joyent/node-docker-registry-client.git#ef89035",
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "expiring-lru-cache": "2.1.0",
     "extsprintf": "1.2.0",
