@@ -1994,7 +1994,7 @@ See [Errors](#errors) section above.
 
 Raw API tool:
 
-    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import-remote&source=https://images.joyent.com
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import-remote&source=https://images.joyent.com -X POST
     HTTP/1.1 200 OK
     workflow-api: http://workflow.coal.joyent.us
     content-type: application/json
