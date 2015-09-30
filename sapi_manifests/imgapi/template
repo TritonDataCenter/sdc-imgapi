@@ -1,6 +1,6 @@
 {
     "port": 80,
-    "logLevel": "trace",
+    "logLevel": "info",
     "mode": "dc",
     "datacenterName": "{{{datacenter_name}}}",
     "adminUuid": "{{{ufds_admin_uuid}}}",
