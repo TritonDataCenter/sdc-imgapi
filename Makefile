@@ -40,8 +40,8 @@ ifeq ($(shell uname -s),SunOS)
 	# Allow building on a SmartOS image other than sdc-smartos@1.6.3.
 	NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
 endif
-IMAGES_JOYENT_COM_NODE=/root/opt/node-0.10.29
-UPDATES_JOYENT_COM_NODE=/root/opt/node-0.10.29
+IMAGES_JOYENT_COM_NODE=/root/opt/node-0.10.40
+UPDATES_JOYENT_COM_NODE=/root/opt/node-0.10.40
 
 
 include ./tools/mk/Makefile.defs
