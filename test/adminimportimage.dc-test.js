@@ -556,9 +556,8 @@ test('AdminImportImage zvol from local .dsmanifest', function (t) {
 if (!process.env.IMGAPI_TEST_OFFLINE)
 test('AdminImportImage from images.joyent.com', function (t) {
     var self = this;
-    // smartos-1.3.18 (40MB) -- pick a small one for faster download in
-    // shitty-networking BH-1 where testing is typically done.
-    var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
+    // Pick a small one: minimal-32@15.2.0
+    var uuid = '0764d78e-3472-11e5-8949-4f31abea4e05';
     var manifest;
     var filePath = format('/var/tmp/image-test-file-%s.zfs.bz2', process.pid);
     var fileCompression = 'bzip2';
@@ -708,9 +707,8 @@ test('AdminImportImage from images.joyent.com', function (t) {
 if (!process.env.IMGAPI_TEST_OFFLINE)
 test('AdminImportImage from datasets.joyent.com', function (t) {
     var self = this;
-    // smartos-1.3.18 (40MB) -- pick a small one for faster download in
-    // shitty-networking BH-1 where testing is typically done.
-    var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
+    // Pick a small one: minimal-32@15.2.0
+    var uuid = '0764d78e-3472-11e5-8949-4f31abea4e05';
     var manifest;
     var filePath = format('/var/tmp/dataset-test-file-%s.zfs.bz2', process.pid);
     var fileCompression = 'bzip2';
@@ -860,9 +858,8 @@ test('AdminImportImage from datasets.joyent.com', function (t) {
 if (!process.env.IMGAPI_TEST_OFFLINE)
 test('AdminImportRemoteImage from images.joyent.com', function (t) {
     var self = this;
-    // smartos-1.3.18 (40MB) -- pick a small one for faster download in
-    // shitty-networking BH-1 where testing is typically done.
-    var uuid = '47e6af92-daf0-11e0-ac11-473ca1173ab0';
+    // Pick a small one: minimal-32@15.2.0
+    var uuid = '0764d78e-3472-11e5-8949-4f31abea4e05';
     var aImage;
     var imagesUrl = 'https://images.joyent.com';
 

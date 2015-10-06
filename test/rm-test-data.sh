@@ -97,6 +97,20 @@ elif [[ "$opt_mode" == "dc" ]]; then
         dn=$(echo $dn | sed 's/,/, /g')
         uuid_query=$(echo $dn | cut -d, -f1)
         if [[ -n "$($TOP/test/sdc-ldap search "$uuid_query")" ]]; then
+            # Blow away all children of the user to avoid "ldap_delete: Operation
+            # not allowed on non-leaf (66)".
+            $TOP/test/sdc-ldap search -b "$dn" dn \
+                | (grep dn || true) \
+                | (grep -v "dn: $dn" || true) \
+                | sed 's/^dn: //' \
+                | while read child; do
+                echo "# Delete '$child'"
+                $TOP/test/sdc-ldap delete "$child"
+                # Lame attempt to avoid "ldap_delete: Operation not allowed on
+                # non-leaf (66)" delete error race on deleting the DN.
+                sleep 1
+            done
+
             echo "Deleting '$dn'."
             $TOP/test/sdc-ldap rm "$dn"
         fi
