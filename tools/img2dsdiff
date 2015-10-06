@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2014, Joyent, Inc.
+# Copyright (c) 2015, Joyent, Inc.
 #
 
 """
@@ -250,6 +250,7 @@ IMG_NAME_REGEX_SKIPS = [
     # Skip all 'lx' images. No way they work on SDC 6.5 platforms.
     re.compile(r'^lx-.*$'),
     re.compile(r'^ubuntu-certified-.*$'),
+    re.compile(r'^.*-deprecated$'),
 ]
 IMG_TYPE_SKIPS = [
     'lx-dataset'
@@ -433,10 +434,10 @@ def img2dsdiff():
             d_str = json.dumps(d, indent=2, sort_keys=True)
             downgraded_i_str = json.dumps(i, indent=2, sort_keys=True)
             diff = list(difflib.unified_diff(
-                downgraded_i_str.splitlines(True),
                 d_str.splitlines(True),
-                'https://images.joyent.com/images/' + uuid,
-                'https://datasets.joyent.com/datasets/' + uuid,
+                downgraded_i_str.splitlines(True),
+                '/shared/dsapi/manifests/%s.dsmanifest.old' % uuid,
+                '/shared/dsapi/manifests/%s.dsmanifest' % uuid,
                 ))
             #pprint(diff)
             diff_str = ''.join(diff)
@@ -444,7 +445,9 @@ def img2dsdiff():
                 diffs.append({
                     "uuid": uuid,
                     "action": "diff",
-                    "msg": diff_str
+                    "msg": diff_str,
+                    "dataset": datasets[uuid],
+                    "image": images[uuid],
                 })
     return diffs
 
@@ -515,13 +518,37 @@ def main(argv):
             uuid = diff["uuid"]
             action = diff["action"]
             if action == "add":
-                print "Add image %s to datasets.joyent.com" % uuid
+                print "\nAdd image %s to datasets.joyent.com" % uuid
                 add_image(diff["image"])
             elif action == "delete":
-                print "*Skipping* delete of image %s from datasets.joyent.com" % uuid
+                print "\n*Skipping* delete of image %s from datasets.joyent.com" % uuid
             elif action == "diff":
-                print "Image %s differs on datasets.joyent.com (what to do?)" % uuid
+                print "\nImage %s manifest patch." % uuid
+                print "  https://datasets.joyent.com/datasets/%s" % uuid
+                print "  https://images.joyent.com/images/%s" % uuid
                 print diff["msg"]
+    elif False:
+        # Hacking. Dump commands to work on the DSAPI db.
+        if diffs:
+            import datetime
+            timestamp = datetime.datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+            basedir = '/shared/dsapi'
+            bakdir = '%s/backups/%s' % (basedir, timestamp)
+            print 'mkdir %s' % bakdir
+            for diff in diffs:
+                uuid = diff['uuid']
+                if diff['action'] == 'diff':
+                    print
+                    #pprint(diff)
+                    print '# image %(name)s@%(version)s (uuid %(uuid)s)' \
+                        % diff['image']
+                    print 'mv %s/manifests/%s.dsmanifest %s/' % (
+                        basedir, uuid, bakdir)
+                    print 'mv %s/assets/%s %s/' % (
+                        basedir, uuid, bakdir)
+                else:
+                    pprint(diff)
+                    raise Error("NYI")
     else:
         for diff in diffs:
             print diff["msg"]
