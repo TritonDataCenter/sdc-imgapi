@@ -62,10 +62,10 @@ function errexit
 #---- support routines
 
 function cleanup_logs() {
-    find /var/log -type f | xargs rm -f
-    # Create wtmp - this solves an issue where syslog would not start.
-    touch /var/log/wtmp
-    chmod 664 /var/log/wtmp
+  # This ensures we don't delete the following
+  # /var/log/wtmp - syslog won't start if this is missin
+  # /var/log/lastlog - sshd errors and prevents lastlog from working
+    find /var/log -type f -exec sh -c '>{}' \;
 }
 
 
