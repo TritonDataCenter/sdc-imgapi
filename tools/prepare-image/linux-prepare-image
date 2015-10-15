@@ -144,6 +144,11 @@ function prepare_centos() {
     localedef --no-archive -i en_US -f UTF-8 en_US.UTF-8
 }
 
+function prepare_fedora() {
+    # Cleaning up package cache
+    dnf clean all 2>&1 >/dev/null
+}
+
 function prepare_ubuntu() {
     # Clean up package cache
     apt-get -y clean
@@ -179,6 +184,8 @@ if [[ -f /etc/os-release ]]; then
         prepare_centos
     elif [[ "$ID" == "debian" ]]; then
         prepare_ubuntu
+    elif [[ "$ID" == "fedora" ]]; then
+        prepare_fedora
     elif [[ "$ID" == "ubuntu" ]]; then
         prepare_ubuntu
     fi
