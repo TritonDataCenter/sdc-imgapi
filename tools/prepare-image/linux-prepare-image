@@ -142,6 +142,9 @@ function prepare_centos() {
     # TODO: Remove this? Doesn't seem necessary
     # Make sure locale is set to prevent error when system is SSH'ed into.
     localedef --no-archive -i en_US -f UTF-8 en_US.UTF-8
+    
+    # Remove hostname from /etc/sysconfig/network
+    sed -i '/^HOSTNAME=/d' /etc/sysconfig/network
 }
 
 function prepare_fedora() {
