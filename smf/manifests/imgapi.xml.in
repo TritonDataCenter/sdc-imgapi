@@ -23,7 +23,7 @@
     </dependency>
 
     <exec_method type="method" name="start"
-        exec="@@NODE@@ @@PREFIX@@/main.js &amp;" timeout_seconds="30">
+        exec="@@NODE@@ --abort-on-uncaught-exception @@PREFIX@@/main.js &amp;" timeout_seconds="30">
       <method_context working_directory="/opt/smartdc/imgapi">
         <method_credential user="nobody" group="nobody" privileges="basic,net_privaddr"/>
         <method_environment>
