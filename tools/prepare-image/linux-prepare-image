@@ -159,11 +159,13 @@ function prepare_ubuntu() {
 
 # Makes sure that /lib/smartdc et al are sane.
 function prepare_lib_smartdc() {
-    # Per IMAGE-446 we need to remove the firstboot guard file for a new image.
-    rm -f /lib/smartdc/.firstboot-complete-do-not-delete
-
-    # Note: Not sure this is currently necessary.
-    chown -R root:root /lib/smartdc
+    if [[ -d /lib/smartdc ]] ; then
+        # Per IMAGE-446 we need to remove the firstboot guard file for a new image.
+        rm -f /lib/smartdc/.firstboot-complete-do-not-delete
+        
+        # Note: Not sure this is currently necessary.
+        chown -R root:root /lib/smartdc
+    fi
 }
 
 # Required for lx-brand
