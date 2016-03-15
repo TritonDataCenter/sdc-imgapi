@@ -74,6 +74,13 @@ DEBUG=1 yn_start=y yn_nfs=y yn_subips=y yn_halt=n /tmp/sm-prepare-image.custom >
 svccfg -s zoneinit 'setprop application/done = false' 2>/dev/null || true
 svcadm refresh zoneinit 2>/dev/null || true
 
+# IMAGE-895: Zoneinit needs mdata:fetch and mdata:execute to be disabled.
+for fmri in svc:/smartdc/mdata:fetch svc:/smartdc/mdata:execute; do
+    if [[ $(svcs -Ho state $fmri 2>/dev/null || true) != "disabled" ]]; then
+        svcadm disable $fmri
+    fi
+done
+
 /usr/sbin/mdata-put prepare-image:state success
 # Successful, but we still emit tail of trace log for info.
 cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error || true
