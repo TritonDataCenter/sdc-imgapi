@@ -2046,7 +2046,7 @@ Headers:
 
 | Header          | Required? | Notes |
 | --------------- | --------- | ----- |
-| x-registry-auth | No        | Optional target registry auth formatted as is the 'x-registry-auth' header from the Docker docker client: a base64 encoded JSON object. |
+| x-registry-auth | No        | Optional target registry auth formatted as is the 'x-registry-auth' header from the Docker docker client: a base64 encoded JSON object. See <https://github.com/docker/docker/blob/master/docs/reference/api/docker_remote_api_v1.23.md#create-an-image> |
 
 
 ### Returns
