@@ -58,7 +58,7 @@ function usage () {
     echo "  -l          Start a local IMGAPI using './imgapi-config-local-MODE.json'"
     echo "              and test against that."
     echo "  -o          Offline. Skip tests and setup that require the internet."
-    echo "  -r          nodeunit reporter. Default is 'default'."
+    echo "  -r          nodeunit reporter. Default is 'verbose'."
 }
 
 function imgapi_is_running () {
@@ -96,7 +96,7 @@ NODEUNIT=./node_modules/.bin/nodeunit
 opt_just_clean=
 opt_test_pattern=
 opt_quick=
-opt_reporter=default
+opt_reporter=verbose
 opt_mode=dc
 opt_local=
 opt_offline=

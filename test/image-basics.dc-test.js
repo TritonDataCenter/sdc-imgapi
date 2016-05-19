@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2016 Joyent, Inc.
  */
 
 /*
@@ -45,6 +45,16 @@ test('ListImages returns a list', function (t) {
         t.ifError(err, 'ListImages err: ', err);
         t.ok(images, 'images');
         t.ok(Array.isArray(images), 'images');
+        t.end();
+    });
+});
+
+test('ListImages (inclAdminFields)', function (t) {
+    this.client.listImages({}, {inclAdminFields: true}, function (err, images) {
+        t.ifError(err, 'ListImages err: ', err);
+        t.ok(Array.isArray(images), 'images');
+        t.ok(images.length > 0, 'have at least one image');
+        t.ok(images[0].files[0].stor, '"stor" value' + images[0].files[0].stor);
         t.end();
     });
 });
@@ -328,6 +338,15 @@ test('CreateImage', function (t) {
             next();
         });
     }
+    function getImageAdminFields(next) {
+        self.client.getImage(uuid, vader, {inclAdminFields: true},
+                function (err, image, res) {
+            t.ifError(err, err);
+            t.ok(image.files[0].stor, '(inclAdminFields) image file stor: '
+                + image.files[0].stor);
+            next();
+        });
+    }
     function getFile(next) {
         var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
             process.pid);
@@ -437,6 +456,7 @@ test('CreateImage', function (t) {
             getIconMd5,
             addIcon,
             getImage,
+            getImageAdminFields,
             getFile,
             getIcon,
             deleteIcon,

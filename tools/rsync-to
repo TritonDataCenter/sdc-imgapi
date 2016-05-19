@@ -20,9 +20,7 @@ TOP=$(cd $(dirname $0)/../; pwd)
 NODE=$1
 
 if [[ -z "$IMGAPI_ZONE" ]]; then
-    IMGAPI_ZONE=$(ssh $NODE "/opt/smartdc/bin/sdc-vmapi /vms" 2>/dev/null \
-        | json -H -c 'this.tags && this.tags.smartdc_role === "imgapi"' \
-            -c 'this.state === "running"' 0.uuid)
+    IMGAPI_ZONE=$(ssh $NODE "vmadm lookup -1 alias=imgapi0" 2>/dev/null)
 fi
 echo "IMGAPI_ZONE: $IMGAPI_ZONE"
 

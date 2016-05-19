@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2016 Joyent, Inc.
  */
 
 /*
@@ -225,7 +225,7 @@ test('CreateImageFromVm should create the image', function (t) {
             });
         }
     ], function (err) {
-            t.ifError(err, 'unexpected error');
+            t.ifError(err, 'unexpected error: ' + err);
             t.end();
         }
     );

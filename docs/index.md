@@ -357,6 +357,7 @@ uploaded. A "file" entry has the following fields:
 | size         | Number of bytes. Maximum 20GiB. This maximum is meant to be a "you'll never hit it" cap, the purpose is to inform cache handling in IMGAPI servers.                                                                                                                                                                                               |
 | compression  | The type of file compression used by the file. One of 'bzip2', 'gzip', 'none'.                                                                                                                                                                                                                                                                    |
 | dataset_guid | Optional. The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`). |
+| stor         | Only included if `?inclAdminFields=true` is passed to GetImage/ListImages. The IMGAPI storage type used to store this file. |
 
 Example:
 
@@ -692,6 +693,7 @@ authenticated account. The latter is for operator-only querying.
 | --------------------- | ---------- | --------- | ----- |
 | account (query param) | UUID       | No        | Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String     | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
+| inclAdminFields (query param) | Bool | No      | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 | owner                 | UUID       | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
 | state                 | String     | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.                                                                                                                                                        |
 | name                  | String     | No        | List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                         |
@@ -864,6 +866,7 @@ authenticated account. The latter is for operator-only querying.
 | --------------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | account (query param) | UUID   | No        | Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                 |
+| inclAdminFields (query param) | Bool | No  | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 
 ### Returns
 
@@ -2083,6 +2086,76 @@ Raw `curl`:
     ...
     {"type":"progress","id":"docker.io/busybox","payload":{"id":"8c2e06607696","status":"Download complete."}}
     {"type":"status","id":"docker.io/busybox","payload":{"status":"Status: Downloaded newer image for busybox:latest"}}
+
+
+
+## AdminChangeImageStor (POST /images/$uuid?action=change-stor&stor=$newstor)
+
+(Added in IMGAPI v2.2.0.)
+
+Change which storage is used to store an image's file. An IMGAPI server is
+[configured](#configuration) with one or more storage backends (e.g. "local"
+and "manta"). This endpoint allows operators (servers in modes other
+than "dc" require auth to use this endpoint), to control where image files
+are stored. One use case is an operator of a "public" IMGAPI server moving
+image files from local storage to manta storage for durability.
+
+If the given image is already using the given storage this will be a no-op.
+
+
+### Inputs
+
+Query params:
+
+| Field   | Type    | Required? | Notes |
+| ------  | ------- | --------- | ----- |
+| action  | String  | Yes       | "change-stor" |
+| stor    | String  | Yes       | The new storage type (see "storage.*" fields in the IMGAPI server [config](#configuration)). |
+
+
+### Returns
+
+The updated image manifest object -- as would be returned by
+[`GetImage?inclAdminFields=true`](#GetImage).
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+With [imgapi-cli tools](https://github.com/joyent/imgapi-cli):
+
+    $ updates-imgadm change-stor manta f342dcdc-e179-11e5-98a0-0f71c4796729
+    Changed image f342dcdc-e179-11e5-98a0-0f71c4796729 (sapi@master-20160303T195116Z-g7fbf8d7) stor to "manta"
+
+Raw `curl`:
+
+    $ curl -4 --connect-timeout 10 -sS -i -H accept:application/json --url 'http://imgapi.coal.joyent.us/images/fc810fe4-e179-11e5-83e9-038750e25b16?action=change-stor&stor=manta' -X POST
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 798
+    Date: Wed, 18 May 2016 21:11:58 GMT
+    Server: imgapi/2.2.0
+    x-request-id: 14dedfe0-1d3d-11e6-a572-6f1bdd1ba380
+    x-response-time: 32356
+    x-server-name: 3499c16b-c7b9-40f9-98be-b6cb8702c7bb
+    Connection: keep-alive
+
+    {
+      "v": 2,
+      "uuid": "fc810fe4-e179-11e5-83e9-038750e25b16",
+      ...
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "f250fefb0356a4a8f3fdfb0ed318d4c0b9b6f402",
+          "size": 28631145,
+          "compression": "gzip",
+          "stor": "manta"
+        }
+      ],
+    }
 
 
 ## ListImageJobs (GET /images/:uuid/jobs)
