@@ -1,5 +1,6 @@
 {
     "port": 80,
+    "address": "0.0.0.0",
     "logLevel": "info",
     "mode": "dc",
     "datacenterName": "{{{datacenter_name}}}",

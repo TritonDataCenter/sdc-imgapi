@@ -16,8 +16,8 @@
     "extsprintf": "1.2.0",
     "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#91e5d80",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
-    "libuuid": "0.1.2",
-    "manta": "git+ssh://git@github.com:joyent/node-manta.git#56e8761",
+    "uuid": "2.0.2",
+    "manta": "2.0.7",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
     "moray": "git+ssh://git@github.com:joyent/node-moray.git#b84ef0e",
@@ -34,7 +34,7 @@
     "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#a7c674b76696fe7ab0fff1e2486f20d3af6a0d1a",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#9bcb3a0ebec7cd5b4052acaacde8fd6e3e2dfcf9"
+    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#adb8803"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0",

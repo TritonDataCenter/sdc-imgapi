@@ -1,5 +1,6 @@
 {
     "port": 8080,
+    "address": "127.0.0.1",
     "maxSockets": 100,
     "logLevel": "debug",
     "placeholderImageLifespanDays": 7,

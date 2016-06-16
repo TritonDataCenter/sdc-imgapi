@@ -6,11 +6,11 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright 2016 Joyent, Inc.
  */
 
 /*
- * Main entry-point for the Image API (IMGAPI) for SmartDataCenter (SDC).
+ * Main entry-point for the Image API (IMGAPI) for Triton.
  */
 
 var util = require('util');
