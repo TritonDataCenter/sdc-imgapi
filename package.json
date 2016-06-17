@@ -18,6 +18,7 @@
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
     "uuid": "2.0.2",
     "manta": "2.0.7",
+    "manta-sync": "0.3.3",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
     "moray": "git+ssh://git@github.com:joyent/node-moray.git#b84ef0e",
