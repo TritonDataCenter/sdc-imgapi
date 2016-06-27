@@ -34,7 +34,7 @@ SMF_MANIFESTS_IN = smf/manifests/imgapi.xml.in
 NODEUNIT	:= ./node_modules/.bin/nodeunit
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v0.10.45
+NODE_PREBUILT_VERSION=v0.10.46
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
 	# Allow building on a SmartOS image other than sdc-smartos@1.6.3.
