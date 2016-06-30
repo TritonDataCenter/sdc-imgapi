@@ -86,7 +86,7 @@ function upload_files() {
         echo "no files to upload"
         return
     fi
-        
+
     nfiles=$(echo "$files" | wc -l)
     echo "upload $nfiles file(s) from $SRCDIR to $dstMdir"
     for f in $files
@@ -101,10 +101,10 @@ function upload_files() {
         hourdir=$($DATE -d \@$(( $($DATE -d $isotime "+%s") - 3600 )) "+%Y/%m/%d/%H")
         targ="$dstMdir/$logname/$hourdir/$nodename.log"
 
-        upload_file $f $targ $dryrun
-        echo "rm $f"
+        upload_file $SRCDIR/$f $targ $dryrun
+        echo "rm $SRCDIR/$f"
         if [[ $dryrun == "no" ]]; then
-            rm $f
+            rm $SRCDIR/$f
         fi
     done
 }
