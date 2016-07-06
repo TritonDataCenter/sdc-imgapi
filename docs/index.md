@@ -631,6 +631,7 @@ and relevant for images in an IMGAPI server that uses [channels](#channels).
 | [ListChannels](#ListChannels)                     | GET /channels                                              | List image channels (if the server uses channels).                            |
 | [ChannelAddImage](#ChannelAddImage)               | POST /images/:uuid?action=channel-all                      | Add an existing image to another channel.                                     |
 | [Ping](#Ping)                                     | GET /ping                                                  | Ping if the server is up.                                                     |
+| [AdminReloadAuthKeys](#AdminReloadAuthKeys)       | POST /keys/reload                                          | (Added in v2.3.0.) Tell server to reload its auth keys. This is only relevant for servers using HTTP Signature auth. |
 
 
 
@@ -2361,9 +2362,10 @@ When not simulating an error response, a "pong" object is returned:
 | Field   | Type    | Description                                                                         |
 | ------- | ------- | ----------------------------------------------------------------------------------- |
 | ping    | String  | "pong"                                                                              |
-| pid     | String  | The PID of IMGAPI server process. Only for non-"public" mode IMGAPI configurations. |
 | version | String  | The version of the IMGAPI app.                                                      |
-| imgapi  | Boolean | true                                                                                |
+| imgapi  | Boolean | Always set `true`. This is to distinguish the server from the old Datasets API that IMGAPI replaced. |
+| pid     | String  | The PID of IMGAPI server process. Only for "dc" mode IMGAPI configurations, or when providing auth. |
+| user    | String  | Set to the authenticated username, if relevant. Note that "dc" mode servers don't use auth. |
 
 When simulating an error, the HTTP response code depends on the error type
 and the response body is an JSON object with:
@@ -2438,6 +2440,28 @@ A JSON representation of some internal state.
       ...
     }
 
+## AdminReloadAuthKeys (POST /keys/reload)
+
+Tells the IMGAPI server to reload its auth keys, if the server is using HTTP Signature auth
+(`config.auth.type === "signature"`). This is an authenticated endpoint. This allows a
+server administrator to add keys for users and have the server load those key changes
+without having to restart.
+
+Note that when this endpoint returns, the reload is not guaranteed to have completed.
+
+
+### Inputs
+
+None.
+
+### Returns
+
+An empty object: `{}`.
+
+### Examples
+
+    $ updates-imgadm reload-auth-keys
+
 
 # Image file storage
 
@@ -2489,6 +2513,50 @@ and can't practically live in a remote Manta. Therefore the algorithm is that
 "admin"-owned images prefer local storage to "remote Manta" storage. Images
 owned by others prefer remote Manta storage to local storage.
 
+# Authentication
+
+IMGAPI supports three authentication modes:
+
+1. HTTP Signature auth (`config.auth.type === "signature").
+2. HTTP Basic auth (`config.auth.type === "basic"`). This is deprecated and will be removed.
+3. No auth (`config.mode === "dc"`). When running as a component of a Triton DataCenter -- on the
+   DCs private "admin" network -- IMGAPI runs without auth.
+
+## HTTP Signature auth
+
+To support HTTP signature authentication the server needs a mapping of
+usernames to an array of SSH public keys. There are three places those keys
+can come from:
+
+1. `config.auth.keys`. For example:
+
+        ...
+        "auth": {
+            "type": "signature",
+            "keys": {
+                "trentm": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPLIC/hQIyd3gvIteBVOIrhZJ8KJHdZe3O/eb7wZL3yoEAOSQeC5yIZINLyZElFeDjKrgsshhPRnWV0QrPPPfkgnpiHTXbTPU0p5aEqekMgMUVVblGmtKr1QRxuQYW2S1r3HBZkoVC8LnbPBR4xWgtCx8LuVOOwCtYc9+E+e+Yl9EjW415KZyVtMVhpzR7ja8Le+SiapJOUejy7CuO73XS9A9xXDHGw81lQtoDJASgJhJKj8/64tgGFxkNERjBtA/hG/9bofHD/Zw4kxAoR1kjtF49sDop5UKEBT3WlejWedQ/fZqyHCNk+YOpmIt+aM0jF49vNMM+QhQotTN5iYHb DESCRIPTION"]
+            }
+        }
+
+2. Local ".keys" files in `${config.auth.keysDir}/local/$username.keys`. E.g.
+
+        $ cat /data/imgapi/etc/keys/local/trentm.keys
+        ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPLIC/hQIyd3gvIteBVOIrhZJ8KJHdZe3O/eb7wZL3yoEAOSQeC5yIZINLyZElFeDjKrgsshhPRnWV0QrPPPfkgnpiHTXbTPU0p5aEqekMgMUVVblGmtKr1QRxuQYW2S1r3HBZkoVC8LnbPBR4xWgtCx8LuVOOwCtYc9+E+e+Yl9EjW415KZyVtMVhpzR7ja8Le+SiapJOUejy7CuO73XS9A9xXDHGw81lQtoDJASgJhJKj8/64tgGFxkNERjBtA/hG/9bofHD/Zw4kxAoR1kjtF49sDop5UKEBT3WlejWedQ/fZqyHCNk+YOpmIt+aM0jF49vNMM+QhQotTN5iYHb DESCRIPTION
+
+    This requires `config.auth.keysDir` to be set.
+
+3. ".keys" files in *Manta* at `.../keys/$username.keys` (where "..." is
+   determined from `config.storage.manta`, if set).
+
+        $ mls /trent.mick/stor/imgapi/keys
+        trentm.keys
+
+    This requires `config.storage.manta.*` and `config.auth.keysDir` be
+    set. When those are set, IMGAPI will periodically sync keys files in
+    Manta to `${config.auth.keysDir}/manta/` locally and load from there.
+    Use the [AdminReloadAuthKeys](#AdminReloadAuthKeys) endpoint to trigger
+    a reload.
+
 
 # Configuration
 
@@ -2505,9 +2573,9 @@ top-level keys in the factory settings. For example: if providing
 | serverName | String | IMGAPI/$version | Name of the HTTP server. This value is present on every HTTP response in the 'server' header. |
 | logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d,--debug` switch. |
 | maxSockets | Number | 100 | Maximum number of sockets for external API calls |
-| mode | String | public | One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter). |
-| datacenterName | String | - | Name of the SDC datacenter on which IMGAPI is running. |
-| adminUuid | String | - | The UUID of the admin user in this SDC. |
+| mode | String | public | One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in a Triton DataCenter). |
+| datacenterName | String | - | Name of the Triton DataCenter on which IMGAPI is running. Only relevant if `mode === "dc"`. |
+| adminUuid | String | - | The UUID of the admin user in this Triton DataCenter. Only relevant if `mode === "dc"`. |
 | channels | Array | - | Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. See the example in "etc/imgapi.config.json.in". |
 | placeholderImageLifespanDays | Number | 7 | The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database. |
 | allowLocalCreateImageFromVm | Boolean | false | Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
@@ -2518,7 +2586,8 @@ top-level keys in the factory settings. For example: if providing
 | auth | Object | - | If in 'public' mode, then auth details are required. 'dc' mode does no auth. |
 | auth.type | String | - | One of 'basic' (HTTP Basic Auth) or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
 | auth.users | Object | - | Required if `auth.type === 'basic'`. A mapping of username to bcrypt-hashed password. Use the `bin/hash-basic-auth-password` tool to create the hash. |
-| auth.keys | Object | - | Required if `auth.type === 'signature'`. A mapping of username to an array of ssh public keys. |
+| auth.keys | Object | - | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.auth.type === "signature"`). |
+| auth.keysDir | String | - | Optional. A local directory path (e.g. "/data/imgapi/etc/keys") in which the server will look for local keys files (`$auth.keysDir/local/$username.keys`) and sync keys from Manta (`$auth.keysDir/manta/$username.keys). Only relevant if `auth.type === 'signature'`. |
 | database | Object | - | Database info. The "database" is how the image manifest data is stored. |
 | database.type | String | ufds | One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images. |
 | database.dir | String | - | The base directory for the database `database.type === 'local'`. |
