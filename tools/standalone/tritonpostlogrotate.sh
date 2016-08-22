@@ -40,8 +40,8 @@ function errexit
 
 
 function usage () {
-    echo "Update a just rotated Triton log file from /var/log/triton to"
-    echo "/var/log/triton/upload."
+    echo "Move a just rotated-by-logadm Triton log file from /var/log/triton to"
+    echo "/var/log/triton/upload (possibly renaming the timestamp)."
     echo ""
     echo "Requirements:"
     echo "1. The 'just rotated' log file is expected to be of the form:"

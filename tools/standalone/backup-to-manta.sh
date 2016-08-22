@@ -3,7 +3,7 @@
 # Copyright 2016 Joyent, Inc.
 #
 # Backup local IMGAPI data to Manta.
-# This is intended to be run in cron. See 'backup-to-manta.cron'.
+# This is intended to be run in cron (see "./setup.sh" for cron entries).
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -16,7 +16,7 @@ set -o pipefail
 
 # ---- globals and config
 
-export PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
+export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 
 MANTASYNC=/opt/smartdc/imgapi/node_modules/.bin/manta-sync
 CONFIG=/data/imgapi/etc/imgapi.config.json

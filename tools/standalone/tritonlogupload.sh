@@ -14,7 +14,7 @@
 #
 # Typically this script is setup to run after logadm does it rotations.
 # This will make *5* upload attempts with 60s gaps. This is to allow
-# log rotation to complete. 
+# log rotation to complete.
 #
 #       0 * * * * /usr/sbin/logadm -v >>/var/log/logadm.log 2>&1
 #       1 * * * * /.../tritonlogupload.sh -a 5 >>/var/log/tritonlogupload.log 2>&1
@@ -170,4 +170,3 @@ while true; do
     fi
     sleep 60
 done
-

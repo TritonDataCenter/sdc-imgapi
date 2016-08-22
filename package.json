@@ -41,7 +41,7 @@
   },
   "optionalDependencies": {
     "http-signature": "0.10.0",
-    "bcrypt": "0.7.6"
+    "bcrypt": "0.8.7"
   },
   "devDependencies": {
     "jshint": "2.1",

@@ -34,11 +34,16 @@ SMF_MANIFESTS_IN = smf/manifests/imgapi.xml.in
 NODEUNIT	:= ./node_modules/.bin/nodeunit
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v0.10.46
+#NODE_PREBUILT_VERSION=v0.10.46
+#NODE_PREBUILT_VERSION=v0.10.43
+#NODE_PREBUILT_VERSION=v4.4.7
+NODE_PREBUILT_VERSION=v0.12.15
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
 	# Allow building on a SmartOS image other than sdc-smartos@1.6.3.
-	NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
+	#NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
+	# Allow building on other than image sdc-minimal-multiarch-lts@15.4.1.
+	NODE_PREBUILT_IMAGE=18b094b0-eb01-11e5-80c1-175dac7ddf02
 endif
 IMAGES_JOYENT_COM_NODE=/root/opt/node-0.10.45
 UPDATES_JOYENT_COM_NODE=/root/opt/node-0.10.45
@@ -64,7 +69,7 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack docs | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
 
 # Node hack for images.joyent.com and updates.joyent.com

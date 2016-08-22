@@ -23,7 +23,7 @@
     </dependency>
 
     <exec_method type="method" name="start"
-        exec="/opt/local/bin/node --abort-on-uncaught-exception /opt/smartdc/imgapi/main.js -f %{config_file} &amp;" timeout_seconds="30">
+        exec="/opt/smartdc/imgapi/build/node/bin/node --abort-on-uncaught-exception /opt/smartdc/imgapi/main.js -f %{config_file} &amp;" timeout_seconds="30">
       <method_context working_directory="/opt/smartdc/imgapi">
         <method_credential user="nobody" group="nobody" privileges="basic,net_privaddr"/>
         <method_environment>
@@ -45,7 +45,7 @@
     <stability value="Unstable" />
     <template>
       <common_name>
-        <loctext xml:lang="C">SDC Image API</loctext>
+        <loctext xml:lang="C">Triton Image API</loctext>
       </common_name>
     </template>
 
