@@ -33,7 +33,7 @@ set -o errexit
 set -o pipefail
 
 
-export PATH=/opt/local/bin:/opt/smartdc/imgapi/node_modules/.bin:$PATH
+export PATH=/opt/local/bin:/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgapi/node_modules/.bin:$PATH
 
 SRCDIR=/var/log/triton/upload
 CONFIG=/data/imgapi/etc/imgapi.config.json
@@ -101,7 +101,7 @@ function upload_files() {
         hourdir=$($DATE -d \@$(( $($DATE -d $isotime "+%s") - 3600 )) "+%Y/%m/%d/%H")
         targ="$dstMdir/$logname/$hourdir/$nodename.log"
 
-        upload_file $SRCDIR/$f $targ $dryrun
+        upload_text_file $SRCDIR/$f $targ $dryrun
         echo "rm $SRCDIR/$f"
         if [[ $dryrun == "no" ]]; then
             rm $SRCDIR/$f
@@ -109,7 +109,7 @@ function upload_files() {
     done
 }
 
-function upload_file() {
+function upload_text_file() {
     local src dst dryrun
     src=$1
     dst=$2
@@ -151,8 +151,11 @@ shift $((OPTIND - 1))
 
 
 export MANTA_URL=$(json -f $CONFIG storage.manta.url)
+[[ -n "$MANTA_URL" ]] || fatal "missing storage.manta.url in $CONFIG"
 export MANTA_USER=$(json -f $CONFIG storage.manta.user)
+[[ -n "$MANTA_USER" ]] || fatal "missing storage.manta.user in $CONFIG"
 export MANTA_KEY_ID=$(json -f $CONFIG storage.manta.keyId)
+[[ -n "$MANTA_KEY_ID" ]] || fatal "missing storage.manta.keyId in $CONFIG"
 if [[ "$(json -f $CONFIG storage.manta.insecure)" == "true" ]]; then
     export MANTA_TLS_INSECURE=1
 fi

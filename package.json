@@ -16,6 +16,7 @@
     "extsprintf": "1.2.0",
     "glob": "7.0.5",
     "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#91e5d80",
+    "json": "9.0.4",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
     "uuid": "2.0.2",
     "manta": "2.0.7",

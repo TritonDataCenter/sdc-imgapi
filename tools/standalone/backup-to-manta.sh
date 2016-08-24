@@ -33,15 +33,6 @@ function fatal
 function errexit
 {
     [[ $1 -ne 0 ]] || exit 0
-    if [[ -n "$adminEmail" ]]; then
-    mail "$ADMIN_EMAIL" <<EOM
-Subject: backup-to-manta on $(hostname) ($(zonename)) failed: $1
-From: "backup-to-manta" <root@$(hostname)>
-
-Exit status: $1
-See the log: /var/log/backup-to-manta.log
-EOM
-    fi
     fatal "error exit status $1"
 }
 
@@ -54,8 +45,6 @@ echo ""
 echo "--"
 echo "[$(date '+%Y%m%dT%H%M%S')] Backing up to Manta"
 
-#XXX
-#adminEmail=$(json -f $CONFIG adminEmail)
 export MANTA_URL=$(json -f $CONFIG storage.manta.url)
 export MANTA_USER=$(json -f $CONFIG storage.manta.user)
 # Current manta-sync doesn't support the newer KEY_ID's, so we'll rebuild it
