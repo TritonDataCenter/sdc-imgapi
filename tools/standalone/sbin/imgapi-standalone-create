@@ -1,0 +1,191 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright 2016 Joyent, Inc.
+#
+
+#
+# Provision a standalone IMGAPI instance.
+# This is meant to be run from the headnode GZ. See notes in
+# "docs/standalone.md".
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+#---- support stuff
+
+function usage () {
+    echo "Usage:"
+    echo "  imgapi-standalone-create [OPTIONS] OWNER IMAGE PACKAGE ALIAS"
+    echo ""
+    echo "Options:"
+    echo "  -h          Show this help and exit."
+    echo "  -m KEY=VAL  Instance metadata (used to configure the IMGAPI)."
+    #TODO: -c CHANNEL    option
+    #XXX more doc
+}
+
+function fatal {
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+function errexit {
+    [[ $1 -ne 0 ]] || exit 0
+    fatal "error exit status $1"
+}
+
+
+#---- mainline
+
+trap 'errexit $?' EXIT
+
+[[ $(zonename) == "global" ]] || fatal "must run this from the global zone"
+
+optMetadata="{}"
+while getopts "hm:" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        m)
+            arg=$OPTARG
+            k="${OPTARG%%=*}"
+            v="${OPTARG#*=}"
+            optMetadata=$(echo "$optMetadata" | json -e "this.$k = '$v'")
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+OWNER=$1
+[[ -n $OWNER ]] || fatal 'no OWNER arg given'
+IMAGE=$2
+[[ -n $IMAGE ]] || fatal 'no IMAGE arg given'
+PACKAGE=$3
+[[ -n $PACKAGE ]] || fatal 'no PACKAGE arg given'
+ALIAS=$4
+[[ -n $ALIAS ]] || fatal 'no ALIAS arg given'
+
+echo "Looking up owner $OWNER"
+ownerJson=$(sdc-useradm get $OWNER)
+ownerUuid=$(echo "$ownerJson" | json uuid)
+ownerLogin=$(echo "$ownerJson" | json login)
+
+echo "Looking up package $PACKAGE"
+packageJson=$(sdc-papi /packages?active=true \
+    | json -c "this.name==='$PACKAGE' || this.uuid==='$PACKAGE'" -H 0)
+[[ -n "$packageJson" ]] || fatal "could not find package '$PACKAGE'"
+packageUuid=$(echo "$packageJson" | json uuid)
+packageName=$(echo "$packageJson" | json name)
+
+if [[ "$IMAGE" == "latest" ]]; then
+    channel=$(sdcadm channel get)
+    echo "Finding latest imgapi image (in '$channel' channel) on updates.jo"
+    imageUuid=$(updates-imgadm -C $channel list name=imgapi --latest -H -o uuid)
+    [[ -n "$imageUuid" ]] || fatal "no imgapi image in $channel change"
+else
+    imageUuid=$IMAGE
+fi
+imageJson=$(sdc-imgadm get $imageUuid 2>/dev/null || true)
+if [[ -z "$imageJson" ]]; then
+    echo "Importing image $imageUuid from updates.jo"
+    sdc-imgadm import $IMAGE -S https://updates.joyent.com?channel=$channel
+    imageJson=$(sdc-imgadm get $IMAGE)
+else
+    echo "Already have image $imageUuid in local IMGAPI"
+fi
+imageName=$(echo "$imageJson" | json name)
+[[ "$imageName" == "imgapi" ]] \
+    || fatal "image $IMAGE is name=$imageName (expected 'name=imgapi')"
+imageVersion=$(echo "$imageJson" | json version)
+
+# Ensure OWNER is on image ACL.
+onAcl=$(echo "$imageJson" | json acl | json -a | (grep $ownerUuid || true))
+if [[ -z "$onAcl" ]]; then
+    echo "Adding owner ($ownerUuid) to image ACL"
+    sdc-imgadm add-acl $imageUuid $ownerUuid
+else
+    echo "Owner ($ownerUuid) is already on the image ACL"
+fi
+
+# Network
+echo "Find a suitable external network"
+networkPoolJson=$(sdc-napi /network_pools?provisionable_by=$ownerUuid | json -Hc 'this.nic_tag==="external"' 0)
+if [[ -z "$networkPoolJson" ]]; then
+    networkJson=$(sdc-napi /networks?provisionable_by=$ownerUuid\&fabric=false | json -Hc 'this.nic_tag==="external"' 0)
+    [[ -n "$networkJson" ]] || fatal "could not find a suitable network"
+    netJson="$networkJson"
+else
+    netJson="$networkPoolJson"
+fi
+netUuid=$(echo "$netJson" | json uuid)
+netName=$(echo "$netJson" | json name)
+
+# Create the VM
+echo ""
+echo "Creating standalone imgapi VM:"
+echo "      alias: $ALIAS"
+echo "      owner: $ownerUuid ($ownerLogin)"
+echo "      image: $imageUuid ($imageName@$imageVersion)"
+echo "    package: $packageUuid ($packageName)"
+echo "    network: $netUuid ($netName)"
+echo "   metadata: $optMetadata"
+echo ""
+vmUuid=$(uuid)
+optMetadata=$(echo "$optMetadata" \
+    | json -e "this['user-script'] = '/opt/smartdc/imgapi/tools/standalone/user-script'")
+sdc-vmapi /vms -X POST -d@- <<EOP | json -H | sdc-waitforjob
+{
+    "uuid": "$vmUuid",
+    "alias": "$ALIAS",
+    "owner_uuid": "$ownerUuid",
+    "billing_id": "$packageUuid",
+    "networks": [{"uuid": "$netUuid"}],
+    "brand": "joyent",
+    "image_uuid": "$imageUuid",
+    "delegate_dataset": true,
+    "customer_metadata": $optMetadata
+}
+EOP
+
+# ^^^ does that exit non-zero on job failure? It would be nice.
+
+mantaUser=$(echo "$optMetadata" | json mantaUser)
+if [[ -n "$mantaUser" ]]; then
+    # Configured for Manta: show the command needed to get the imgapi instance
+    # key on the user.
+    echo ""
+    echo "For this IMGAPI instance to talk to Manta, its instance SSH key"
+    echo "needs to be added to the '$mantaUser' account. If the Manta being"
+    echo "used is part of this Triton cloud, then this should work:"
+    echo ""
+    echo "    sdc-vmadm get $vmUuid | json customer_metadata.instPubkey > /tmp/imgapi-$vmUuid.id_rsa.pub"
+    echo "    sdc-useradm add-key -n \$(cat /tmp/imgapi-$vmUuid.id_rsa.pub | awk '{print $3}' | head -1) $mantaUser /tmp/imgapi-$vmUuid.id_rsa.pub"
+    XXX # TEST THIS
+fi
+
+#XXX if configured for manta
+#- emit message about needing to add the generated pubkey to the Manta
+#  user. Show command for that
+
+# Poll until get a 200 status ping.
+#XXX
+
+# TODO: Would like to have ping be 503 if cannot connect to Manta (if
+# configured for Manta. Then have this script gracefully handle that.
+

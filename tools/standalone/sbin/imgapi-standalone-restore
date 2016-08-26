@@ -1,0 +1,141 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright 2016 Joyent, Inc.
+#
+
+#
+# Restore IMGAPI data from a Manta backup.
+#
+# This is meant to be run from a created standalone IMGAPI zone.
+# See notes in "docs/standalone.md".
+#
+#
+# As part of normal operation, a standalone IMGAPI that is configured to use
+# Manta will backup local data to Manta (see "backup-to-manta.sh"). To
+# recover an IMGAPI one can do the following:
+#   - create a new standalone IMGAPI instance with `imgapi-standalone-create`
+#   - ssh in to that instance and run `imgapi-standalone-restore`
+#
+# Eventually (when RFD 40 is more complete), when standalone IMGAPI deployments
+# support storing all data in remotely and/or HA, this restore process will
+# be unnecessary.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+# ---- globals and config
+
+export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgapi/node_modules/.bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
+
+MANTASYNC=/opt/smartdc/imgapi/node_modules/.bin/manta-sync
+CONFIG=/data/imgapi/etc/imgapi.config.json
+
+
+#---- support stuff
+
+function usage () {
+    echo "Usage:"
+    echo "  imgapi-standalone-restore [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -h          Show this help and exit."
+    echo "  -y          Skip the confirmation before restoring."
+}
+
+function fatal {
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+function errexit {
+    [[ $1 -ne 0 ]] || exit 0
+    fatal "error exit status $1"
+}
+
+
+#---- mainline
+
+trap 'errexit $?' EXIT
+
+optYes=no
+while getopts "hy" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        y)
+            optYes=yes
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+# Get manta info from config
+export MANTA_URL=$(json -f $CONFIG storage.manta.url)
+[[ -n "$MANTA_URL" ]] || fatal "not configured to use Manta: no 'storage.manta.url' in config"
+export MANTA_USER=$(json -f $CONFIG storage.manta.user)
+[[ -n "$MANTA_USER" ]] || fatal "not configured to use Manta: no 'storage.manta.user' in config"
+# Current manta-sync doesn't support the newer KEY_ID's, so we'll rebuild it
+# from the key path.
+mantaKeyPath=$(json -f $CONFIG storage.manta.key)
+[[ -n "$mantaKeyPath" ]] || fatal "not configured to use Manta: no 'storage.manta.key' in config"
+export MANTA_KEY_ID=$(ssh-keygen -E md5 -lf $mantaKeyPath | awk '{print $2}' | cut -c5-)
+if [[ "$(json -f $CONFIG storage.manta.insecure)" == "true" ]]; then
+    export MANTA_TLS_INSECURE=1
+fi
+mantaBaseDir=$(json -f $CONFIG storage.manta.baseDir)
+
+
+bakDir=/$MANTA_USER/stor/$mantaBaseDir/backup
+echo "Restore backup from Manta:"
+echo "    backup: $bakDir/{images,manifests}"
+echo "    target: /data/imgapi/{images,manifests}"
+echo ""
+if [[ $optYes != "yes" ]]; then
+    echo "Hit enter to continue / Ctrl+C to abort."
+    read
+fi
+
+
+echo ""
+infoStatus=$(minfo $bakDir/images | head -1 | awk '{print $2}')
+if [[ $infoStatus == "404" ]]; then
+    echo "Nothing in $bakDir/images to restore."
+    echo "This means all image files for this IMGAPI are stored in Manta,"
+    echo "which is a good thing."
+elif [[ $infoStatus != "200" ]]; then
+    fatal "unexpected status code getting `minfo $bakDir/images`: $infoStatus"
+else
+    echo "Restore /data/imgapi/images"
+    $MANTASYNC -r $bakDir/images /data/imgapi/images \
+        | (grep -v "size same as source file, skipping" || true)
+fi
+
+echo ""
+echo "Restore /data/imgapi/manifests"
+$MANTASYNC -r $bakDir/manifests /data/imgapi/manifests \
+    | (grep -v "size same as source file, skipping" || true)
+
+
+echo ""
+echo "Restarting imgapi service"
+svcadm restart imgapi
+
+
+
