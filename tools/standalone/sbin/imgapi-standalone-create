@@ -174,7 +174,7 @@ if [[ -n "$mantaUser" ]]; then
     echo "needs to be added to the '$mantaUser' account. If the Manta being"
     echo "used is part of this Triton cloud, then this should work:"
     echo ""
-    echo "    sdc-vmadm get $vmUuid | json customer_metadata.instPubkey > /tmp/imgapi-$vmUuid.id_rsa.pub"
+    echo "    sdc-vmadm get $vmUuid | json customer_metadata.instPubKey > /tmp/imgapi-$vmUuid.id_rsa.pub"
     echo "    sdc-useradm add-key -n \$(cat /tmp/imgapi-$vmUuid.id_rsa.pub | awk '{print $3}' | head -1) $mantaUser /tmp/imgapi-$vmUuid.id_rsa.pub"
     XXX # TEST THIS
 fi
@@ -188,4 +188,3 @@ fi
 
 # TODO: Would like to have ping be 503 if cannot connect to Manta (if
 # configured for Manta. Then have this script gracefully handle that.
-

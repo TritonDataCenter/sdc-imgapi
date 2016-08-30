@@ -45,12 +45,9 @@ else
     mkdir -p /data/imgapi
 fi
 
-# XXX test image:
-# [root@headnode (coal) ~]# sdc-imgadm import a323a812-6964-11e6-8a60-a7805b021254 -S https://updates.joyent.com?channel=experimental
-# Imported image a323a812-6964-11e6-8a60-a7805b021254 (imgapi, IMGAPI-567-20160823T190053Z-gb12e538, state=active)
-
 # Set nodename/hostname to something that is nice to see in PS1.
-sm-set-hostname imgapi-$(zonename | cut -d- -f1)
+NODENAME=imgapi-$(mdata-get sdc:alias)-$(zonename | cut -d- -f1)
+sm-set-hostname $NODENAME
 
 # Bash profile
 IMGAPI_PREFIX=/opt/smartdc/imgapi
@@ -60,14 +57,14 @@ echo "export PATH=$IMGAPI_PREFIX/bin:$IMGAPI_PREFIX/build/node/bin:$IMGAPI_PREFI
 
 # etc/ and instance ssh key
 mkdir -p /data/imgapi/etc
-keyname=imgapi-$(zonename | cut -d- -f1)-$(date -u '+%Y%m%d')
+keyname=$NODENAME-$(date -u '+%Y%m%d')
 ssh-keygen -t rsa -b 4096 -N "" \
     -C "$keyname" -f /data/imgapi/etc/$keyname.id_rsa
 # Manta CLI tools require that key be in ~/.ssh
 ln -s /data/imgapi/etc/$keyname.id_rsa ~/.ssh/
 ln -s /data/imgapi/etc/$keyname.id_rsa.pub ~/.ssh/
 # Write pubkey to mdata so outside tooling can use it for setup.
-mdata-put instPubkey < /data/imgapi/etc/$keyname.id_rsa.pub
+mdata-put instPubKey < /data/imgapi/etc/$keyname.id_rsa.pub
 
 # Self-signed cert
 /opt/local/bin/openssl req -x509 -nodes -subj '/CN=*' -newkey rsa:2048 \
