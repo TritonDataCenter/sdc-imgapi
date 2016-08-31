@@ -47,13 +47,15 @@ fi
 
 # Set nodename/hostname to something that is nice to see in PS1.
 NODENAME=imgapi-$(mdata-get sdc:alias)-$(zonename | cut -d- -f1)
-sm-set-hostname $NODENAME
+/opt/local/bin/sm-set-hostname $NODENAME
 
-# Bash profile
+# Bash profile:
+# - set PATH even for non-login sessions
+# - set MANTA envvars, but only for login sessions
 IMGAPI_PREFIX=/opt/smartdc/imgapi
 echo "" >>/root/.profile
 echo "export PATH=$IMGAPI_PREFIX/bin:$IMGAPI_PREFIX/build/node/bin:$IMGAPI_PREFIX/node_modules/.bin:\$PATH" >>/root/.profile
-# TODO: add Manta vars, see .mantaprofile stuff, use manta-config or similar?
+echo 'if [ "$PS1" ]; then eval $(/opt/smartdc/imgapi/bin/manta-env); fi' >>/root/.profile
 
 # etc/ and instance ssh key
 mkdir -p /data/imgapi/etc
@@ -73,37 +75,11 @@ mdata-put instPubKey < /data/imgapi/etc/$keyname.id_rsa.pub
 cat /data/imgapi/etc/key.pem >> /data/imgapi/etc/cert.pem
 rm /data/imgapi/etc/key.pem
 
-# Config file.
-# TODO: get this smaller
-cat <<EOM >/data/imgapi/etc/imgapi.config.json
-{
-    "port": 8080,
-    "logLevel": "debug",
-    "mode": "public",
-    "serverName": "Joyent Public Images Repo",
-    "auth": {
-        "type": "signature",
-        "keysDir": "/data/imgapi/etc/keys"
-    },
-    "database": {
-        "type": "local",
-        "dir": "/data/imgapi/manifests"
-    },
-    "storage": {
-        "manta": {
-            "url": "https://us-east.manta.joyent.com",
-            "user": "trent.mick",
-            "key": "/data/imgapi/etc/imgapi-$keyname.id_rsa",
-            "keyId": "$(ssh-keygen -E sha256 -lf /data/imgapi/etc/imgapi-$keyname.pub | awk '{print $2}')",
-            "baseDir": "tmp/images.joyent.com"
-        },
-        "local": {
-            "baseDir": "/data/imgapi"
-        }
-    }
-}
-EOM
+# Generate config file.
+/opt/smartdc/imgapi/tools/standalone/sbin/imgapi-standalone-gen-setup-config \
+    >/data/imgapi/etc/imgapi.config.json
 
+# Prep data dirs.
 mkdir -p /data/imgapi/etc/keys/local  # Dir for local auth keys, if any.
 # imgapi SMF services runs as 'nobody'
 chown nobody:nobody /data/imgapi

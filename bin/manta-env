@@ -1,10 +1,14 @@
 #!/bin/bash
 #
-# Emit appropriate node-manta CLI options for the current imgapi's
-# Manta storage configuration.
+# Emit bash commands to set your environment (i.e. 'export MANTA_URL=' et al)
+# for using Manta tooling for the IMGAPI's configured Manta.
+#
+# If there is no "storage.manta" block in the config, then it silented emits
+# nothing (i.e. that isn't an error).
 #
 # Usage:
-#       ./node_modules/.bin/mls `./bin/manta-config` ~~/stor
+#       eval $(manta-env)
+#       mls ~~/stor
 #
 
 
@@ -32,28 +36,27 @@ function errexit {
     fatal "error exit status $1"
 }
 
+
 # ---- mainline
 
 trap 'errexit $?' EXIT
 
 if [[ -f /opt/smartdc/imgapi/etc/imgapi.config.json ]]; then
     CONFIG=/opt/smartdc/imgapi/etc/imgapi.config.json
-elif [[ -f /root/config/imgapi.config.json ]]; then
-    CONFIG=/root/config/imgapi.config.json
+elif [[ -f /data/imgapi/etc/imgapi.config.json ]]; then
+    CONFIG=/data/imgapi/etc/imgapi.config.json
 else
     fatal "could not find imgapi.config.json"
 fi
 
 mantaConfig="$($JSON -f $CONFIG storage.manta)"
 if [[ -z "$mantaConfig" ]]; then
-    fatal "no 'storage.manta' in $CONFIG"
+    exit 0
 fi
 
+echo "export MANTA_URL=$(echo "$mantaConfig" | $JSON url)"
+echo "export MANTA_USER=$(echo "$mantaConfig" | $JSON user)"
+echo "export MANTA_KEY_ID=$(echo "$mantaConfig" | $JSON keyId)"
 if [[ "$(echo "$mantaConfig" | $JSON insecure)" == "true" ]]; then
-    insecureOpt="--insecure"
+    echo "export MANTA_TLS_INSECURE=1"
 fi
-echo -n \
-    --url=$(echo "$mantaConfig" | $JSON url) \
-    --account=$(echo "$mantaConfig" | $JSON user) \
-    --keyId=$(echo "$mantaConfig" | $JSON keyId) \
-    $insecureOpt

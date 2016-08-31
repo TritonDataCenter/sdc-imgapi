@@ -43,6 +43,7 @@ settings. For example: if providing 'storage', one must provide the whole
 | var                          | type          | default           | description |
 | ---------------------------- | ------------- | ----------------- | ----------- |
 | port                         | Number        | 8080              | Port number on which to listen. |
+| address                      | String        | 127.0.0.1         | Address on which to listen. |
 | serverName                   | String        | IMGAPI/$version   | Name of the HTTP server. This value is present on every HTTP response in the 'server' header. |
 | logLevel                     | String/Number | debug             | Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d,--debug` switch. |
 | maxSockets                   | Number        | 100               | Maximum number of sockets for external API calls |
@@ -53,32 +54,36 @@ settings. For example: if providing 'storage', one must provide the whole
 | placeholderImageLifespanDays | Number        | 7                 | The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database. |
 | allowLocalCreateImageFromVm  | Boolean       | false             | Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
 | minImageCreationPlatform     | Array         | see defaults.json | The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm). |
+| authType                     | String        | signature         | One of 'none' or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
+| authKeys                     | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.auth.type === "signature"`). |
+| databaseType                 | String        | local             | The database backend type to use. One of "local" or "moray". The latter is what is typically used in-DC. |
+| storageTypes                 | Array         | ["local"]         | The set of available storage mechanisms for the image *files*. There must be at least one. Supported values are "local" and "manta". See the [Image file storage](#image-file-storage) section for discussion. |
+| manta                        | Object        | -                 | Object holding config information for Manta storage. |
+| manta.baseDir                | String        | -                 | The base directory, relative to '/${storage.manta.user}/stor', under which image files are stored in Manta. |
+| manta.url                    | String        | -                 | The Manta API URL. |
+| manta.insecure               | Boolean       | false             | Ignore SSL certs on the Manta URL. |
+| manta.remote                 | Boolean       | -                 | Whether this Manta is remote to this IMGAPI. This helps IMGAPI determine practical issues on whether manta or local storage is used for large files. |
+| manta.user                   | String        | -                 | The Manta user under which to store data. |
+| manta.key                    | String        | -                 | Path to the SSH private key file with which to authenticate to Manta. |
+| manta.keyId                  | String        | -                 | The SSH public key ID (signature). |
 | ufds.url                     | String        | -                 | LDAP URL to connect to UFDS. Required if `mode === 'dc'`. |
 | ufds.bindDN                  | String        | -                 | UFDS root dn. Required if `mode === 'dc'`. |
 | ufds.bindPassword            | String        | -                 | UFDS root dn password. Required if `mode === 'dc'`. |
-| auth                         | Object        | -                 | If in 'public' mode, then auth details are required. 'dc' mode does no auth. |
-| auth.type                    | String        | -                 | One of 'basic' (HTTP Basic Auth) or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
-| auth.users                   | Object        | -                 | Required if `auth.type === 'basic'`. A mapping of username to bcrypt-hashed password. Use the `bin/hash-basic-auth-password` tool to create the hash. |
-| auth.keys                    | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.auth.type === "signature"`). |
-| auth.keysDir                 | String        | -                 | Optional. A local directory path (e.g. "/data/imgapi/etc/keys") in which the server will look for local keys files (`$auth.keysDir/local/$username.keys`) and sync keys from Manta (`$auth.keysDir/manta/$username.keys). Only relevant if `auth.type === 'signature'`. |
-| database                     | Object        | -                 | Database info. The "database" is how the image manifest data is stored. |
-| database.type                | String        | ufds              | One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images. |
-| database.dir                 | String        | -                 | The base directory for the database `database.type === 'local'`. |
-| storage                      | Object        | -                 | The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion. |
-| storage.local                | Object        | -                 | Object holding config information for "local" disk storage. |
-| storage.local.baseDir        | String        | -                 | The base directory in which to store image files and archived manifests for "local" storage. This is required even if "storage.manta" is setup for primary storage, because image manifest archives are first staged locally before upload to manta. |
-| storage.manta                | Object        | -                 | Object holding config information for Manta storage. |
-| storage.manta.baseDir        | String        | -                 | The base directory, relative to '/${storage.manta.user}/stor', under which image files are stored in Manta. |
-| storage.manta.url            | String        | -                 | The Manta API URL. |
-| storage.manta.insecure       | Boolean       | false             | Ignore SSL certs on the Manta URL. |
-| storage.manta.remote         | Boolean       | -                 | Whether this Manta is remote to this IMGAPI. This helps IMGAPI determine practical issues on whether manta or local storage is used for large files. |
-| storage.manta.user           | String        | -                 | The Manta user under which to store data. |
-| storage.manta.key            | String        | -                 | Path to the SSH private key file with which to authenticate to Manta. |
-| storage.manta.keyId          | String        | -                 | The SSH public key ID (signature). |
 | wfapi.url                    | String        | -                 | The Workflow API URL. |
 | wfapi.workflows              | String        | -                 | Array of workflows to load. |
 | wfapi.forceReplace           | Boolean       | -                 | Whether to replace all workflows loaded every time the IMGAPI service is started. Ideal for development environments |
 
+| XXX database                     | Object        | -                 | Database info. The "database" is how the image manifest data is stored. |
+| XXX database.type                | String        | ufds              | One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images. |
+| XXX database.dir                 | String        | -                 | The base directory for the database `database.type === 'local'`. |
+| XXX storage                      | Object        | -                 | The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion. |
+| XXX storage.local                | Object        | -                 | Object holding config information for "local" disk storage. |
+| XXX storage.local.baseDir        | String        | -                 | The base directory in which to store image files and archived manifests for "local" storage. This is required even if "storage.manta" is setup for primary storage, because image manifest archives are first staged locally before upload to manta. |
+| XXX auth                         | Object        |                   | If in 'public' mode, then auth details are required. 'dc' mode does no auth. |
+| XXX auth.keys                    | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.auth.type === "signature"`). |
+| XXX auth.keysDir                 | String        | -                 | Optional. A local directory path (e.g. "/data/imgapi/etc/keys") in which the server will look for local keys files (`$auth.keysDir/local/$username.keys`) and sync keys from Manta (`$auth.keysDir/manta/$username.keys). Only relevant if `auth.type === 'signature'`. |
+| XXX auth.type                    | String        | signature         | XXX rip out 'basic'. One of 'none', 'basic' (HTTP Basic Auth), or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
+| XXX auth.users                   | Object        | -                 | Required if `auth.type === 'basic'`. A mapping of username to bcrypt-hashed password. Use the `bin/hash-basic-auth-password` tool to create the hash. |
 
 # Image file storage
 

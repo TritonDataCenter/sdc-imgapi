@@ -3,6 +3,11 @@
     "address": "127.0.0.1",
     "maxSockets": 100,
     "logLevel": "debug",
+
+    "authType": "signature",
+    "databaseType": "local",
+    "storageTypes": ["local"],
+
     "placeholderImageLifespanDays": 7,
     "allowLocalCreateImageFromVm": false,
     "minImageCreationPlatform": ["7.0", "20130917T001310Z"]
