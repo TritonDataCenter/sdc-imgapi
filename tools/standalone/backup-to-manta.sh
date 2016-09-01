@@ -45,16 +45,21 @@ echo ""
 echo "--"
 echo "[$(date '+%Y%m%dT%H%M%S')] Backing up to Manta"
 
-export MANTA_URL=$(json -f $CONFIG storage.manta.url)
-export MANTA_USER=$(json -f $CONFIG storage.manta.user)
+# Get manta info from config
+config="$(node /opt/smartdc/imgapi/lib/config.js)"
+export MANTA_URL=$(echo "$config" | json manta.url)
+[[ -n "$MANTA_URL" ]] || fatal "not configured to use Manta: no 'manta.url' in config"
+export MANTA_USER=$(echo "$config" | json manta.user)
+[[ -n "$MANTA_USER" ]] || fatal "not configured to use Manta: no 'manta.user' in config"
 # Current manta-sync doesn't support the newer KEY_ID's, so we'll rebuild it
 # from the key path.
-mantaKeyPath=$(json -f $CONFIG storage.manta.key)
+mantaKeyPath=$(echo "$config" | json manta.key)
+[[ -n "$mantaKeyPath" ]] || fatal "not configured to use Manta: no 'manta.key' in config"
 export MANTA_KEY_ID=$(ssh-keygen -E md5 -lf $mantaKeyPath | awk '{print $2}' | cut -c5-)
-if [[ "$(json -f $CONFIG storage.manta.insecure)" == "true" ]]; then
+if [[ "$(echo "$config" | json manta.insecure)" == "true" ]]; then
     export MANTA_TLS_INSECURE=1
 fi
-bakDir=/$MANTA_USER/stor/$(json -f $CONFIG storage.manta.baseDir)/backup
+bakDir=$(echo "$config" | json manta.rootDir)/backup
 echo "backup dir: $bakDir"
 
 $MANTASYNC /data/imgapi/images $bakDir/images \

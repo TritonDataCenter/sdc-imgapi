@@ -30,15 +30,14 @@ of IMGAPI:
 
 Reference docs on configuration of the IMGAPI server. Default values are in
 "[/opt/smartdc/imgapi/]etc/defaults.json" in the repository. Custom values
-are in a separate JSON configuration file --
-"/opt/smartdc/imgapi/etc/imgapi.config.json" by default, but for standalone
-servers is at "/data/imgapi/etc/imgapi.config.json" (passed in via `-f
-CONFIG-PATH` in the standalone SMF manifest) for persistence on a delegate
-dataset.
+are in a separate JSON configuration file, the first existing file of:
+
+1. a path given by `main.js -f CONFIG-PATH`;
+2. "/data/imgapi/etc/imgapi.config.json"
 
 Note that given custom values override full top-level keys in the factory
-settings. For example: if providing 'storage', one must provide the whole
-'storage' object.
+settings. For example: if providing `manta`, one must provide the whole
+`manta` object.
 
 | var                          | type          | default           | description |
 | ---------------------------- | ------------- | ----------------- | ----------- |
@@ -50,22 +49,23 @@ settings. For example: if providing 'storage', one must provide the whole
 | mode                         | String        | public            | One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in a Triton DataCenter). |
 | datacenterName               | String        | -                 | Name of the Triton DataCenter on which IMGAPI is running. Only relevant if `mode === "dc"`. |
 | adminUuid                    | String        | -                 | The UUID of the admin user in this Triton DataCenter. Only relevant if `mode === "dc"`. |
-| channels                     | Array         | -                 | Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. See the example in "etc/imgapi.config.json.in". |
+| channels                     | Array         | -                 | Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. |
 | placeholderImageLifespanDays | Number        | 7                 | The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database. |
 | allowLocalCreateImageFromVm  | Boolean       | false             | Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
 | minImageCreationPlatform     | Array         | see defaults.json | The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm). |
 | authType                     | String        | signature         | One of 'none' or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
-| authKeys                     | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.auth.type === "signature"`). |
+| authKeys                     | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.authType === "signature"`). |
 | databaseType                 | String        | local             | The database backend type to use. One of "local" or "moray". The latter is what is typically used in-DC. |
 | storageTypes                 | Array         | ["local"]         | The set of available storage mechanisms for the image *files*. There must be at least one. Supported values are "local" and "manta". See the [Image file storage](#image-file-storage) section for discussion. |
 | manta                        | Object        | -                 | Object holding config information for Manta storage. |
-| manta.baseDir                | String        | -                 | The base directory, relative to '/${storage.manta.user}/stor', under which image files are stored in Manta. |
+| manta.baseDir                | String        | imgapi            | The base directory, relative to '/${manta.user}/stor', under which image files are stored in Manta. |
 | manta.url                    | String        | -                 | The Manta API URL. |
 | manta.insecure               | Boolean       | false             | Ignore SSL certs on the Manta URL. |
 | manta.remote                 | Boolean       | -                 | Whether this Manta is remote to this IMGAPI. This helps IMGAPI determine practical issues on whether manta or local storage is used for large files. |
 | manta.user                   | String        | -                 | The Manta user under which to store data. |
 | manta.key                    | String        | -                 | Path to the SSH private key file with which to authenticate to Manta. |
 | manta.keyId                  | String        | -                 | The SSH public key ID (signature). |
+| manta.rootDir                | String        | *<computed>*      | (This is automatically computed from other config vars.) The Manta full path under which IMGAPI uses. |
 | ufds.url                     | String        | -                 | LDAP URL to connect to UFDS. Required if `mode === 'dc'`. |
 | ufds.bindDN                  | String        | -                 | UFDS root dn. Required if `mode === 'dc'`. |
 | ufds.bindPassword            | String        | -                 | UFDS root dn password. Required if `mode === 'dc'`. |
@@ -73,64 +73,95 @@ settings. For example: if providing 'storage', one must provide the whole
 | wfapi.workflows              | String        | -                 | Array of workflows to load. |
 | wfapi.forceReplace           | Boolean       | -                 | Whether to replace all workflows loaded every time the IMGAPI service is started. Ideal for development environments |
 
-| XXX database                     | Object        | -                 | Database info. The "database" is how the image manifest data is stored. |
-| XXX database.type                | String        | ufds              | One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images. |
-| XXX database.dir                 | String        | -                 | The base directory for the database `database.type === 'local'`. |
-| XXX storage                      | Object        | -                 | The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion. |
-| XXX storage.local                | Object        | -                 | Object holding config information for "local" disk storage. |
-| XXX storage.local.baseDir        | String        | -                 | The base directory in which to store image files and archived manifests for "local" storage. This is required even if "storage.manta" is setup for primary storage, because image manifest archives are first staged locally before upload to manta. |
-| XXX auth                         | Object        |                   | If in 'public' mode, then auth details are required. 'dc' mode does no auth. |
-| XXX auth.keys                    | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.auth.type === "signature"`). |
-| XXX auth.keysDir                 | String        | -                 | Optional. A local directory path (e.g. "/data/imgapi/etc/keys") in which the server will look for local keys files (`$auth.keysDir/local/$username.keys`) and sync keys from Manta (`$auth.keysDir/manta/$username.keys). Only relevant if `auth.type === 'signature'`. |
-| XXX auth.type                    | String        | signature         | XXX rip out 'basic'. One of 'none', 'basic' (HTTP Basic Auth), or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
-| XXX auth.users                   | Object        | -                 | Required if `auth.type === 'basic'`. A mapping of username to bcrypt-hashed password. Use the `bin/hash-basic-auth-password` tool to create the hash. |
+While an explicit config file must exist (by default at
+"/data/imgapi/etc/imgapi.config.json"), it can be the empty `{}` -- i.e "use the
+defaults". Currently the defaults give you a public-mode standalone IMGAPI,
+that listens at "https://127.0.0.1:8080", uses the local database and local
+storage backends, and uses signature auth for endpoints that
+create/update/delete resources.
 
-# Image file storage
+For development and debugging, one can look at the full merged and computed
+config by calling "lib/config.js" as a script. Examples:
+
+    $ node lib/config.js -h
+    usage: node .../lib/config.js [OPTIONS] [KEY]
+    options:
+        -h, --help                          Print this help and exit.
+        -f CONFIG-PATH, --file=CONFIG-PATH  Config file path.
+    $ node lib/config.js -f foo.json authType
+    signature
+    $ node lib/config.js -f foo.json
+    {
+        "port": 8080,
+        "address": "127.0.0.1",
+        "maxSockets": 100,
+        "logLevel": "debug",
+        "mode": "public",
+        "authType": "signature",
+    ...
+
+
+# Storage
 
 There are two possible storage mechanisms for the (large) image files (and image
 icon files). Which are in use depend on the IMGAPI configuration (and
-availability in the DC).
+availability in the DC). For example:
 
-1. manta: Requires an available Manta. All files are stored in the configured
-   user's Manta area (e.g. under "/a-dc-operator/stor/imgapi/"), as opposed
-   to storing images own by Bob under Bob's area in Manta.
-   Manta storage may be local (i.e. within the same region, this is preferred)
-   or remote (a Manta across the WAN).
-2. local: A local dir (or locally mounted dir). Only really meant for testing,
-   development and bootstrapping. Generally 'local' usage is insufficient
-   for producion usage because a locally mounted dir can't handle HA (imgapi
-   zones on more than one server).
+    "storageTypes": ["manta", "local"],
+    "mode": "dc",
+    "datacenterName": "us-test-1",
+    "manta": {
+        "url": "https://us-east.manta.joyent.com",
+        "user": "alice",
+        "key": "/data/imgapi/etc/imgapi-img7-37591570-20160831.id_rsa",
+        "keyId": "SHA256:UlGQ8CXT0BIvJXq2IoPllUHUOTJUCwNLhsKMzdc8/30",
+        "baseDir": "imgapi",
+        "insecure": false,
+        "remote": true,
+    },
 
-The set of available storages is set in the [configuration](#configuration).
-For example:
 
-    "storage": {
-        "manta": {
-            "url": "https://us-east.manta.joyent.com",
-            "user": "admin",
-            "insecure": false,
-            "remote": true,
-            "key": "/root/.ssh/imgapi.id_rsa",
-            "keyId": "59:8a:63:3f:9d:5d:69:5f:cf:37:2e:0d:84:80:91:da"
-        },
-        "local": {
-            "baseDir": "/data/imgapi"
-        }
-    }
+Storage types are:
 
-The [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-manta-setup)
-and [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-external-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-external-manta-setup)
-scripts are intended for use in setting up an IMGAPI to use a Manta.
+1. `manta`: Requires an available Manta and that IMGAPI be configured to use it.
+   All files are stored in the configured Manta user's area (under
+   "/${manta.user}/stor/"), as opposed to storing images own by Bob under
+   Bob's area in Manta. Manta storage may be local (i.e. within the same region,
+   this is preferred) or remote (a Manta across the WAN).
 
-Local Manta storage, if available, is used in preference to "local" storage.
-Manta storage is *required* for user custom image creation, i.e. CloudAPI's
+   The Manta root directory used by an IMGAPI (called the Manta `rootDir`) is
+   as follows. If in DC mode (`mode === "dc"`), then the additional
+   "${datacenterName}/" dir component is added.
+
+        /${manta.user}/stor/${manta.baseDir}/[${datacenterName}/]...
+
+   Examples:
+
+        /jim/stor/images.joyent.com/...
+        /cloudops/stor/imgapi/us-test-1/...
+
+2. `local`: Files are stored at the local "/data/imgapi/images/..." (possibly
+   a delegate dataset or NFS mount or whatever). All IMGAPI instances will have
+   at least "local" storage.
+
+Configuring for Manta storage is preferred because file storage is then durable.
+For in-DC IMGAPI instances, Manta storage is *required* for user custom image
+creation, i.e. CloudAPI's
 [CreateImageFromMachine](http://apidocs.joyent.com/cloudapi/#CreateImageFromMachine),
 unless [overriden](howto-enable-custom-image-creation-without-manta).
 
-If Manta storage is available *but is remote*, then which storage is used is a
-little more complicated. The intention is that user-created custom images
-(i.e. IMGAPI's CreateImageFromVm, aka CreateImageFromMachine on cloudapi) go
-to Manta. However, admin-managed public images for the DC are typically large
+For in-DC imgapi instances, the
+[`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-manta-setup)
+and [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-external-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-external-manta-setup)
+scripts are intended for use in setting up to use a Manta. (Longer term this
+responsibility should move to a `sdcadm post-setup ...` command.)
+
+When a file is added (via `AddImageFile`) a storage backend must be selected.
+Non-remote Manta storage, if available, is used in preference to "local"
+storage. If Manta storage is available *but is remote*, then which storage is
+used is a little more complicated. The intention is that user-created custom
+images (i.e. IMGAPI's CreateImageFromVm, aka CreateImageFromMachine on cloudapi)
+go to Manta. However, admin-managed public images for the DC are typically large
 and can't practically live in a remote Manta. Therefore the algorithm is that
 "admin"-owned images prefer local storage to "remote Manta" storage. Images
 owned by others prefer remote Manta storage to local storage.
@@ -138,12 +169,12 @@ owned by others prefer remote Manta storage to local storage.
 
 # Authentication
 
-IMGAPI supports three authentication modes:
+IMGAPI supports two authentication modes:
 
-1. HTTP Signature auth (`config.auth.type === "signature").
-2. HTTP Basic auth (`config.auth.type === "basic"`). This is deprecated and will be removed.
-3. No auth (`config.mode === "dc"`). When running as a component of a Triton DataCenter -- on the
-   DCs private "admin" network -- IMGAPI runs without auth.
+1. HTTP Signature auth (`config.authType === "signature").
+2. No auth (`config.authType === "none"`). When running as a component of a
+   Triton DataCenter -- on the DCs private "admin" network -- IMGAPI runs
+   without auth.
 
 ## HTTP Signature auth
 
@@ -151,34 +182,28 @@ To support HTTP signature authentication the server needs a mapping of
 usernames to an array of SSH public keys. There are three places those keys
 can come from:
 
-1. `config.auth.keys`. For example:
+1. `config.authKeys`. For example:
 
         ...
-        "auth": {
-            "type": "signature",
-            "keys": {
-                "trentm": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPLIC/hQIyd3gvIteBVOIrhZJ8KJHdZe3O/eb7wZL3yoEAOSQeC5yIZINLyZElFeDjKrgsshhPRnWV0QrPPPfkgnpiHTXbTPU0p5aEqekMgMUVVblGmtKr1QRxuQYW2S1r3HBZkoVC8LnbPBR4xWgtCx8LuVOOwCtYc9+E+e+Yl9EjW415KZyVtMVhpzR7ja8Le+SiapJOUejy7CuO73XS9A9xXDHGw81lQtoDJASgJhJKj8/64tgGFxkNERjBtA/hG/9bofHD/Zw4kxAoR1kjtF49sDop5UKEBT3WlejWedQ/fZqyHCNk+YOpmIt+aM0jF49vNMM+QhQotTN5iYHb DESCRIPTION"]
-            }
+        "authType": "signature",
+        "authKeys": {
+            "trentm": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPLIC/hQIyd3gvIteBVOIrhZJ8KJHdZe3O/eb7wZL3yoEAOSQeC5yIZINLyZElFeDjKrgsshhPRnWV0QrPPPfkgnpiHTXbTPU0p5aEqekMgMUVVblGmtKr1QRxuQYW2S1r3HBZkoVC8LnbPBR4xWgtCx8LuVOOwCtYc9+E+e+Yl9EjW415KZyVtMVhpzR7ja8Le+SiapJOUejy7CuO73XS9A9xXDHGw81lQtoDJASgJhJKj8/64tgGFxkNERjBtA/hG/9bofHD/Zw4kxAoR1kjtF49sDop5UKEBT3WlejWedQ/fZqyHCNk+YOpmIt+aM0jF49vNMM+QhQotTN5iYHb DESCRIPTION"]
         }
 
-2. Local ".keys" files in `${config.auth.keysDir}/local/$username.keys`. E.g.
+2. Local ".keys" files in `/data/imgapi/etc/keys/local/$username.keys`. E.g.
 
         $ cat /data/imgapi/etc/keys/local/trentm.keys
         ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPLIC/hQIyd3gvIteBVOIrhZJ8KJHdZe3O/eb7wZL3yoEAOSQeC5yIZINLyZElFeDjKrgsshhPRnWV0QrPPPfkgnpiHTXbTPU0p5aEqekMgMUVVblGmtKr1QRxuQYW2S1r3HBZkoVC8LnbPBR4xWgtCx8LuVOOwCtYc9+E+e+Yl9EjW415KZyVtMVhpzR7ja8Le+SiapJOUejy7CuO73XS9A9xXDHGw81lQtoDJASgJhJKj8/64tgGFxkNERjBtA/hG/9bofHD/Zw4kxAoR1kjtF49sDop5UKEBT3WlejWedQ/fZqyHCNk+YOpmIt+aM0jF49vNMM+QhQotTN5iYHb DESCRIPTION
 
-    This requires `config.auth.keysDir` to be set.
-
-3. ".keys" files in *Manta* at `.../keys/$username.keys` (where "..." is
-   determined from `config.storage.manta`, if set).
+3. ".keys" files in *Manta* at `${manta.rootDir}/keys/$username.keys`:
 
         $ mls /trent.mick/stor/imgapi/keys
         trentm.keys
 
-    This requires `config.storage.manta.*` and `config.auth.keysDir` be
-    set. When those are set, IMGAPI will periodically sync keys files in
-    Manta to `${config.auth.keysDir}/manta/` locally and load from there.
-    Use the [AdminReloadAuthKeys](#AdminReloadAuthKeys) endpoint to trigger
-    a reload.
+    This, of course, requires `config.manta.*` be set. IMGAPI will periodically
+    sync `${manta.rootDir}/keys/*.keys` files in Manta to
+    `/data/imgapi/etc/keys/manta/` locally and load from there. Use the
+    [AdminReloadAuthKeys](#AdminReloadAuthKeys) endpoint to trigger a reload.
 
 
 ## Logs

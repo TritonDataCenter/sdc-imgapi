@@ -23,7 +23,7 @@
     </dependency>
 
     <exec_method type="method" name="start"
-        exec="/opt/smartdc/imgapi/build/node/bin/node --abort-on-uncaught-exception /opt/smartdc/imgapi/main.js -f %{config_file} &amp;" timeout_seconds="30">
+        exec="/opt/smartdc/imgapi/build/node/bin/node --abort-on-uncaught-exception /opt/smartdc/imgapi/main.js &amp;" timeout_seconds="30">
       <method_context working_directory="/opt/smartdc/imgapi">
         <method_credential user="nobody" group="nobody" privileges="basic,net_privaddr"/>
         <method_environment>
@@ -33,10 +33,6 @@
     </exec_method>
     <exec_method type="method" name="refresh" exec=":kill" timeout_seconds="30" />
     <exec_method type="method" name="stop" exec=":kill" timeout_seconds="30" />
-
-    <property_group name="application" type="application">
-      <propval name="config_file" type="astring" value="/data/imgapi/etc/imgapi.config.json"/>
-    </property_group>
 
     <property_group name="startd" type="framework">
       <propval name="ignore_error" type="astring" value="core,signal"/>

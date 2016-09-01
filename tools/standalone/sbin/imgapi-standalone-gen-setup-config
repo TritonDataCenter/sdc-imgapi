@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/opt/smartdc/imgapi/build/node/bin/node
 
 /*
  * This Source Code Form is subject to the terms of the Mozilla Public

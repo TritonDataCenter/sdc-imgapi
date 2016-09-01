@@ -68,10 +68,7 @@ before(function (next) {
         url: process.env.IMGAPI_URL,
         agent: false
     };
-    if (process.env.IMGAPI_PASSWORD) {
-        opts.user = process.env.IMGAPI_USER;
-        opts.password = process.env.IMGAPI_PASSWORD;
-    } else if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
+    if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
         assert.fail('Do not run the channels tests against images.jo.');
     } else {
         assert.fail('What no auth info!?');

@@ -4,6 +4,7 @@
     "maxSockets": 100,
     "logLevel": "debug",
 
+    "mode": "public",
     "authType": "signature",
     "databaseType": "local",
     "storageTypes": ["local"],

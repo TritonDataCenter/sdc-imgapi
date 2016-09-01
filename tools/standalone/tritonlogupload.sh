@@ -54,26 +54,26 @@ function errexit
 }
 
 function usage () {
-    echo "Upload Triton log files in /var/log/triton/upload to Manta."
-    echo ""
-    echo "Requirements:"
-    echo "1. The log files are expected to be of the form:"
-    echo "       $logname_$nodename_YYYYMMDDTHH0000.log"
-    echo "2. The '$logname' cannot contain an underscore."
-    echo ""
-    echo "The files are uploaded to:"
-    echo "    /$account/stor/$baseDir/logs/$logname/YYYY/MM/DD/HH/$nodename.log"
-    echo "where the hour dir is an hour *previous*."
-    echo ""
-    echo "Usage:"
-    echo "    tritonlogupload.sh [-h]"
-    echo ""
-    echo "Options:"
-    echo "     -h       Print this help and exit."
-    echo "     -n       Dry-run."
-    echo "     -a N     Number of attempts (with 60s gap between attempts)."
-    echo "              Multiple attempts can be useful to run this once but"
-    echo "              give time to logadm to finish rotating logs."
+    echo 'Upload Triton log files in /var/log/triton/upload to Manta.'
+    echo ''
+    echo 'Requirements:'
+    echo '1. The log files are expected to be of the form:'
+    echo '       $logname_$nodename_YYYYMMDDTHH0000.log'
+    echo '2. The '$logname' cannot contain an underscore.'
+    echo ''
+    echo 'The files are uploaded to:'
+    echo '    /$account/stor/$baseDir/logs/$logname/YYYY/MM/DD/HH/$nodename.log'
+    echo 'where the hour dir is an hour *previous*.'
+    echo ''
+    echo 'Usage:'
+    echo '    tritonlogupload.sh [-h]'
+    echo ''
+    echo 'Options:'
+    echo '     -h       Print this help and exit.'
+    echo '     -n       Dry-run.'
+    echo '     -a N     Number of attempts (with 60s gap between attempts).'
+    echo '              Multiple attempts can be useful to run this once but'
+    echo '              give time to logadm to finish rotating logs.'
 }
 
 function upload_files() {
@@ -150,16 +150,19 @@ done
 shift $((OPTIND - 1))
 
 
-export MANTA_URL=$(json -f $CONFIG storage.manta.url)
-[[ -n "$MANTA_URL" ]] || fatal "missing storage.manta.url in $CONFIG"
-export MANTA_USER=$(json -f $CONFIG storage.manta.user)
-[[ -n "$MANTA_USER" ]] || fatal "missing storage.manta.user in $CONFIG"
-export MANTA_KEY_ID=$(json -f $CONFIG storage.manta.keyId)
-[[ -n "$MANTA_KEY_ID" ]] || fatal "missing storage.manta.keyId in $CONFIG"
-if [[ "$(json -f $CONFIG storage.manta.insecure)" == "true" ]]; then
+# Get manta info from config
+config="$(node /opt/smartdc/imgapi/lib/config.js)"
+export MANTA_URL=$(echo "$config" | json manta.url)
+[[ -n "$MANTA_URL" ]] || fatal "not configured to use Manta: no 'manta.url' in config"
+export MANTA_USER=$(echo "$config" | json manta.user)
+[[ -n "$MANTA_USER" ]] || fatal "not configured to use Manta: no 'manta.user' in config"
+export MANTA_KEY_ID=$(echo "$config" | json manta.keyId)
+[[ -n "$MANTA_KEY_ID" ]] || fatal "not configured to use Manta: no 'manta.keyId' in config"
+if [[ "$(echo "$config" | json manta.insecure)" == "true" ]]; then
     export MANTA_TLS_INSECURE=1
 fi
-dstMdir=/$MANTA_USER/stor/$(json -f $CONFIG storage.manta.baseDir)/logs
+dstMdir=$(echo "$config" | json manta.rootDir)/logs
+
 
 echo ""
 n=1

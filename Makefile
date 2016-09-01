@@ -24,8 +24,7 @@ RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/') \
 	bin/imgapi-external-manta-setup \
-	bin/imgapi-manta-setup \
-	bin/hash-basic-auth-password
+	bin/imgapi-manta-setup
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
@@ -182,6 +181,7 @@ release: all
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/tools
 	cp -r \
+		$(TOP)/tools/standalone \
 		$(TOP)/tools/seed-packages \
 		$(TOP)/tools/prepare-image \
 		$(TOP)/tools/get-image-dataset-guid.sh \

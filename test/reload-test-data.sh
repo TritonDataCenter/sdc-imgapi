@@ -78,12 +78,11 @@ $TOP/test/rm-test-data.sh $*
 if [[ -n "$opt_local" ]]; then
     # Hack in $manifestsDatabaseDir/$uuid.raw for each image
     # in MODE-test-images.json.
-    CFG_FILE=$TOP/test/imgapi-config-local-$opt_mode.json
-    manifest_dir=$(json database.dir <$CFG_FILE)
+    manifest_dir=/data/imgapi/manifests
     if [[ ! -d $manifest_dir ]]; then
         mkdir -p $manifest_dir
     fi
-    stor_dir=$(json storage.local.baseDir <$CFG_FILE)
+    stor_dir=$(node $TOP/lib/constants.js LOCAL_BASE_DIR)
     if [[ ! -d $stor_dir ]]; then
         mkdir -p $stor_dir
     fi
@@ -107,7 +106,7 @@ elif [[ "$opt_mode" == "dc" ]]; then
     $TOP/test/sdc-ldap modify -f $TOP/test/dc-test-users.ldif
 
     # Load image into moray with putobject
-    CFG_FILE=$TOP/etc/imgapi.config.json
+    CFG_FILE=/data/imgapi/etc/imgapi.config.json
     test_images=$TOP/test/dc-test-images.json
     num_test_images=$(json length <$test_images)
     i=0

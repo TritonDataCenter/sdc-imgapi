@@ -33,10 +33,7 @@ before(function (next) {
         url: process.env.IMGAPI_URL,
         agent: false
     };
-    if (process.env.IMGAPI_PASSWORD) {
-        options.user = process.env.IMGAPI_USER;
-        options.password = process.env.IMGAPI_PASSWORD;
-    } else if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
+    if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
         assert.ok(process.env.JOYENT_IMGADM_USER,
             'JOYENT_IMGADM_USER envvar is not set');
         assert.ok(process.env.JOYENT_IMGADM_IDENTITY,

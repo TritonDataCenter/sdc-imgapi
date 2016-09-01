@@ -44,8 +44,7 @@
     "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#adb8803"
   },
   "optionalDependencies": {
-    "http-signature": "0.10.0",
-    "bcrypt": "0.8.7"
+    "http-signature": "0.10.0"
   },
   "devDependencies": {
     "jshint": "2.1",

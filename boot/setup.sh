@@ -17,6 +17,10 @@ set -o errexit
 PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 role=imgapi
 
+# Mount our delegate dataset at '/data' (before common setup, because our
+# config-agent-written config file is under /data).
+zfs set mountpoint=/data zones/$(zonename)/data
+
 # Include common utility functions (then run the boilerplate)
 source /opt/smartdc/boot/lib/util.sh
 CONFIG_AGENT_LOCAL_MANIFESTS_DIRS=/opt/smartdc/$role
@@ -25,19 +29,16 @@ sdc_common_setup
 # Cookie to identify this as a SmartDC zone and its role
 mkdir -p /var/smartdc/$role
 
-# Mount our delegate dataset at '/data'.
-zfs set mountpoint=/data zones/$(zonename)/data
-
 # Add build/node/bin and node_modules/.bin to PATH
 echo "" >>/root/.profile
 echo "export PATH=/opt/smartdc/$role/bin:/opt/smartdc/$role/build/node/bin:/opt/smartdc/$role/node_modules/.bin:\$PATH" >>/root/.profile
 echo '[[ -f $HOME/.mantaprofile ]] && source $HOME/.mantaprofile' >>/root/.profile
 
-STORAGE_LOCAL_BASEDIR=$(json -f /opt/smartdc/imgapi/etc/imgapi.config.json storage.local.baseDir)
-if [[ ! -d $STORAGE_LOCAL_BASEDIR ]]; then
-    mkdir -p $STORAGE_LOCAL_BASEDIR
+LOCAL_BASE_DIR=$(/opt/smartdc/imgapi/build/node/bin/node /opt/smartdc/imgapi/lib/constants.js LOCAL_BASE_DIR)
+if [[ ! -d $LOCAL_BASE_DIR ]]; then
+    mkdir -p $LOCAL_BASE_DIR
 fi
-chown nobody:nobody $STORAGE_LOCAL_BASEDIR
+chown nobody:nobody $LOCAL_BASE_DIR
 
 $(/opt/local/bin/gsed -i"" -e "s/@@PREFIX@@/\/opt\/smartdc\/imgapi/g" /opt/smartdc/imgapi/smf/manifests/imgapi.xml)
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi.xml

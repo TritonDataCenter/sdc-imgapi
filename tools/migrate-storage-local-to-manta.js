@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2016 Joyent, Inc.
  */
 
 /**
@@ -26,24 +26,20 @@ var p = console.log;
 var fs = require('fs');
 var path = require('path');
 var ldap = require('ldapjs');
-var errors = require('../errors');
 var assert = require('assert-plus');
 var async = require('async');
 var passwd = require('passwd');
 
+var constants = require('../lib/constants');
+var errors = require('../lib/errors');
 
 
 //---- globals
 
 var NAME = path.basename(__filename);
 
-var CONFIG_PATH = '/opt/smartdc/imgapi/etc/imgapi.config.json';
-if (fs.existsSync('/root/THIS-IS-IMAGES.JOYENT.COM.txt') ||
-    fs.existsSync('/root/THIS-IS-UPDATES.JOYENT.COM.txt')) {
-    CONFIG_PATH = '/root/config/imgapi.config.json';
-}
+var CONFIG_PATH = '/data/imgapi/etc/imgapi.config.json';
 var config = JSON.parse(fs.readFileSync(CONFIG_PATH));
-
 
 
 //---- support functions
@@ -89,7 +85,7 @@ function migrateImage(image, callback) {
     info('migrate "%s"', uuid);
     file.stor = 'manta';
 
-    var dbPath = path.resolve(config.database.dir, uuid + '.raw');
+    var dbPath = path.resolve(constants.DATABASE_LOCAL_DIR, uuid + '.raw');
     var content = JSON.stringify(image, null, 2);
     fs.writeFile(dbPath, content, 'utf8', function (err) {
         if (err)
@@ -110,14 +106,14 @@ function migrateImage(image, callback) {
 function localListImages(callback) {
     /*JSSTYLED*/
     var RAW_FILE_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.raw$/;
-    fs.readdir(config.database.dir, function (err, files) {
+    fs.readdir(constants.DATABASE_LOCAL_DIR, function (err, files) {
         var images = [];
         async.forEachSeries(
             files,
             function oneFile(file, next) {
                 if (!RAW_FILE_RE.test(file))
                     return next();
-                var path_ = path.resolve(config.database.dir, file);
+                var path_ = path.resolve(constants.DATABASE_LOCAL_DIR, file);
                 fs.readFile(path_, 'utf8', function (readErr, content) {
                     if (readErr)
                         return next(readErr);
@@ -138,7 +134,7 @@ function localListImages(callback) {
 
 
 function localMigrate(callback) {
-    assert.equal(config.database.type, 'local');
+    assert.equal(config.databaseType, 'local');
     localListImages(function (err, images) {
         if (err)
             return callback(err);
@@ -151,8 +147,8 @@ function localMigrate(callback) {
 //---- mainline
 
 function main(argv) {
-    assert.object(config.database, 'config.database');
-    if (config.database.type === 'local') {
+    assert.object(config.databaseType, 'config.databaseType');
+    if (config.databaseType === 'local') {
         localMigrate(function (err) {
             if (err) {
                 errexit(err);

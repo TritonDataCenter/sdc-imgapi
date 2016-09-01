@@ -20,6 +20,7 @@ fi
 set -o errexit
 set -o pipefail
 
+PATH=/usr/bin:/usr/sbin:/smartdc/bin:/opt/smartdc/bin:/opt/local/bin:/opt/local/sbin
 
 #---- support stuff
 

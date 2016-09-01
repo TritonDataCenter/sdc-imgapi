@@ -41,9 +41,7 @@ function errexit {
 
 trap 'errexit $?' EXIT
 
-if [[ -f /opt/smartdc/imgapi/etc/imgapi.config.json ]]; then
-    CONFIG=/opt/smartdc/imgapi/etc/imgapi.config.json
-elif [[ -f /data/imgapi/etc/imgapi.config.json ]]; then
+if [[ -f /data/imgapi/etc/imgapi.config.json ]]; then
     CONFIG=/data/imgapi/etc/imgapi.config.json
 else
     fatal "could not find imgapi.config.json"

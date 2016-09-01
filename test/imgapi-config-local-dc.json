@@ -2,13 +2,6 @@
     "port": 8081,
     "logLevel": "debug",
     "mode": "dc",
-    "database": {
-        "type": "local",
-        "dir": "/var/tmp/imgapi/db/manifests"
-    },
-    "storage": {
-        "local": {
-            "baseDir": "/var/tmp/imgapi/db/images"
-        }
-    }
+    "databaseType": "local",
+    "storageTypes": ["local"]
 }

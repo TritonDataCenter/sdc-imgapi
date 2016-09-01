@@ -63,7 +63,7 @@ function usage () {
 
 function imgapi_is_running () {
     local imgapi_url=$1
-    local response=$(curl $CURL_IMGAPI_AUTH -iSs -H accept:application/json \
+    local response=$(curl -iSs -H accept:application/json \
         $imgapi_url/ping?caller=runtests)
     if [[ $(echo "$response" | json -qH ping) == "pong" ]]; then
         return 0
@@ -74,8 +74,8 @@ function imgapi_is_running () {
 
 function imgapi_stop () {
     local imgapi_url=$1
-    local pid=$(curl $CURL_IMGAPI_AUTH -iSs -H accept:application/json \
-        $imgapi_url/ping | json -H pid)
+    local pid=$(curl -iSs -H accept:application/json $imgapi_url/ping \
+        | json -H pid)
     kill $pid
 }
 
@@ -173,11 +173,12 @@ fi
 # Gather IMGAPI/datacenter data to be used by the test suite.
 if [[ "$opt_mode" == "dc" ]]; then
     if [[ -n "$opt_local" ]]; then
+        export IMGAPITEST_LOCAL_BASE_DIR=/var/tmp/imgapitest-local-base-dir
         CFG_FILE=$TOP/test/imgapi-config-local-dc.json
         export IMGAPI_URL=http://localhost:$(json port <$CFG_FILE)
     else
         export PATH=/opt/smartdc/bin:$PATH
-        CFG_FILE=$TOP/etc/imgapi.config.json
+        CFG_FILE=/data/imgapi/etc/imgapi.config.json
         [[ ! -f "$CFG_FILE" ]] && fatal "'$CFG_FILE' does not exist"
         export UFDS_URL=$(json ufds.url <$CFG_FILE)
         export UFDS_ROOT_DN=$(json ufds.bindDN <$CFG_FILE)
@@ -208,11 +209,9 @@ if [[ "$opt_mode" == "dc" ]]; then
 else
     # "public" mode
     if [[ -n "$opt_local" ]]; then
+        export IMGAPITEST_LOCAL_BASE_DIR=/var/tmp/imgapitest-local-base-dir
         CFG_FILE=$TOP/test/imgapi-config-local-public.json
         export IMGAPI_URL=http://localhost:$(json port <$CFG_FILE)
-        export IMGAPI_USER=guest
-        export IMGAPI_PASSWORD=guest
-        export CURL_IMGAPI_AUTH="-u $IMGAPI_USER:$IMGAPI_PASSWORD"
     else
         echo "runtests: error: use '-l' (local imgapi server) if using '-p'"
         exit 1
@@ -275,8 +274,7 @@ fi
 # Clear caches.
 if [[ -n $opt_local || "$opt_mode" != "public" ]]; then
     echo "# Drop IMGAPI caches."
-    curl $CURL_IMGAPI_AUTH -isS $IMGAPI_URL/state?action=dropcaches \
-        -X POST >/dev/null
+    curl -isS $IMGAPI_URL/state?action=dropcaches -X POST >/dev/null
 fi
 
 

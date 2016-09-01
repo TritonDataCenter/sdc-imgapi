@@ -2443,7 +2443,7 @@ A JSON representation of some internal state.
 ## AdminReloadAuthKeys (POST /keys/reload)
 
 Tells the IMGAPI server to reload its auth keys, if the server is using HTTP Signature auth
-(`config.auth.type === "signature"`). This is an authenticated endpoint. This allows a
+(`config.authType === "signature"`). This is an authenticated endpoint. This allows a
 server administrator to add keys for users and have the server load those key changes
 without having to restart.
 
@@ -2461,6 +2461,3 @@ An empty object: `{}`.
 ### Examples
 
     $ updates-imgadm reload-auth-keys
-
-
-
