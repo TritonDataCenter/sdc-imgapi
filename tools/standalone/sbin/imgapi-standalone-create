@@ -219,8 +219,6 @@ if [[ -n "$mantaUser" ]]; then
     echo "* * *"
 fi
 
-
-
 # TODO: Would like to have ping be 503 if cannot connect to Manta (if
 # configured for Manta. Then have this script gracefully handle that.
 

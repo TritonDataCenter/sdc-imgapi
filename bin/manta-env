@@ -20,6 +20,7 @@ set -o errexit
 set -o pipefail
 
 
+export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 TOP=$(cd $(dirname $0)/../ 2>/dev/null; pwd)
 JSON=json
 
@@ -47,7 +48,7 @@ else
     fatal "could not find imgapi.config.json"
 fi
 
-mantaConfig="$($JSON -f $CONFIG storage.manta)"
+mantaConfig="$(node /opt/smartdc/imgapi/lib/config.js manta)"
 if [[ -z "$mantaConfig" ]]; then
     exit 0
 fi
