@@ -689,6 +689,7 @@ There are two typical calling styles to this endpoint: with 'account=$UUID' and
 without. The former is what cloudapi uses to ask on behalf of a particular
 authenticated account. The latter is for operator-only querying.
 
+
 ### Inputs
 
 | Field                 | Type       | Required? | Notes |
@@ -697,7 +698,7 @@ authenticated account. The latter is for operator-only querying.
 | channel (query param) | String     | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
 | inclAdminFields (query param) | Bool | No      | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 | owner                 | UUID       | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
-| state                 | String     | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.                                                                                                                                                        |
+| state                 | String     | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'. Note that for standalone IMGAPI instances, unauthenticated requests are limited to 'active' images. |
 | name                  | String     | No        | List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                         |
 | version               | String     | No        | List images with the given version. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                      |
 | public                | Boolean    | No        | List just public or just private images.                                                                                                                                                                                                                           |

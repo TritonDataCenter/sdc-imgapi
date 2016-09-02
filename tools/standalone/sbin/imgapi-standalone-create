@@ -30,10 +30,29 @@ function usage () {
     echo ""
     echo "Options:"
     echo "  -h          Show this help and exit."
+    echo "  -C CHANNEL  Updates channel in which to look for the given IMAGE."
     echo "  -m KEY=VAL  Setup config var to add to metadata (used by initial "
     echo "              setup to configure IMGAPI)."
-    #TODO: -c CHANNEL    option
-    #XXX more doc
+    echo ""
+    echo "Examples:"
+    echo ""
+    echo "- First you'll need to get the create script to your headnode GZ:"
+    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/tools/standalone/sbin/imgapi-standalone-create"
+    echo ""
+    echo "- A play IMGAPI in COAL using a local 'trentm' COAL account and"
+    echo "  /trent.mick/stor/tmp/images in Manta:"
+    echo "    /var/tmp/imgapi-standalone-create -C experimental \\"
+    echo "        -m mantaUrl=https://us-east.manta.joyent.com \\"
+    echo "        -m mantaUser=trent.mick -m mantaBaseDir=tmp/images \\"
+    echo "        trentm latest sample-2G img0"
+    echo ""
+    echo "- An images.joyent.com instance:"
+    echo "    /var/tmp/imgapi-standalone-create \\"
+    echo "        -m mantaUrl=https://us-east.manta.joyent.com \\"
+    echo "        -m mantaUser=Joyent_SW -m mantaBaseDir=images.joyent.com \\"
+    echo "        Joyent_SW latest g4-general-4G imagesjo0"
+    echo ""
+
 }
 
 function fatal {
@@ -53,13 +72,17 @@ trap 'errexit $?' EXIT
 
 [[ $(zonename) == "global" ]] || fatal "must run this from the global zone"
 
+optChannel=
 optMetadata="{}"
-while getopts "hm:" opt
+while getopts "hC:m:" opt
 do
     case "$opt" in
         h)
             usage
             exit 0
+            ;;
+        C)
+            optChannel=$OPTARG
             ;;
         m)
             arg=$OPTARG
@@ -95,8 +118,12 @@ packageJson=$(sdc-papi /packages?active=true \
 packageUuid=$(echo "$packageJson" | json uuid)
 packageName=$(echo "$packageJson" | json name)
 
-if [[ "$IMAGE" == "latest" ]]; then
+if [[ -n "$optChannel" ]]; then
+    channel=$optChannel
+else
     channel=$(sdcadm channel get)
+fi
+if [[ "$IMAGE" == "latest" ]]; then
     echo "Finding latest imgapi image (in '$channel' channel) on updates.jo"
     imageUuid=$(updates-imgadm -C $channel list name=imgapi --latest -H -o uuid)
     [[ -n "$imageUuid" ]] || fatal "no imgapi image in $channel change"
@@ -106,14 +133,14 @@ fi
 imageJson=$(sdc-imgadm get $imageUuid 2>/dev/null || true)
 if [[ -z "$imageJson" ]]; then
     echo "Importing image $imageUuid from updates.jo"
-    sdc-imgadm import $IMAGE -S https://updates.joyent.com?channel=$channel
-    imageJson=$(sdc-imgadm get $IMAGE)
+    sdc-imgadm import $imageUuid -S https://updates.joyent.com?channel=$channel
+    imageJson=$(sdc-imgadm get $imageUuid)
 else
     echo "Already have image $imageUuid in local IMGAPI"
 fi
 imageName=$(echo "$imageJson" | json name)
 [[ "$imageName" == "imgapi" ]] \
-    || fatal "image $IMAGE is name=$imageName (expected 'name=imgapi')"
+    || fatal "image $imageUuid is name=$imageName (expected 'name=imgapi')"
 imageVersion=$(echo "$imageJson" | json version)
 
 # Ensure OWNER is on image ACL.
@@ -214,7 +241,7 @@ if [[ -n "$mantaUser" ]]; then
     echo "If the Manta is part of a separate cloud then, for an appropriate"
     echo "Triton CLI profile, the following might work:"
     echo ""
-    echo "    triton inst get $ALIAS | json metadata.instPubKey | \\"
+    echo "    triton inst get $ALIAS | json metadata.instPubKey \\"
     echo "        | triton -p PROFILE key add -"
     echo "* * *"
 fi

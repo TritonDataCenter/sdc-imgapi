@@ -99,18 +99,42 @@ mantaKeyPath=$(echo "$config" | json manta.key)
 export MANTA_KEY_ID=$(ssh-keygen -E md5 -lf $mantaKeyPath | awk '{print $2}' | cut -c5-)
 if [[ "$(echo "$config" | json manta.insecure)" == "true" ]]; then
     export MANTA_TLS_INSECURE=1
+else
+    unset MANTA_TLS_INSECURE
 fi
 
 bakDir=$(echo "$config" | json manta.rootDir)/backup
-echo "Restore backup from Manta:"
-echo "    backup: $bakDir/{images,manifests}"
-echo "    target: /data/imgapi/{images,manifests}"
+echo "Restore IMGAPI data from Manta backup:"
+echo "    backup (in Manta): $bakDir/{images,manifests}"
+echo "       target (local): /data/imgapi/{images,manifests}"
 echo ""
 if [[ $optYes != "yes" ]]; then
     echo "Hit enter to continue / Ctrl+C to abort."
     read
 fi
 
+# Access check, to ensure a clear error message if our IMGAPI instance key
+# isn't working to get to Manta.
+accessCheckStatus=$(minfo $bakDir | head -1 | awk '{print $2}')
+if [[ $accessCheckStatus == "403" ]]; then
+    echo "* * *" >&2
+    echo "error: Cannot access the backup dir with the following credentials:" >&2
+    echo "    MANTA_URL=$MANTA_URL" >&2
+    echo "    MANTA_USER=$MANTA_USER" >&2
+    echo "    MANTA_KEY_ID=$MANTA_KEY_ID" >&2
+    if [[ -n "$MANTA_TLS_INSECURE" ]]; then
+        echo "    MANTA_TLS_INSECURE=$MANTA_TLS_INSECURE" >&2
+    fi
+    echo "" >&2
+    echo "A likely reason is that this IMGAPI's instance pubkey was not added to" >&2
+    echo "the '$MANTA_USER' Manta account. Depending on your Triton CLI profiles" >&2
+    echo "the following might help:" >&2
+    echo "" >&2
+    echo "    triton inst get $(mdata-get sdc:alias) | json metadata.instPubKey \\" >&2
+    echo "        | triton -a $MANTA_USER key add -" >&2
+    echo "* * *" >&2
+    exit 1
+fi
 
 echo ""
 infoStatus=$(minfo $bakDir/images | head -1 | awk '{print $2}')
