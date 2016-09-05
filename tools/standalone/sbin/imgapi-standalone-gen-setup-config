@@ -13,7 +13,7 @@
 /*
  * Generate config for a standalone IMGAPI setup.
  *
- * Usage:
+ * Usage (from within a standalone IMGAPI zone):
  *      imgapi-standalone-gen-setup-config >/data/imgapi/etc/imgapi.config.json
  *
  * This will emit JSON content on stdout that is suitable for a standalone

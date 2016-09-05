@@ -9,8 +9,9 @@
 
 #
 # Provision a standalone IMGAPI instance.
+#
 # This is meant to be run from the headnode GZ. See notes in
-# "docs/standalone.md".
+# "docs/operator-guide.md".
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -33,6 +34,12 @@ function usage () {
     echo "  -C CHANNEL  Updates channel in which to look for the given IMAGE."
     echo "  -m KEY=VAL  Setup config var to add to metadata (used by initial "
     echo "              setup to configure IMGAPI)."
+    echo ""
+    echo "Where OWNER is an account UUID or login; IMAGE is an 'imgapi' image"
+    echo "UUID or 'latest' to get the latest from the current (or given) "
+    echo "channel of updates.joyent.com; PACKAGE is a package UUID or name; and"
+    echo "ALIAS is an alias for the new instance (try to avoid '.' so the name"
+    echo "will work as part of a DNS name)."
     echo ""
     echo "Examples:"
     echo ""

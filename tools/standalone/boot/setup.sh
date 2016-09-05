@@ -28,7 +28,6 @@ set -o pipefail
 # The same path as used by core IMGAPI (from sdc-scripts.git).
 SETUP_COMPLETE_FILE=/var/svc/setup_complete
 
-
 if [[ -f $SETUP_COMPLETE_FILE ]]; then
     # Already setup.
     exit 0
@@ -42,7 +41,7 @@ if zfs list | grep $dataset; then
         zfs set mountpoint=/data $dataset
     fi
 else
-    mkdir -p /data/imgapi
+    mkdir /data
 fi
 
 # Set nodename/hostname to something that is nice to see in PS1.
@@ -50,45 +49,55 @@ NODENAME=imgapi-$(mdata-get sdc:alias)-$(zonename | cut -d- -f1)
 /opt/local/bin/sm-set-hostname $NODENAME
 
 # Bash profile:
-# - set PATH even for non-login sessions
-# - set MANTA envvars, but only for login sessions
+# - set PATH, even for non-login sessions
+# - set MANTA_ envvars, but only for login sessions
 IMGAPI_PREFIX=/opt/smartdc/imgapi
 echo "" >>/root/.profile
 echo "export PATH=$IMGAPI_PREFIX/bin:$IMGAPI_PREFIX/build/node/bin:$IMGAPI_PREFIX/node_modules/.bin:\$PATH" >>/root/.profile
 echo 'if [ "$PS1" ]; then eval $(/opt/smartdc/imgapi/bin/manta-env); fi' >>/root/.profile
 
-# etc/ and instance ssh key
-mkdir -p /data/imgapi/etc
-keyname=$NODENAME-$(date -u '+%Y%m%d')
-ssh-keygen -t rsa -b 4096 -N "" \
-    -C "$keyname" -f /data/imgapi/etc/$keyname.id_rsa
+# Data dir setup. For reprovisions on delegate datasets, this should already
+# be done.
+if [[ ! -d /data/imgapi ]]; then
+    # etc/ and instance ssh key
+    mkdir -p /data/imgapi/etc
+    [[ ! -f /data/imgapi/etc/imgapi-*.id_rsa ]] \
+        || fatal "unexpected existing IMGAPI instance key files: /data/imgapi/etc/imgapi-*.id_rsa"
+    keyName=$NODENAME-$(date -u '+%Y%m%d')
+    ssh-keygen -t rsa -b 4096 -N "" \
+        -C "$keyName" -f /data/imgapi/etc/$keyName.id_rsa
+    # Write pubkey to mdata so outside tooling can use it for setup.
+    mdata-put instPubKey < /data/imgapi/etc/$keyName.id_rsa.pub
+
+    # Self-signed cert
+    /opt/local/bin/openssl req -x509 -nodes -subj '/CN=*' -newkey rsa:2048 \
+        -keyout /data/imgapi/etc/key.pem \
+        -out /data/imgapi/etc/cert.pem -days 365
+    cat /data/imgapi/etc/key.pem >> /data/imgapi/etc/cert.pem
+    rm /data/imgapi/etc/key.pem
+
+    # Generate config file.
+    /opt/smartdc/imgapi/tools/standalone/sbin/imgapi-standalone-gen-setup-config \
+        >/data/imgapi/etc/imgapi.config.json
+
+    # Dir for local auth keys (really only needed for authType=signature).
+    mkdir -p /data/imgapi/etc/keys/local
+
+    # imgapi SMF services runs as 'nobody'
+    chown nobody:nobody /data/imgapi
+    chown nobody:nobody /data/imgapi/etc
+    chown nobody:nobody /data/imgapi/etc/$keyName.id_rsa{,.pub}
+    chown nobody:nobody /data/imgapi/etc/cert.pem
+    chown nobody:nobody /data/imgapi/etc/imgapi.config.json
+    chown nobody:nobody /data/imgapi/etc/keys
+    chown nobody:nobody /data/imgapi/etc/keys/local
+else
+    keyName=$(mdata-get instPubKey | awk '{print $3}')
+fi
+
 # Manta CLI tools require that key be in ~/.ssh
-ln -s /data/imgapi/etc/$keyname.id_rsa ~/.ssh/
-ln -s /data/imgapi/etc/$keyname.id_rsa.pub ~/.ssh/
-# Write pubkey to mdata so outside tooling can use it for setup.
-mdata-put instPubKey < /data/imgapi/etc/$keyname.id_rsa.pub
-
-# Self-signed cert
-/opt/local/bin/openssl req -x509 -nodes -subj '/CN=*' -newkey rsa:2048 \
-    -keyout /data/imgapi/etc/key.pem \
-    -out /data/imgapi/etc/cert.pem -days 365
-cat /data/imgapi/etc/key.pem >> /data/imgapi/etc/cert.pem
-rm /data/imgapi/etc/key.pem
-
-# Generate config file.
-/opt/smartdc/imgapi/tools/standalone/sbin/imgapi-standalone-gen-setup-config \
-    >/data/imgapi/etc/imgapi.config.json
-
-# Prep data dirs.
-mkdir -p /data/imgapi/etc/keys/local  # Dir for local auth keys, if any.
-# imgapi SMF services runs as 'nobody'
-chown nobody:nobody /data/imgapi
-chown nobody:nobody /data/imgapi/etc
-chown nobody:nobody /data/imgapi/etc/imgapi-*.id_rsa*
-chown nobody:nobody /data/imgapi/etc/cert.pem
-chown nobody:nobody /data/imgapi/etc/imgapi.config.json
-chown nobody:nobody /data/imgapi/etc/keys
-chown nobody:nobody /data/imgapi/etc/keys/local
+ln -s /data/imgapi/etc/$keyName.id_rsa ~/.ssh/
+ln -s /data/imgapi/etc/$keyName.id_rsa.pub ~/.ssh/
 
 # Log rotation
 mkdir -p /var/log/triton/upload
