@@ -134,6 +134,7 @@ cat <<EMOTD >/etc/motd
 **            uuid: $(zonename) ($(mdata-get sdc:alias))
 **              dc: $(mdata-get sdc:datacenter_name)
 **           owner: $(mdata-get sdc:owner_uuid)
+**           image: $(mdata-get sdc:image_uuid)
 **   manta rootDir: $(/opt/smartdc/imgapi/build/node/bin/node /opt/smartdc/imgapi/lib/config.js | json manta.rootDir)
 EMOTD
 

@@ -39,6 +39,7 @@ export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgapi/node_modules/
 
 MANTASYNC=/opt/smartdc/imgapi/node_modules/.bin/manta-sync
 CONFIG=/data/imgapi/etc/imgapi.config.json
+RESTORED_MARKER=/data/imgapi/run/restored.marker
 
 
 #---- support stuff
@@ -155,6 +156,14 @@ echo "Restore /data/imgapi/manifests"
 $MANTASYNC -r $bakDir/manifests /data/imgapi/manifests \
     | (grep -v "size same as source file, skipping" || true)
 
+# The restored.marker file is used to tell 'backup-to-manta.sh' that it is
+# okay to run. Else an unrestored IMGAPI instance could wipe out existing
+# backup data from an earlier instance.
+echo ""
+restoredTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
+echo "Mark restoration ($RESTORED_MARKER)"
+mkdir -p $(dirname $RESTORED_MARKER)
+echo "restored at $restoredTimestamp" >>$RESTORED_MARKER
 
 echo ""
 echo "Restarting imgapi service"

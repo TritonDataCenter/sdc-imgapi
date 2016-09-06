@@ -3,7 +3,13 @@
 # Copyright 2016 Joyent, Inc.
 #
 # Backup local IMGAPI data to Manta.
-# This is intended to be run in cron (see "./setup.sh" for cron entries).
+# This is typically run hourly in cron (see "./setup.sh" for cron entries).
+#
+# Warning: One bad scenario would be for a new instance, which hasn't yet
+# restored data from backup, to run this script and wipe the backup in Manta.
+# To guard against that, this script will fail unless
+# `imgapi-standalone-restore` has been successfully run. That is noted by
+# the "/data/imgapi/run/restored.marker" file.
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -20,6 +26,7 @@ export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/local/bin:/opt/local/sbin:/u
 
 MANTASYNC=/opt/smartdc/imgapi/node_modules/.bin/manta-sync
 CONFIG=/data/imgapi/etc/imgapi.config.json
+RESTORED_MARKER=/data/imgapi/run/restored.marker
 
 
 # ---- support functions
@@ -45,6 +52,11 @@ echo ""
 echo "--"
 echo "[$(date '+%Y%m%dT%H%M%S')] Backing up to Manta"
 
+# Bail if haven't run restore yet.
+if [[ ! -f $RESTORED_MARKER ]]; then
+    fatal "cannot run backup, because 'imgapi-standalone-restore' has not run"
+fi
+
 # Get manta info from config
 config="$(node /opt/smartdc/imgapi/lib/config.js)"
 export MANTA_URL=$(echo "$config" | json manta.url)
@@ -62,9 +74,11 @@ fi
 bakDir=$(echo "$config" | json manta.rootDir)/backup
 echo "backup dir: $bakDir"
 
-$MANTASYNC /data/imgapi/images $bakDir/images \
+echo $MANTASYNC --delete /data/imgapi/images $bakDir/images
+$MANTASYNC --delete /data/imgapi/images $bakDir/images \
     | (grep -v "size same as source file, skipping" || true)
-$MANTASYNC /data/imgapi/manifests $bakDir/manifests \
+echo $MANTASYNC --delete /data/imgapi/manifests $bakDir/manifests
+$MANTASYNC --delete /data/imgapi/manifests $bakDir/manifests \
     | (grep -v "size same as source file, skipping" || true)
 
 echo "[$(date '+%Y%m%dT%H%M%S')] Done backing up"
