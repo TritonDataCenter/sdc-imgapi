@@ -81,7 +81,7 @@ if [[ ! -d /data/imgapi ]]; then
         >/data/imgapi/etc/imgapi.config.json
 
     # Dir for local auth keys (really only needed for authType=signature).
-    mkdir -p /data/imgapi/etc/keys/local
+    mkdir -p /data/imgapi/etc/authkeys/local
 
     # imgapi SMF services runs as 'nobody'
     chown nobody:nobody /data/imgapi
@@ -89,8 +89,8 @@ if [[ ! -d /data/imgapi ]]; then
     chown nobody:nobody /data/imgapi/etc/$keyName.id_rsa{,.pub}
     chown nobody:nobody /data/imgapi/etc/cert.pem
     chown nobody:nobody /data/imgapi/etc/imgapi.config.json
-    chown nobody:nobody /data/imgapi/etc/keys
-    chown nobody:nobody /data/imgapi/etc/keys/local
+    chown nobody:nobody /data/imgapi/etc/authkeys
+    chown nobody:nobody /data/imgapi/etc/authkeys/local
 else
     keyName=$(mdata-get instPubKey | awk '{print $3}')
 fi
@@ -127,6 +127,15 @@ echo '17 * * * * /opt/smartdc/imgapi/tools/standalone/backup-to-manta.sh >>/var/
 crontab $crontab
 [[ $? -eq 0 ]] || fatal "Unable import crontab"
 rm -f $crontab
+
+# MOTD
+cat <<EMOTD >/etc/motd
+** This is a standalone IMGAPI instance.
+**            uuid: $(zonename) ($(mdata-get sdc:alias))
+**              dc: $(mdata-get sdc:datacenter_name)
+**           owner: $(mdata-get sdc:owner_uuid)
+**   manta rootDir: $(/opt/smartdc/imgapi/build/node/bin/node /opt/smartdc/imgapi/lib/config.js | json manta.rootDir)
+EMOTD
 
 # SMF services
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi-standalone.xml

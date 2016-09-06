@@ -160,13 +160,24 @@ else
     echo "Owner ($ownerUuid) is already on the image ACL"
 fi
 
+# Current image details.
+fromImageJson=$(sdc-imgadm get $instImageUuid 2>/dev/null || true)
+if [[ -n "$fromImageJson" ]]; then
+    fromImageName=$(echo "$fromImageJson" | json name)
+    fromImageVersion=$(echo "$fromImageJson" | json version)
+else
+    fromImageName="???"
+    fromImageVersion="???"
+fi
+
 # Confirm data
 echo ""
 echo "Reprovision standalone IMGAPI instance:"
 echo "       uuid: $instUuid"
 echo "      alias: $instAlias"
 echo "      owner: $ownerUuid ($ownerLogin, company=$ownerCompany)"
-echo "      image: $imageUuid ($imageName@$imageVersion)"
+echo " from image: $instImageUuid ($fromImageName@$fromImageVersion)"
+echo "   to image: $imageUuid ($imageName@$imageVersion)"
 echo ""
 if [[ $optYes != "yes" ]]; then
     echo "Hit enter to continue / Ctrl+C to abort."
@@ -176,6 +187,8 @@ fi
 # Reprovision
 # Not using 'sdc-vmadm reprovision $instUuid $imageUuid' because it doesn't
 # have a way to wait.
+startTimeSec=$(date -u +%s)
+startTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
 sdc-vmapi /vms/$instUuid?action=reprovision -X POST -d@- <<EOP | json -H | sdc-waitforjob
 {
     "image_uuid": "$imageUuid"
@@ -207,6 +220,14 @@ if [[ $pingStatus != "200" ]]; then
 --
 $pingResponse
 --"
+else
+    echo ""
+    endTimeSec=$(date -u +%s)
+    endTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
+    echo "Successfully reprovisioned IMGAPI instance $instUuid ($instAlias)"
+    echo "   started: $startTimestamp"
+    echo "  finished: $endTimestamp"
+    echo "   elapsed: $(( $endTimeSec - $startTimeSec ))s"
 fi
 
 exit 0
