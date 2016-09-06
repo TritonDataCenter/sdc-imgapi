@@ -1,15 +1,27 @@
 #!/bin/bash
 #
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
 # Copyright 2016 Joyent, Inc.
 #
+
+#
 # Backup local IMGAPI data to Manta.
+#
 # This is typically run hourly in cron (see "./setup.sh" for cron entries).
 #
-# Warning: One bad scenario would be for a new instance, which hasn't yet
-# restored data from backup, to run this script and wipe the backup in Manta.
-# To guard against that, this script will fail unless
-# `imgapi-standalone-restore` has been successfully run. That is noted by
-# the "/data/imgapi/run/restored.marker" file.
+# Note that "local IMGAPI data" isn't *all* IMGAPI data. For example, with
+# "manta" in "config.storageTypes", some or all image files might be stored
+# in Manta. This backup will backup the other bits, to
+#       ${manta.rootDir}/backup/...
+#
+# Coordinating backup and restore: One bad scenario would be for a new
+# instance, which hasn't yet restored data from backup, to run this script and
+# wipe the backup in Manta. To guard against that, this script will fail unless
+# `imgapi-standalone-restore` has been successfully run. That is noted by the
+# "/data/imgapi/run/restored.marker" file.
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -31,6 +43,15 @@ RESTORED_MARKER=/data/imgapi/run/restored.marker
 
 # ---- support functions
 
+function usage () {
+    echo "Usage:"
+    echo "  imgapi-standalone-backup [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -h          Show this help and exit."
+    echo "  -y          Skip the confirmation before backing up."
+}
+
 function fatal
 {
     echo "$0: fatal error: $*"
@@ -48,9 +69,24 @@ function errexit
 
 trap 'errexit $?' EXIT
 
-echo ""
-echo "--"
-echo "[$(date '+%Y%m%dT%H%M%S')] Backing up to Manta"
+optYes=no
+while getopts "hy" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        y)
+            optYes=yes
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
 
 # Bail if haven't run restore yet.
 if [[ ! -f $RESTORED_MARKER ]]; then
@@ -72,8 +108,18 @@ if [[ "$(echo "$config" | json manta.insecure)" == "true" ]]; then
     export MANTA_TLS_INSECURE=1
 fi
 bakDir=$(echo "$config" | json manta.rootDir)/backup
-echo "backup dir: $bakDir"
 
+echo "[$(date '+%Y%m%dT%H%M%S')] Backup local IMGAPI data to Manta:"
+echo "              local: /data/imgapi/{images,manifests}"
+echo "  backup (in Manta): $bakDir/{images,manifests}"
+echo ""
+if [[ $optYes != "yes" ]]; then
+    echo "Hit enter to continue / Ctrl+C to abort."
+    read
+fi
+
+startTimeSec=$(date -u +%s)
+startTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
 echo $MANTASYNC --delete /data/imgapi/images $bakDir/images
 $MANTASYNC --delete /data/imgapi/images $bakDir/images \
     | (grep -v "size same as source file, skipping" || true)
@@ -81,7 +127,13 @@ echo $MANTASYNC --delete /data/imgapi/manifests $bakDir/manifests
 $MANTASYNC --delete /data/imgapi/manifests $bakDir/manifests \
     | (grep -v "size same as source file, skipping" || true)
 
-echo "[$(date '+%Y%m%dT%H%M%S')] Done backing up"
+endTimeSec=$(date -u +%s)
+endTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
+echo ""
+echo "Successfully backed up local IMGAPI data to Manta"
+echo "   started: $startTimestamp"
+echo "  finished: $endTimestamp"
+echo "   elapsed: $(( $endTimeSec - $startTimeSec ))s"
 
 #
 # vim: set softtabstop=4 shiftwidth=4:

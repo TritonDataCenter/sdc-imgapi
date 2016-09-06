@@ -123,7 +123,7 @@ touch $crontab
 echo '0 5 * * * /opt/local/sbin/pkg_admin fetch-pkg-vulnerabilities >/dev/null 2>&1' >>$crontab
 echo '0 * * * * /usr/sbin/logadm -v >>/var/log/logadm.log 2>&1' >>$crontab
 echo '1 * * * * /opt/smartdc/imgapi/tools/standalone/tritonlogupload.sh -a 5 >>/var/log/tritonlogupload.log 2>&1' >>$crontab
-echo '17 * * * * /opt/smartdc/imgapi/tools/standalone/backup-to-manta.sh >>/var/log/triton/imgapi-backup.log 2>&1' >>$crontab
+echo '17 * * * * /opt/smartdc/imgapi/tools/standalone/sbin/imgapi-standalone-backup >>/var/log/triton/imgapi-backup.log 2>&1' >>$crontab
 crontab $crontab
 [[ $? -eq 0 ]] || fatal "Unable import crontab"
 rm -f $crontab
