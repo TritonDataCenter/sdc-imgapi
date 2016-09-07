@@ -88,8 +88,15 @@ do
 done
 shift $((OPTIND - 1))
 
-# Get manta info from config
 config="$(node /opt/smartdc/imgapi/lib/config.js)"
+
+# Guard that this is run only in a standalone IMGAPI.
+mode=$(echo "$config" | json mode)
+if [[ $mode == "dc" ]]; then
+    fatal "cannot run in a 'mode=dc' IMGAPI instance"
+fi
+
+# Get manta info from config
 export MANTA_URL=$(echo "$config" | json manta.url)
 [[ -n "$MANTA_URL" ]] || fatal "not configured to use Manta: no 'manta.url' in config"
 export MANTA_USER=$(echo "$config" | json manta.user)
