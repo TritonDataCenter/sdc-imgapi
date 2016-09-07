@@ -76,7 +76,7 @@ if [[ ! -d /data/imgapi ]]; then
     rm /data/imgapi/etc/key.pem
 
     # Generate config file.
-    /opt/smartdc/imgapi/tools/standalone/sbin/imgapi-standalone-gen-setup-config \
+    /opt/smartdc/imgapi/bin/imgapi-standalone-gen-setup-config \
         >/data/imgapi/etc/imgapi.config.json
 
     # Dir for local auth keys (really only needed for authType=signature).

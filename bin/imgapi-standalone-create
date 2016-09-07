@@ -44,7 +44,7 @@ function usage () {
     echo "Examples:"
     echo ""
     echo "- First you'll need to get the create script to your headnode GZ:"
-    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/tools/standalone/sbin/imgapi-standalone-create"
+    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/bin/imgapi-standalone-create"
     echo ""
     echo "- A play IMGAPI in COAL using a local 'trentm' COAL account and"
     echo "  /trent.mick/stor/tmp/images in Manta:"

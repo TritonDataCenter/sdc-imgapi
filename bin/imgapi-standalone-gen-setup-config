@@ -22,7 +22,7 @@
  * from the instance's metadata (i.e. from `mdata-get`). Typically the setup
  * config vars are given as arguments to `imgapi-standalone-create`, e.g.
  *
- *      /opt/smartdc/imgapi/tools/standalone/sbin/imgapi-standalone-create \
+ *      /opt/smartdc/imgapi/bin/imgapi-standalone-create \
  *          -m mode=public -m serverName="Joyent Public Images Repo" \
  *          ...
  */

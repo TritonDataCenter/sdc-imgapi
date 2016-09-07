@@ -43,7 +43,7 @@ function usage () {
     echo "Examples:"
     echo ""
     echo "- First you'll need to get the create script to your headnode GZ:"
-    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/tools/standalone/sbin/imgapi-standalone-reprovision"
+    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/bin/imgapi-standalone-reprovision"
     echo ""
     echo "- Reprovision an images.joyent.com inst with the latest experimental"
     echo "  'imgapi' image:"
