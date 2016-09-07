@@ -149,8 +149,8 @@ echo ""
 infoStatus=$(minfo $bakDir/images | head -1 | awk '{print $2}')
 if [[ $infoStatus == "404" ]]; then
     echo "Nothing in $bakDir/images to restore."
-    echo "This means all image files for this IMGAPI are stored in Manta,"
-    echo "which is a good thing."
+    echo "This means either (a) all image files for this IMGAPI are stored in "
+    echo "Manta, which is a good thing; or (b) this is a brand new IMGAPI repo."
 elif [[ $infoStatus != "200" ]]; then
     fatal "unexpected status code getting `minfo $bakDir/images`: $infoStatus"
 else
@@ -159,8 +159,16 @@ else
 fi
 
 echo ""
-echo "Restore /data/imgapi/manifests"
-$MANTASYNC -r $bakDir/manifests /data/imgapi/manifests
+infoStatus=$(minfo $bakDir/manifests | head -1 | awk '{print $2}')
+if [[ $infoStatus == "404" ]]; then
+    echo "Nothing in $bakDir/manifests to restore."
+    echo "This means either that this is a brand new IMGAPI repo."
+elif [[ $infoStatus != "200" ]]; then
+    fatal "unexpected status code getting `minfo $bakDir/manifests`: $infoStatus"
+else
+    echo "Restore /data/imgapi/manifests"
+    $MANTASYNC -r $bakDir/manifests /data/imgapi/manifests
+fi
 
 # The restored.marker file is used to tell 'imgapi-standalone-backup' that it
 # is okay to run. Else an unrestored IMGAPI instance could wipe out existing
