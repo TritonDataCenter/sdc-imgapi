@@ -252,6 +252,7 @@ function check_manta_connection {
     local mOpts
     local output
     local retval
+    local status
 
     mOpts="--url=$(echo "$config" | json manta.url)"
     mOpts="$mOpts -a $(echo "$config" | json manta.user)"
@@ -274,6 +275,17 @@ function check_manta_connection {
         echo "   Cmd: $cmd"
         echo "  Info: minfo exit status was $retval"
         nFaults=$(( $nFaults + 1 ))
+    fi
+
+    status=$(echo "$output" | head -1 | awk '{print $2}')
+    if [[ $status != "200" ]]; then
+        echo ""
+        echo "manta connection"
+        echo " State: non-200 HTTP status attempting to minfo Manta root dir: $mantaRootDir"
+        echo "   Cmd: $cmd"
+        echo "Status: $status"
+        nFaults=$(( $nFaults + 1 ))
+        return
     fi
 }
 

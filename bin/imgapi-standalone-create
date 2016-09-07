@@ -34,6 +34,7 @@ function usage () {
     echo "  -C CHANNEL  Updates channel in which to look for the given IMAGE."
     echo "  -m KEY=VAL  Setup config var to add to metadata (used by initial "
     echo "              setup to configure IMGAPI)."
+    echo "  -t TAG=VAL  Tag to add to created instance."
     echo ""
     echo "Where OWNER is an account UUID or login; IMAGE is an 'imgapi' image"
     echo "UUID or 'latest' to get the latest from the current (or given) "
@@ -52,12 +53,6 @@ function usage () {
     echo "        -m mantaUrl=https://us-east.manta.joyent.com \\"
     echo "        -m mantaUser=trent.mick -m mantaBaseDir=tmp/images \\"
     echo "        trentm latest sample-2G img0"
-    echo ""
-    echo "- An images.joyent.com instance:"
-    echo "    /var/tmp/imgapi-standalone-create \\"
-    echo "        -m mantaUrl=https://us-east.manta.joyent.com \\"
-    echo "        -m mantaUser=Joyent_SW -m mantaBaseDir=images.joyent.com \\"
-    echo "        Joyent_SW latest g4-general-4G imagesjo0"
     echo ""
 
 }
@@ -81,7 +76,8 @@ trap 'errexit $?' EXIT
 
 optChannel=
 optMetadata="{}"
-while getopts "hC:m:" opt
+optTags="{}"
+while getopts "hC:m:t:" opt
 do
     case "$opt" in
         h)
@@ -96,6 +92,12 @@ do
             k="${OPTARG%%=*}"
             v="${OPTARG#*=}"
             optMetadata=$(echo "$optMetadata" | json -e "this.$k = '$v'")
+            ;;
+        t)
+            arg=$OPTARG
+            k="${OPTARG%%=*}"
+            v="${OPTARG#*=}"
+            optTags=$(echo "$optTags" | json -e "this['$k'] = '$v'")
             ;;
         *)
             usage
@@ -184,6 +186,7 @@ echo "      owner: $ownerUuid ($ownerLogin)"
 echo "      image: $imageUuid ($imageName@$imageVersion)"
 echo "    package: $packageUuid ($packageName)"
 echo "    network: $netUuid ($netName)"
+echo "       tags: $(echo "$optTags" | json -o json-0)"
 echo "   metadata:"
 echo "$optMetadata" | sed  's/^/        /'
 echo ""
@@ -197,6 +200,7 @@ sdc-vmapi /vms -X POST -d@- <<EOP | json -H | sdc-waitforjob
     "brand": "joyent",
     "image_uuid": "$imageUuid",
     "delegate_dataset": true,
+    "tags": $optTags,
     "customer_metadata": $optMetadata
 }
 EOP

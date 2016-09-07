@@ -53,7 +53,7 @@ NODENAME=imgapi-$(mdata-get sdc:alias)-$(zonename | cut -d- -f1)
 IMGAPI_PREFIX=/opt/smartdc/imgapi
 echo "" >>/root/.profile
 echo "export PATH=$IMGAPI_PREFIX/bin:$IMGAPI_PREFIX/build/node/bin:$IMGAPI_PREFIX/node_modules/.bin:\$PATH" >>/root/.profile
-echo 'if [ "$PS1" ]; then eval $(/opt/smartdc/imgapi/bin/manta-env); fi' >>/root/.profile
+echo 'if [ "$PS1" ]; then eval $(/opt/smartdc/imgapi/bin/manta-env 2>/dev/null || true); fi' >>/root/.profile
 
 # Data dir setup. For reprovisions on delegate datasets, this should already
 # be done.

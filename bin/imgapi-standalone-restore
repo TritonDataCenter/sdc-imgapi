@@ -155,14 +155,12 @@ elif [[ $infoStatus != "200" ]]; then
     fatal "unexpected status code getting `minfo $bakDir/images`: $infoStatus"
 else
     echo "Restore /data/imgapi/images"
-    $MANTASYNC -r $bakDir/images /data/imgapi/images \
-        | (grep -v "size same as source file, skipping" || true)
+    $MANTASYNC -r $bakDir/images /data/imgapi/images
 fi
 
 echo ""
 echo "Restore /data/imgapi/manifests"
-$MANTASYNC -r $bakDir/manifests /data/imgapi/manifests \
-    | (grep -v "size same as source file, skipping" || true)
+$MANTASYNC -r $bakDir/manifests /data/imgapi/manifests
 
 # The restored.marker file is used to tell 'imgapi-standalone-backup' that it
 # is okay to run. Else an unrestored IMGAPI instance could wipe out existing

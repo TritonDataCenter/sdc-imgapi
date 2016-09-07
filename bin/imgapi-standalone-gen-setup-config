@@ -41,7 +41,7 @@ var VError = require('verror').VError;
 
 var NAME = path.basename(__filename);
 
-var topDir = path.resolve(__dirname, '..', '..', '..');
+var topDir = path.resolve(__dirname, '..');
 var templatePath = path.resolve(topDir, 'etc', 'standalone',
         'imgapi.config.json.handlebars');
 
