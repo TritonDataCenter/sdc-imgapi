@@ -12,9 +12,9 @@
 #
 # Upload Triton log files in /var/log/triton/upload/ to Manta.
 #
-# Typically this script is setup to run after logadm does it rotations.
-# This will make *5* upload attempts with 60s gaps. This is to allow
-# log rotation to complete.
+# Typically "setup.sh" sets cron to run this script run after logadm does its
+# rotations. For example, the following make *5* upload attempts with 60s gaps.
+# This is to allow log rotation to complete.
 #
 #       0 * * * * /usr/sbin/logadm -v >>/var/log/logadm.log 2>&1
 #       1 * * * * /.../tritonlogupload.sh -a 5 >>/var/log/tritonlogupload.log 2>&1
@@ -38,17 +38,22 @@ export PATH=/opt/local/bin:/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgap
 SRCDIR=/var/log/triton/upload
 CONFIG=/data/imgapi/etc/imgapi.config.json
 DATE=/opt/local/bin/date
+LOGUPLOAD_STATUS=/data/imgapi/run/logupload.status
 
 
 #---- support functions
 
-function fatal() {
+function fatal
+{
     echo "$0: error: $*" >&2
     exit 1
 }
 
-function errexit
+function onexit
 {
+    mkdir -p $(dirname $LOGUPLOAD_STATUS)
+    echo "$1" > $LOGUPLOAD_STATUS
+
     [[ $1 -ne 0 ]] || exit 0
     fatal "error exit status $1"
 }
@@ -123,8 +128,6 @@ function upload_text_file() {
 
 #---- mainline
 
-trap 'errexit $?' EXIT
-
 # Options.
 opt_dryrun=no
 opt_numattempts=1
@@ -149,6 +152,8 @@ do
 done
 shift $((OPTIND - 1))
 
+
+trap 'onexit $?' EXIT
 
 # Get manta info from config
 config="$(node /opt/smartdc/imgapi/lib/config.js)"

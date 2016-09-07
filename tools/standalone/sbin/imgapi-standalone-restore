@@ -15,9 +15,10 @@
 #
 #
 # As part of normal operation, a standalone IMGAPI that is configured to use
-# Manta will backup local data to Manta (see "backup-to-manta.sh"). To
+# Manta will backup local data to Manta (see "imgapi-standalone-backup"). To
 # recover an IMGAPI one can do the following:
 #   - create a new standalone IMGAPI instance with `imgapi-standalone-create`
+#   - add the new instance's SSH key to the configured Manta user
 #   - ssh in to that instance and run `imgapi-standalone-restore`
 #
 # Eventually (when RFD 40 is more complete), when standalone IMGAPI deployments
@@ -156,8 +157,8 @@ echo "Restore /data/imgapi/manifests"
 $MANTASYNC -r $bakDir/manifests /data/imgapi/manifests \
     | (grep -v "size same as source file, skipping" || true)
 
-# The restored.marker file is used to tell 'backup-to-manta.sh' that it is
-# okay to run. Else an unrestored IMGAPI instance could wipe out existing
+# The restored.marker file is used to tell 'imgapi-standalone-backup' that it
+# is okay to run. Else an unrestored IMGAPI instance could wipe out existing
 # backup data from an earlier instance.
 echo ""
 restoredTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')

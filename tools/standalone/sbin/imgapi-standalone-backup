@@ -39,6 +39,7 @@ export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/local/bin:/opt/local/sbin:/u
 MANTASYNC=/opt/smartdc/imgapi/node_modules/.bin/manta-sync
 CONFIG=/data/imgapi/etc/imgapi.config.json
 RESTORED_MARKER=/data/imgapi/run/restored.marker
+BACKUP_STATUS=/data/imgapi/run/backup.status
 
 
 # ---- support functions
@@ -54,20 +55,22 @@ function usage () {
 
 function fatal
 {
-    echo "$0: fatal error: $*"
+    echo "$0: fatal error: $*" >&2
     exit 1
 }
 
-function errexit
+function onexit
 {
+    mkdir -p $(dirname $BACKUP_STATUS)
+    echo "$1" > $BACKUP_STATUS
+
     [[ $1 -ne 0 ]] || exit 0
-    fatal "error exit status $1"
+    echo "$0: error exit status $1"
+    exit $1
 }
 
 
 #---- mainline
-
-trap 'errexit $?' EXIT
 
 optYes=no
 while getopts "hy" opt
@@ -117,6 +120,8 @@ if [[ $optYes != "yes" ]]; then
     echo "Hit enter to continue / Ctrl+C to abort."
     read
 fi
+
+trap 'onexit $?' EXIT
 
 startTimeSec=$(date -u +%s)
 startTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')

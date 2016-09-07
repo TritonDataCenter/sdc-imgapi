@@ -8,10 +8,8 @@
 #
 
 #
-# *Re*-provision a standalone IMGAPI instance with a new image.
-#
-# This is meant to be run from the headnode GZ. See notes in
-# "docs/standalone.md".
+# Check the status of this standalone IMGAPI instance.
+# (This is meant to be inside an IMGAPI INSTANCE.)
 #
 
 if [[ -n "$TRACE" ]]; then
@@ -21,36 +19,25 @@ fi
 set -o errexit
 set -o pipefail
 
-PATH=/usr/bin:/usr/sbin:/smartdc/bin:/opt/smartdc/bin:/opt/local/bin:/opt/local/sbin
+#---- env and globals
+
+export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/smartdc/imgapi/node_modules/.bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
+
+optVerbose=no
+nFaults=0
+config=
 
 
 #---- support stuff
 
 function usage () {
     echo "Usage:"
-    echo "  imgapi-standalone-reprovision [OPTIONS] INSTANCE IMAGE"
+    echo "  imgapi-standalone-status [OPTIONS]"
     echo ""
     echo "Options:"
-    echo "  -h          Show this help and exit."
-    echo "  -y          Skip the confirmation before reprovisioning."
-    echo "  -I          Allow reprovision with same image."
-    echo "  -C CHANNEL  Updates channel in which to look for the given IMAGE."
-    echo ""
-    echo "Where INSTANCE is an existing standalone IMGAPI instance UUID, and"
-    echo "IMAGE is an 'imgapi' image UUID or 'latest' to get the latest from"
-    echo "the current (or given) channel of updates.joyent.com."
-    echo ""
-    echo "Examples:"
-    echo ""
-    echo "- First you'll need to get the create script to your headnode GZ:"
-    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/tools/standalone/sbin/imgapi-standalone-reprovision"
-    echo ""
-    echo "- Reprovision an images.joyent.com inst with the latest experimental"
-    echo "  'imgapi' image:"
-    echo "    /var/tmp/imgapi-standalone-reprovision -C experimental \\"
-    echo "        205c49c8-715e-11e6-9134-239a750f414c latest"
-    echo ""
-
+    echo "  -h      Show this help and exit."
+    echo "  -v      Verbose. Emit output for each step. By default there is"
+    echo "          only output for failures."
 }
 
 function fatal {
@@ -58,36 +45,348 @@ function fatal {
     exit 1
 }
 
-function errexit {
-    [[ $1 -ne 0 ]] || exit 0
-    fatal "error exit status $1"
+function verbose {
+    if [[ $optVerbose == "yes" ]]; then
+        echo "$@" >&2
+    fi
+}
+
+
+#---- checks
+
+# Example:
+# svc:/site/imgapi:default (Triton Image API)
+#  State: disabled since Tue Sep  6 22:05:49 2016
+# Reason: Disabled by an administrator.
+#    See: http://illumos.org/msg/SMF-8000-05
+#    See: /var/svc/log/site-imgapi:default.log
+# Impact: This service is not running.
+function check_svcs {
+    local retval
+
+    verbose "Checking svcs ..."
+
+    set +o errexit
+    svcs -x
+    retval=$?
+    set -o errexit
+
+    if [[ $retval -ne 0 ]]; then
+        nFaults=$(( $nFaults + 1 ))
+    fi
+}
+
+function check_imgapi_http_ping {
+    local port
+    local cmd
+    local output
+    local retval
+    local status
+
+    verbose "Checking imgapi http ping ..."
+
+    port=$(echo "$config" | json port)
+    cmd="curl -is --connect-timeout 2 --max-time 5 http://localhost:$port/ping"
+    set +o errexit
+    output=$($cmd)
+    retval=$?
+    set -o errexit
+
+    if [[ $retval -ne 0 ]]; then
+        echo ""
+        echo "imgapi http ping"
+        echo " State: failed"
+        echo "   Cmd: $cmd"
+        echo "  Info: curl exit status: $retval"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    status=$(echo "$output" | head -1 | awk '{print $2}')
+    if [[ $status != "200" ]]; then
+        echo ""
+        echo "imgapi http ping"
+        echo " State: non-200 HTTP status"
+        echo "   Cmd: $cmd"
+        echo "Status: $status"
+        nFaults=$(( $nFaults + 1 ))
+    fi
+}
+
+function check_imgapi_https_ping {
+    local cmd
+    local output
+    local retval
+    local status
+
+    verbose "Checking imgapi https ping ..."
+
+    # TODO: don't have hostname from anywhere to do cert checking
+    cmd="curl -kis --connect-timeout 2 --max-time 5 https://localhost/ping"
+    set +o errexit
+    output=$($cmd)
+    retval=$?
+    set -o errexit
+
+    if [[ $retval -ne 0 ]]; then
+        echo ""
+        echo "imgapi https ping"
+        echo " State: failed"
+        echo "   Cmd: $cmd"
+        echo "  Info: curl exit status: $retval"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    status=$(echo "$output" | head -1 | awk '{print $2}')
+    if [[ $status != "200" ]]; then
+        echo ""
+        echo "imgapi https ping"
+        echo " State: non-200 HTTP status"
+        echo "   Cmd: $cmd"
+        echo "Status: $status"
+        nFaults=$(( $nFaults + 1 ))
+    fi
+}
+
+function check_imgapi_https_images {
+    local cmd
+    local output
+    local retval
+    local status
+
+    verbose "Checking imgapi https images ..."
+
+    cmd="curl -kis --connect-timeout 2 --max-time 5 https://localhost/images?limit=1"
+    set +o errexit
+    output=$($cmd)
+    retval=$?
+    set -o errexit
+
+    if [[ $retval -ne 0 ]]; then
+        echo ""
+        echo "imgapi https images"
+        echo " State: failed"
+        echo "   Cmd: $cmd"
+        echo "  Info: curl exit status: $retval"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    status=$(echo "$output" | head -1 | awk '{print $2}')
+    if [[ $status != "200" ]]; then
+        echo ""
+        echo "imgapi https images"
+        echo " State: non-200 HTTP status"
+        echo "   Cmd: $cmd"
+        echo "Status: $status"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    if [[ $(echo "$output" | json -H -o json-0 | cut -c1) != "[" ]]; then
+        echo ""
+        echo "imgapi https images"
+        echo " State: ListImages body does not look like an array"
+        echo "   Cmd: $cmd"
+        nFaults=$(( $nFaults + 1 ))
+    fi
+}
+
+
+# 'imgapi-standalone-restore' must be run once, otherwise
+# 'imgapi-standalone-backup' can't run.
+function check_restore_has_run {
+    local mtime
+    local now
+    local hourago
+    local lastStatus
+
+    # imgapi-standalone-restore writes this file on successful completion.
+    local RESTORED_MARKER=/data/imgapi/run/restored.marker
+
+    verbose "Checking restore has run ..."
+
+    if [[ ! -f $RESTORED_MARKER ]]; then
+        echo ""
+        echo "restore run at least once"
+        echo " State: imgapi-status-restore has never been run"
+        echo "  Info: This must be run once manually by an operator after creation."
+        echo "   See: $RESTORED_MARKER"
+        nFaults=$(( $nFaults + 1 ))
+    fi
+}
+
+
+function check_log_rotation {
+    local expect
+    local output
+    local retval
+    local name
+
+    verbose "Checking log rotation ..."
+
+    for name in imgapi imgapi-backup; do
+        expect="/var/log/triton/${name}_$(hostname)_$(date -u "+%Y%m%dT%H")*.log"
+
+        set +o errexit
+        output=$(ls $expect 2>&1)
+        retval=$?
+        set -o errexit
+
+        if [[ $retval -ne 0 ]]; then
+            echo ""
+            echo "log rotation"
+            echo " State: no rotated '$name' log file for current hour was found"
+            echo "Expect: $expect"
+            nFaults=$(( $nFaults + 1 ))
+        fi
+    done
+}
+
+
+function check_manta_connection {
+    verbose "Checking Manta connection ..."
+
+    local mantaRootDir
+    local mOpts
+    local output
+    local retval
+
+    mOpts="--url=$(echo "$config" | json manta.url)"
+    mOpts="$mOpts -a $(echo "$config" | json manta.user)"
+    mOpts="$mOpts -k $(echo "$config" | json manta.keyId)"
+    if [[ "$(echo "$config" | json manta.insecure)" == "true" ]]; then
+        mOpts="$mOpts -i"
+    fi
+    mantaRootDir=$(echo "$config" | json manta.rootDir)
+
+    cmd="minfo $mOpts $mantaRootDir"
+    set +o errexit
+    output=$($cmd)
+    retval=$?
+    set -o errexit
+
+    if [[ $retval -ne 0 ]]; then
+        echo ""
+        echo "manta connection"
+        echo " State: could not get info on Manta root dir: $mantaRootDir"
+        echo "   Cmd: $cmd"
+        echo "  Info: minfo exit status was $retval"
+        nFaults=$(( $nFaults + 1 ))
+    fi
+}
+
+
+function check_backup {
+    local mtime
+    local now
+    local hourago
+    local lastStatus
+
+    # imgapi-standalone-backup writes its last status to this file. Fault if
+    # that doesn't exist, was last run more than an hour ago, or is non-zero.
+    local BACKUP_STATUS=/data/imgapi/run/backup.status
+
+    verbose "Checking backup ..."
+
+    if [[ ! -f $BACKUP_STATUS ]]; then
+        echo ""
+        echo "backup"
+        echo " State: imgapi-status-backup has never been run"
+        echo "  Info: Typically this is run via cron. Setup by setup.sh."
+        echo "   See: crontab -l"
+        echo "   See: $(svcs -L mdata:execute)"
+        echo "   See: $BACKUP_STATUS"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    mtime=$(stat --printf=%Y $BACKUP_STATUS)
+    now=$(date '+%s')
+    hourago=$(( now - 3600 ))
+    if [[ $mtime -lt $hourago ]]; then
+        echo ""
+        echo "backup"
+        echo " State: imgapi-status-backup has not run in the last hour"
+        echo "  Info: $BACKUP_STATUS mtime is $mtime"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    lastStatus=$(cat $BACKUP_STATUS)
+    if [[ $lastStatus != "0" ]]; then
+        echo ""
+        echo "backup"
+        echo " State: last 'imgapi-status-backup' failed"
+        echo "  Info: exit status from $BACKUP_STATUS is $lastStatus"
+        echo "   See: /var/log/triton/imgapi-backup.log"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+}
+
+
+function check_log_upload {
+    local mtime
+    local now
+    local hourago
+    local lastStatus
+
+    # tritonlogupload.sh writes its last status to this file. Fault if
+    # that doesn't exist, was last run more than an hour ago, or is non-zero.
+    local LOGUPLOAD_STATUS=/data/imgapi/run/logupload.status
+
+    verbose "Checking log upload ..."
+
+    if [[ ! -f $LOGUPLOAD_STATUS ]]; then
+        echo ""
+        echo "log upload"
+        echo " State: log upload has never run"
+        echo "  Info: Typically this is run via cron. Setup by setup.sh."
+        echo "   See: crontab -l"
+        echo "   See: $(svcs -L mdata:execute)"
+        echo "   See: $LOGUPLOAD_STATUS"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    mtime=$(stat --printf=%Y $LOGUPLOAD_STATUS)
+    now=$(date '+%s')
+    hourago=$(( now - 3600 ))
+    if [[ $mtime -lt $hourago ]]; then
+        echo ""
+        echo "backup"
+        echo " State: log upload not run in the last hour"
+        echo "  Info: $LOGUPLOAD_STATUS mtime is $mtime"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
+
+    lastStatus=$(cat $LOGUPLOAD_STATUS)
+    if [[ $lastStatus != "0" ]]; then
+        echo ""
+        echo "backup"
+        echo " State: last log upload failed"
+        echo "  Info: exit status from $LOGUPLOAD_STATUS is $lastStatus"
+        echo "   See: /var/log/tritonlogupload.log"
+        nFaults=$(( $nFaults + 1 ))
+        return
+    fi
 }
 
 
 #---- mainline
 
-trap 'errexit $?' EXIT
-
-[[ $(zonename) == "global" ]] || fatal "must run this from the global zone"
-
-optAllowSameImage=
-optYes=
-optChannel=
-while getopts "hyIC:" opt
+while getopts "hv" opt
 do
     case "$opt" in
         h)
             usage
             exit 0
             ;;
-        y)
-            optYes=yes
-            ;;
-        I)
-            optAllowSameImage=yes
-            ;;
-        C)
-            optChannel=$OPTARG
+        v)
+            optVerbose=yes
             ;;
         *)
             usage
@@ -96,138 +395,32 @@ do
     esac
 done
 shift $((OPTIND - 1))
-INSTANCE=$1
-[[ -n $INSTANCE ]] || fatal 'no INSTANCE arg given'
-IMAGE=$2
-[[ -n $IMAGE ]] || fatal 'no IMAGE arg given'
 
-echo "Looking up instance $INSTANCE"
-instJson=$(sdc-vmadm get $INSTANCE)
-instUuid=$(echo "$instJson" | json uuid)
-instImageUuid=$(echo "$instJson" | json image_uuid)
-instAlias=$(echo "$instJson" | json alias)
-instDelegateDataset=$(echo "$instJson" | json datasets | json -a)
-ownerUuid=$(echo "$instJson" | json owner_uuid)
-
-if [[ -z "$instDelegateDataset" ]]; then
-    fatal "Instance $INSTANCE ($instAlias) does not have a delegate dataset: reprovisioning could lose IMGAPI data"
-fi
-
-echo "Looking up owner $ownerUuid"
-ownerJson=$(sdc-useradm get $ownerUuid)
-ownerLogin=$(echo "$ownerJson" | json login)
-ownerCompany=$(echo "$ownerJson" | json company)
-
-if [[ -n "$optChannel" ]]; then
-    channel=$optChannel
-else
-    channel=$(sdcadm channel get)
-fi
-if [[ "$IMAGE" == "latest" ]]; then
-    echo "Finding latest imgapi image (in '$channel' channel) on updates.jo"
-    imageUuid=$(updates-imgadm -C $channel list name=imgapi --latest -H -o uuid)
-    [[ -n "$imageUuid" ]] || fatal "no imgapi image in $channel change"
-else
-    imageUuid=$IMAGE
-fi
-
-if [[ $optAllowSameImage != "yes" ]]; then
-if [[ $imageUuid == "$instImageUuid" ]]; then
-    echo "Instance $INSTANCE ($instAlias) is already using image $imageUuid: skipping"
-    exit 0
-fi
-fi
-
-imageJson=$(sdc-imgadm get $imageUuid 2>/dev/null || true)
-if [[ -z "$imageJson" ]]; then
-    echo "Importing image $imageUuid from updates.jo"
-    sdc-imgadm import $imageUuid -S https://updates.joyent.com?channel=$channel
-    imageJson=$(sdc-imgadm get $imageUuid)
-else
-    echo "Already have image $imageUuid in local IMGAPI"
-fi
-imageName=$(echo "$imageJson" | json name)
-[[ "$imageName" == "imgapi" ]] \
-    || fatal "image $imageUuid is name=$imageName (expected 'name=imgapi')"
-imageVersion=$(echo "$imageJson" | json version)
-
-# Ensure OWNER is on image ACL.
-onAcl=$(echo "$imageJson" | json acl | json -a | (grep $ownerUuid || true))
-if [[ -z "$onAcl" ]]; then
-    echo "Adding owner ($ownerUuid) to image ACL"
-    sdc-imgadm add-acl $imageUuid $ownerUuid
-else
-    echo "Owner ($ownerUuid) is already on the image ACL"
-fi
-
-# Current image details.
-fromImageJson=$(sdc-imgadm get $instImageUuid 2>/dev/null || true)
-if [[ -n "$fromImageJson" ]]; then
-    fromImageName=$(echo "$fromImageJson" | json name)
-    fromImageVersion=$(echo "$fromImageJson" | json version)
-else
-    fromImageName="???"
-    fromImageVersion="???"
-fi
-
-# Confirm data
-echo ""
-echo "Reprovision standalone IMGAPI instance:"
-echo "       uuid: $instUuid"
-echo "      alias: $instAlias"
-echo "      owner: $ownerUuid ($ownerLogin, company=$ownerCompany)"
-echo " from image: $instImageUuid ($fromImageName@$fromImageVersion)"
-echo "   to image: $imageUuid ($imageName@$imageVersion)"
-echo ""
-if [[ $optYes != "yes" ]]; then
-    echo "Hit enter to continue / Ctrl+C to abort."
-    read
-fi
-
-# Reprovision
-# Not using 'sdc-vmadm reprovision $instUuid $imageUuid' because it doesn't
-# have a way to wait.
 startTimeSec=$(date -u +%s)
 startTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
-sdc-vmapi /vms/$instUuid?action=reprovision -X POST -d@- <<EOP | json -H | sdc-waitforjob
-{
-    "image_uuid": "$imageUuid"
-}
-EOP
-# TODO: ^^^ does that exit non-zero on job failure? It would be nice.
 
-# Poll until get a 200 status ping (give it up to 2 minutes)
-echo ""
-echo "Waiting for IMGAPI service ping to respond with a 200"
-MAX_TRIES=40
-instIp=$(sdc-vmadm get $instUuid | json nics | json -c 'this.primary' 0.ip)
-[[ -n $instIp ]] || fatal "could not determine VM $instUuid primary IP"
-nTries=0
-pingResponse=
-pingStatus=
-while [[ nTries -lt $MAX_TRIES ]]; do
-    sleep 3
-    echo -n '.'
-    pingResponse=$(curl -ski --connect-timeout 2 --max-time 5 https://$instIp/ping || true)
-    pingStatus=$(echo "$pingResponse" | head -1 | awk '{print $2}')
-    if [[ $pingStatus == "200" ]]; then
-        break
-    fi
-    nTries=$(( $nTries + 1 ))
-done
-if [[ $pingStatus != "200" ]]; then
-    fatal "timeout waiting for IMGAPI ping to respond with 200:
---
-$pingResponse
---"
-else
-    echo ""
-    endTimeSec=$(date -u +%s)
-    endTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
-    echo "Successfully reprovisioned IMGAPI instance $instUuid ($instAlias)"
-    echo "   started: $startTimestamp"
-    echo "  finished: $endTimestamp"
-    echo "   elapsed: $(( $endTimeSec - $startTimeSec ))s"
+config="$(node /opt/smartdc/imgapi/lib/config.js)"
+
+check_svcs
+check_imgapi_http_ping
+check_imgapi_https_ping
+check_imgapi_https_images
+check_restore_has_run
+check_log_rotation
+if [[ -n "$(echo "$config" | json manta)" ]]; then
+    check_manta_connection
+    check_backup
+    check_log_upload
 fi
 
-exit 0
+endTimeSec=$(date -u +%s)
+endTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
+if [[ $nFaults -eq 0 ]]; then
+    verbose ""
+    verbose "Successful check"
+    verbose "   started: $startTimestamp"
+    verbose "  finished: $endTimestamp"
+    verbose "   elapsed: $(( $endTimeSec - $startTimeSec ))s"
+fi
+
+exit $nFaults
