@@ -11,7 +11,7 @@
 -->
 
 <service_bundle type="manifest" name="imgapi">
-  <service name="site/imgapi" type="service" version="1">
+  <service name="smartdc/site/imgapi" type="service" version="1">
     <create_default_instance enabled="true"/>
     <single_instance/>
 

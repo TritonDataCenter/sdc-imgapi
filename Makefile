@@ -29,7 +29,7 @@ JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
-SMF_MANIFESTS_IN = smf/manifests/imgapi.xml.in
+SMF_MANIFESTS = $(shell ls smf/manifests/*.xml)
 NODEUNIT	:= ./node_modules/.bin/nodeunit
 CLEAN_FILES += ./node_modules
 

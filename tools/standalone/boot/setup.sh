@@ -139,7 +139,7 @@ cat <<EMOTD >/etc/motd
 EMOTD
 
 # SMF services
-/usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi-standalone.xml
+/usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi.xml
 /usr/sbin/svccfg delete pkgsrc/haproxy  # avoid 'haproxy' FMRI collison
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/haproxy-standalone.xml
 /usr/sbin/svccfg delete pkgsrc/stud  # avoid 'stud' FMRI collison
