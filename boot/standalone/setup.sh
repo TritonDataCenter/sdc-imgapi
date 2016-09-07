@@ -13,8 +13,7 @@
 # Setup a new zone for a standalone IMGAPI.
 #
 # Typically this is run via the user-script for this instance (which should
-# be the content of "../user-script") and logs are in
-# "/var/log/imgapi-standalone-setup.log".
+# be the content of "./user-script") and logs are in "/var/log/setup.log".
 #
 
 if [[ -n "$TRACE" ]]; then

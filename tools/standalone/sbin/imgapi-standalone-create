@@ -175,7 +175,7 @@ netName=$(echo "$netJson" | json name)
 # Create the VM
 vmUuid=$(uuid)
 optMetadata=$(echo "$optMetadata" \
-    | json -e "this['user-script'] = '/opt/smartdc/imgapi/tools/standalone/user-script'")
+    | json -e "this['user-script'] = '/opt/smartdc/boot/standalone/user-script'")
 echo ""
 echo "Creating standalone imgapi VM:"
 echo "       uuid: $vmUuid"
