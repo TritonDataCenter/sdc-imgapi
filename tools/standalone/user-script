@@ -30,11 +30,11 @@ set -o pipefail
 
 SENTINEL=/var/svc/.ran-user-script
 
-DIR=/opt/smartdc/imgapi/tools/standalone/boot
+DIR=/opt/smartdc/boot/standalone
 
 if [[ ! -e ${SENTINEL} ]]; then
     if [[ -f ${DIR}/setup.sh ]]; then
-        TRACE=1 ${DIR}/setup.sh 2>&1 | tee -a /var/log/imgapi-standalone-setup.log
+        TRACE=1 ${DIR}/setup.sh 2>&1 | tee -a /var/log/setup.log
     fi
 
     touch ${SENTINEL}
