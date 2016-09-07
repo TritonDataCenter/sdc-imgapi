@@ -100,22 +100,10 @@ updates.joyent.com-node-hack:
 $(NODEUNIT) node_modules/restify: | $(NPM_EXEC)
 	$(NPM) install
 
-.PHONY: test test-kvm7 test-images.joyent.com
+.PHONY: test
 test: | $(NODEUNIT)
 	./test/runtests -lp  # test local 'public' mode
 	./test/runtests -l   # test local 'dc' mode
-test-kvm7: | $(NODEUNIT)
-	./tools/rsync-to-kvm7
-	./tools/runtests-on-kvm7
-test-images.joyent.com: | $(NODEUNIT)
-	./test/runtests -p -r default
-
-
-.PHONY: test-coal
-COAL=root@10.99.99.7
-test-coal:
-	./tools/rsync-to $(COAL)
-	ssh $(COAL) "/opt/smartdc/bin/sdc-login imgapi /opt/smartdc/imgapi/test/runtests"
 
 
 # We get the IMGAPI errors table from "lib/errors.js". This should be re-run

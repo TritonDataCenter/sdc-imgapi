@@ -44,30 +44,17 @@ There are different testing entry points for testing these.
 
         $ ssh HEADNODE
         [root@headnode]# IMGAPI_ZONE=$(vmadm lookup -1 alias=imgapi0)
-        [root@headnode]# /zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/test/runtests
+        [root@headnode]# sdc-login -l imgapi /opt/smartdc/imgapi/test/runtests
 
     This will not run in a production system (guard on the
     '/lib/sdc/.sdc-test-no-production-data' file). It leaves some test data
     lieing around for faster re-runs of the test suite. You can clean up via:
 
-        [root@headnode]# /zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/test/runtests -c
+        [root@headnode]# sdc-login -l imgapi /opt/smartdc/imgapi/test/runtests -c
 
 3. Test public-flavour locally:
 
         ./test/runtests -p -l
-
-4. Test the *production* <https://images.joyent.com>:
-
-        ./test/runtests -p
-
-    To successfully run this, you also need to have the follow env setup
-    (the same env setup for using the `joyent-imgadm` tool):
-
-        JOYENT_IMGADM_USER=<username>
-        JOYENT_IMGADM_IDENTITY=<signature-of-configured-key-for-username>
-
-    These are required to authenticate with image.joyent.com's HTTP signature
-    auth.
 
 
 # Related Repositories
