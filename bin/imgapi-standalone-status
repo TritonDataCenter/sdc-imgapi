@@ -210,7 +210,7 @@ function check_restore_has_run {
     if [[ ! -f $RESTORED_MARKER ]]; then
         echo ""
         echo "restore run at least once"
-        echo " State: imgapi-status-restore has never been run"
+        echo " State: imgapi-standalone-restore has never been run"
         echo "  Info: This must be run once manually by an operator after creation."
         echo "   See: $RESTORED_MARKER"
         nFaults=$(( $nFaults + 1 ))

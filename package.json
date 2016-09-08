@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "jshint": "2.1",
-    "nodeunit": "0.8.1"
+    "nodeunit": "0.10.2"
   },
   "scripts": {
     "test": "make test"
