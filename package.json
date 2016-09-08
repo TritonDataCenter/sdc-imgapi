@@ -23,7 +23,7 @@
     "uuid": "2.0.2",
     "manta": "2.0.7",
     "manta-dir-watcher": "1.1.0",
-    "manta-sync": "0.3.3",
+    "manta-sync": "0.3.4",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
     "moray": "git+ssh://git@github.com:joyent/node-moray.git#b84ef0e",

@@ -239,6 +239,7 @@ function check_log_rotation {
             echo "log rotation"
             echo " State: no rotated '$name' log file for current hour was found"
             echo "Expect: $expect"
+            echo "  Note: This is expected if you reprovisioned within the last hour"
             nFaults=$(( $nFaults + 1 ))
         fi
     done
