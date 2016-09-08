@@ -68,34 +68,8 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack docs | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) docs | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
-
-# Node hack for images.joyent.com and updates.joyent.com
-#
-# Fake out 'Makefile.node_prebuilt.*' by symlinking build/node
-# to the node we want to use. We can't use sdcnode here because
-# of GCC mismatch with current sdcnode builds.
-.PHONY: images.joyent.com-node-hack
-images.joyent.com-node-hack:
-	if [[ -f "$(HOME)/THIS-IS-IMAGES.JOYENT.COM.txt" ]]; then \
-		if [[ ! -d "$(TOP)/build/node" ]]; then \
-			mkdir -p $(TOP)/build; \
-			(cd $(TOP)/build && ln -s $(IMAGES_JOYENT_COM_NODE) node); \
-			touch $(NODE_EXEC); \
-			touch $(NPM_EXEC); \
-		fi; \
-	fi
-.PHONY: updates.joyent.com-node-hack
-updates.joyent.com-node-hack:
-	if [[ -f "$(HOME)/THIS-IS-UPDATES.JOYENT.COM.txt" ]]; then \
-		if [[ ! -d "$(TOP)/build/node" ]]; then \
-			mkdir -p $(TOP)/build; \
-			(cd $(TOP)/build && ln -s $(UPDATES_JOYENT_COM_NODE) node); \
-			touch $(NODE_EXEC); \
-			touch $(NPM_EXEC); \
-		fi; \
-	fi
 
 $(NODEUNIT) node_modules/restify: | $(NPM_EXEC)
 	$(NPM) install
@@ -209,47 +183,6 @@ publish: release
 	fi
 	mkdir -p $(BITS_DIR)/$(NAME)
 	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
-
-.PHONY: deploy-images.joyent.com
-deploy-images.joyent.com:
-	@echo '# Deploy to images.joyent.com. This is a *production* server.'
-	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
-	@read
-	ssh root@images.joyent.com ' \
-		set -x \
-		&& export PATH=$(IMAGES_JOYENT_COM_NODE)/bin:$$PATH \
-		&& which node && node --version && npm --version \
-		&& test ! -d /root/services/imgapi.deploying \
-		&& cd /root/services \
-		&& cp -PR imgapi imgapi.deploying \
-		&& cd /root/services/imgapi.deploying \
-		&& git fetch origin \
-		&& git pull --rebase origin master \
-		&& git submodule update --init \
-		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
-		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
-		&& mv /root/services/imgapi.deploying /root/services/imgapi \
-		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi'
-
-.PHONY: deploy-updates.joyent.com
-deploy-updates.joyent.com:
-	@echo '# Deploy to updates.joyent.com. This is a *production* server.'
-	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
-	@read
-	ssh root@updates.joyent.com ' \
-		set -x \
-		&& export PATH=$(UPDATES_JOYENT_COM_NODE)/bin:$$PATH \
-		&& test ! -d /root/services/imgapi.deploying \
-		&& cd /root/services \
-		&& cp -PR imgapi imgapi.deploying \
-		&& cd /root/services/imgapi.deploying \
-		&& git fetch origin \
-		&& git pull --rebase origin master \
-		&& git submodule update --init \
-		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
-		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
-		&& mv /root/services/imgapi.deploying /root/services/imgapi \
-		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi'
 
 .PHONY: devrun
 devrun:
