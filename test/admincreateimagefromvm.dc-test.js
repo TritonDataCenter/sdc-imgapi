@@ -21,7 +21,7 @@ var dns = require('dns');
 var https = require('https');
 var async = require('async');
 var restify = require('restify');
-var genUuid = require('libuuid');
+var lib_uuid = require('uuid');
 
 var IMGAPI = require('sdc-clients').IMGAPI;
 var DSAPI = require('sdc-clients/lib/dsapi');
@@ -65,7 +65,7 @@ if (!CAN_RUN_TEST) {
 }
 
 function createManifest() {
-    var uuid = genUuid.create();
+    var uuid = lib_uuid.v4();
     return {
         name: 'custom-image-' + uuid,
         version: '1.0.0',
@@ -158,7 +158,7 @@ before(function (next) {
         },
         function createVm(cb) {
             var payload = {
-                alias: 'imgapi-test-' + genUuid.create(),
+                alias: 'imgapi-test-' + lib_uuid.v4(),
                 owner_uuid: process.env.UFDS_ADMIN_UUID,
                 image_uuid: TEST_IMAGE_UUID,
                 networks: NETWORK,
@@ -195,7 +195,7 @@ before(function (next) {
 if (CAN_RUN_TEST)
 test('CreateImageFromVm should not work for an nonexistent VM', function (t) {
     this.client.createImageFromVmAndWait(createManifest(),
-        { vm_uuid: genUuid.create() },
+        { vm_uuid: lib_uuid.v4() },
       function (err, image) {
         t.ok(err, 'got an error as expected');
         t.end();
