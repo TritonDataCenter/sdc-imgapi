@@ -680,8 +680,8 @@ fields.
 
 ## ListImages (GET /images)
 
-List images. Without query params this returns all active
-(`state === "active"`) images.
+List images. Without query params this returns all active (`state === "active"`)
+images.
 
 There are two typical calling styles to this endpoint: with 'account=$UUID' and
 without. The former is what cloudapi uses to ask on behalf of a particular
@@ -691,7 +691,7 @@ authenticated account. The latter is for operator-only querying.
 
 | Field                 | Type       | Required? | Notes |
 | --------------------- | ---------- | --------- | ----- |
-| account (query param) | UUID       | No        | Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID       | No        | Only allow access to images visible to this account. A user can see: (a) their own images, (b) activated public images, and (c) activated private images for which they are on the ACL. Note that "activated" is different than "active" (see [state](#manifest-state)). This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String     | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
 | inclAdminFields (query param) | Bool | No      | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 | owner                 | UUID       | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
@@ -862,9 +862,9 @@ authenticated account. The latter is for operator-only querying.
 
 ### Inputs
 
-| Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                              |
-| --------------------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| account (query param) | UUID   | No        | Only allow access to images visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| Field                 | Type   | Required? | Notes |
+| --------------------- | ------ | --------- | ----- |
+| account (query param) | UUID   | No        | Only allow access to images visible to this account. A user can see: (a) their own images, (b) activated public images, and (c) activated private images for which they are on the ACL. Note that "activated" is different than "active" (see [state](#manifest-state)). This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                 |
 | inclAdminFields (query param) | Bool | No  | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 

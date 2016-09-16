@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {

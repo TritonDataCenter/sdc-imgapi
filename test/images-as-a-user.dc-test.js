@@ -286,21 +286,21 @@ test('ListImages: luke, owner=sdc', function (t) {
 
 // Tests from test-data.ldif comment.
 var data = {
-    // 1. everyone can see 'base-1.8.1'
+    // 1. everyone can see 'base-1.8.1' (it is active, public, owned by sdc)
     'base-1.8.1': [
         {uuid: vader,   login: 'vader',   cansee: true},
         {uuid: luke,    login: 'luke',    cansee: true},
         {uuid: emperor, login: 'emperor', cansee: true},
         {uuid: sdc,     login: 'sdc',     cansee: true}
     ],
-    // 2. only sdc can see 'nodejs-1.0.0'
+    // 2. only sdc can see 'nodejs-1.0.0' (it is disabled, public, owned by sdc)
     'nodejs-1.0.0': [
-        {uuid: vader,   login: 'vader',   cansee: false},
-        {uuid: luke,    login: 'luke',    cansee: false},
-        {uuid: emperor, login: 'emperor', cansee: false},
+        {uuid: vader,   login: 'vader',   cansee: true},
+        {uuid: luke,    login: 'luke',    cansee: true},
+        {uuid: emperor, login: 'emperor', cansee: true},
         {uuid: sdc,     login: 'sdc',     cansee: true}
     ],
-    // 3. only sdc can see 'base-2.0.0'
+    // 3. only sdc can see 'base-2.0.0' (it is unactivated, owned by sdc)
     'base-2.0.0': [
         {uuid: vader,   login: 'vader',   cansee: false},
         {uuid: luke,    login: 'luke',    cansee: false},
@@ -314,10 +314,11 @@ var data = {
         {uuid: emperor, login: 'emperor', cansee: false},
         {uuid: sdc,     login: 'sdc',     cansee: false}
     ],
-    // 5. only vader can see 'come-to-the-dark-side'
+    // 5. only vader can see 'come-to-the-dark-side' (owned by vader, private
+    //    disabled, luke on the acl)
     'come-to-the-dark-side-42.1.2': [
         {uuid: vader,   login: 'vader',   cansee: true},
-        {uuid: luke,    login: 'luke',    cansee: false},
+        {uuid: luke,    login: 'luke',    cansee: true},
         {uuid: emperor, login: 'emperor', cansee: false},
         {uuid: sdc,     login: 'sdc',     cansee: false}
     ],
