@@ -277,9 +277,10 @@ Possible `error.code` values from current SmartDataCenter and SmartOS:
 
 ## Manifest: disabled
 
-A boolean indicating if this image is disabled. A disabled image is only
-visible to its owner in cloudapi. A disabled image cannot be used for
-provisioning.
+A boolean indicating if this image is disabled. A disabled image cannot be used
+for provisioning. Disabling an image will remove it from the default list of
+images returned by [ListImages](#ListImages). However, a user can still list
+it via with the `state=all` parameter.
 
 The [DisableImage](#DisableImage) and [EnableImage](#EnableImage) api
 endpoints can be used to update the disabled state of an image.
