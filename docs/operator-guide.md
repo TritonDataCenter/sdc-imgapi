@@ -439,7 +439,7 @@ the merged and computed config object values. Examples:
 
 ## SAPI Configuration
 
-DC-node IMGAPI is configured via "metadata" on the "imgapi" SAPI service.
+DC-mode IMGAPI is configured via "metadata" on the "imgapi" SAPI service.
 See [the config template](../sapi_manifests/imgapi/template) for the
 authoritative details.
 
