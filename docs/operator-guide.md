@@ -6,38 +6,378 @@ apisections:
 
 # IMGAPI Operator Guide
 
-This document is a guide for operators of an IMGAPI. There are two main types
-of IMGAPI:
+This document is a guide for operators of an IMGAPI. Users of IMGAPI can
+refer to the [User Guide](./index.md).
 
-1. An instance that is part of the core "imgapi" service in a Triton DataCenter.
-   An in-DC IMGAPI is configured with `mode === "dc"`. It servers HTTP over the
-   DC's "admin" network. It optionally has a firewalled NIC on an external
-   network to be able to reach out (to import from standalone IMGAPIs, or
-   pull from Docker registries).
+There are two main types of IMGAPI:
 
-2. A "standalone" IMGAPI, that runs independent of a Triton DataCenter. These
-   are configured with `mode === "public"` (for public images, example
-   "images.joyent.com") or `mode === "private"` (for repos with private images,
-   example "updates.joyent.com"). These server HTTPS over a public network (via
-   stud for SSL termination, to HAproxy for possible load balancing, to one or
-   more node.js IMGAPI processes). They are typically configured to use HTTP
-   Signature auth (like Triton's CloudAPI and Manta's web API) for any write
-   endpoints.
+1. `DC-mode`: An instance that is part of the core "imgapi" service in a Triton
+   DataCenter. An in-DC IMGAPI is configured with `mode === "dc"`. It serves
+   HTTP over the DC's "admin" network. It optionally has a firewalled (external
+   connections only) NIC on an external network to be able to reach out (to
+   import from standalone IMGAPIs, or pull from Docker registries).
 
+2. `standalone`: A standalone IMGAPI, that runs independent of a Triton
+   DataCenter. These are configured with `mode === "public"` (for public images,
+   example "images.joyent.com") or `mode === "private"` (for repos with private
+   images, example "updates.joyent.com"). These server HTTPS over a public
+   network (via stud for SSL termination, to HAproxy for possible load
+   balancing, to one or more node.js IMGAPI processes). They are typically
+   configured to use HTTP Signature auth (like Triton's CloudAPI and Manta's web
+   API) for any write endpoints.
+
+# Image
+
+Both types of IMGAPI instances use "imgapi" images built from sdc-imgapi.git and
+mountain-gorilla.git on Joyent's internal CI build system and released to
+[Joyent's Updates Image repository](https://updates.joyent.com).
+
+
+# DC-Mode Setup
+
+A DC-mode IMGAPI instance is setup via standard Triton DataCenter headnode
+setup. See
+[headnode.sh](https://github.com/joyent/sdc-headnode/blob/master/scripts/headnode.sh).
+
+## DC-mode setup: add an external NIC
+
+For a DC-mode IMGAPI to import images -- e.g. from images.joyent.com to add base
+images for users of the DC, or from updates.joyent.com for updating the Triton
+DC -- the IMGAPI instance requires an external NIC. The instance is firewalled
+to only allow outgoing connections. The external NIC can be added (and to the
+adminui instance) via:
+
+    sdcadm post-setup common-external-nics
+
+
+## DC-mode setup: connect to Manta
+
+For durable image storage (and to enable image creation which intentionally
+fails without durable storage), a DC-mode IMGAPI instance needs to be given
+Manta connection details.
+
+This can be done by running one of the following scripts (they must be run
+from inside the imgapi zone):
+
+    # Use a Manta that is part of this same Triton cloud (i.e. shares the
+    # same account database):
+    imgapi-manta-setup MANTA_URL [OPTIONS] | bunyan
+
+    # Use a Manta that is not part of this Triton cloud:
+    imgapi-external-manta-setup MANTA_URL MANTA_USER PATH_TO_PRIV_KEY | bunyan
+
+(Dev Note: Longer term this responsibility should move to a `sdcadm post-setup ...` command.)
+
+
+## DC-mode setup: enable custom image creation without Manta
+
+(This step is optional, and typically solely for development.)
+
+By default, a DC-mode IMGAPI only allows custom image creation (i.e. the
+[CreateImageFromVm](./index.md#CreateImageFromVm] endpoint) if it is configured
+with Manta storage for custom image files. However for *test* Triton DataCenter
+standups you can hack IMGAPI to allow local custom image storage.
+
+The symptom of needing to do this from cloudapi or the node-smartdc CLI is:
+
+    $ triton image create 3d68ee48-d1fa-685c-9c33-e23064141138 myimage 1.0.0
+    triton image create: error (NotAvailable): custom image creation is not currently available
+
+To allow custom images using *local* storage, run the following in your
+SDC headnode global zone:
+
+    echo '{"metadata": {"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true}}' \
+      | sapiadm update $(sdc-sapi /services?name=imgapi | json -H 0.uuid)
+
+When the 'config-agent' running in the imgapi zone picks up this change
+(after about 30s), the imgapi service will be restarted with
+`"allowLocalCreateImageFromVm": true` (see [the Configuration
+section](#configuration) above).
+
+# Standalone Setup
+
+A standalone IMGAPI instance is just a regular instance. However two reasons
+mean we can't use stock `triton` to provision one:
+
+- We use 'imgapi' images from updates.joyent.com, which can only be imported
+  to a DC by an operator.
+  Dev Note: Eventually this could move to custom image builds by the user that
+  owns the imgapi instance. Preferably this would be via a `triton build`
+  that automates this.
+- We want (for good updating we currently require) a delegate dataset, which
+  isn't yet an exported feature of CloudAPI's CreateMachine.
+
+*Warning:* Currently, standalone IMGAPI code does not support multiple instances
+using the same Manta area. It is up to the operator to guard against this. If
+two instances are writing to the same Manta area, they could cause conflicts
+in the image files and backups stored there.
+
+
+## Standalone Setup Step 1: create instance
+
+To create new standalone IMGAPI instance, use
+[imgapi-standalone-create](../bin/imgapi-standalone-create). It needs to be
+run from the DC's headnode global zone.
+
+    imgapi-standalone-create [OPTIONS] ACCOUNT IMAGE PACKAGE ALIAS
+
+For example:
+
+    cd /var/tmp
+    curl -kO https://raw.githubusercontent.com/joyent/sdc-imgapi/master/bin/imgapi-standalone-create
+
+    # A play IMGAPI in COAL using a local 'trentm' COAL account and
+    # /trent.mick/stor/tmp/images in Manta:
+    bash ./imgapi-standalone-create \
+        -m mantaUrl=https://us-east.manta.joyent.com \
+        -m mantaUser=trent.mick -m mantaBaseDir=tmp/images \
+        trentm latest sample-2G myimages0
+
+    # An deployment of images.joyent.com might look like this:
+    bash ./imgapi-standalone-create \
+        -m mantaUrl=https://us-east.manta.joyent.com \
+        -m mantaUser=joyops -m mantaBaseDir=images.joyent.com \
+        -t triton.cns.services=imagesjo \
+        joyops latest g4-highcpu-2G imagesjo0
+
+The `-m` option adds metadata. A set of metadata keys are supported setup config
+vars (see [Standalone Setup Configuration](#standalone-setup-configuration)
+below). The `-t` option adds an instance tag -- in this case to use
+[CNS](https://docs.joyent.com/public-cloud/network/cns).
+
+
+## Standalone Setup Step 2: edit config
+
+After creation one may edit the generated config file at
+"/data/imgapi/etc/imgapi.config.json" manually. Afterwards, remember to
+restart the imgapi service:
+
+    vi /data/imgapi/etc/imgapi.config.json
+    svcadm restart imgapi
+
+
+## Standalone Setup Step 3: add imgapi instance key to account
+
+Every standalone IMGAPI instance creates its own "instance key" -- an SSH key
+to be used for authenticated access to Manta, if relevant. If configuring
+this IMGAPI instance for Manta access (strongly suggested), then one needs
+to add this instance's SSH public key to the Manta account to being used.
+
+For convenience the instance public key is published on the instance's metadata,
+so that a command like the following can work to add the key to one's account:
+
+    triton inst get ALIAS | json metadata.instPubKey | triton key add -
+
+The key is typically named "imgapi-$alias-$zonenameprefix-$date", so when
+listing keys it to check, it will look something like this:
+
+    $ triton keys
+    FINGERPRINT                                      NAME
+    b5:cb:80:c0:5e:d9:2b:6f:63:a3:44:eb:ac:39:db:fa  imgapi-imagesjo0-ef4a1442-20160907
+    b3:f0:a1:6c:32:3b:47:63:ae:6e:57:22:74:71:d4:bd  trentm
+
+
+## Standalone Setup Step 4: restore data from backup
+
+The setup is not complete until
+[imgapi-standalone-restore](../bin/imgapi-standalone-restore) is run. This will
+restore "local" data from the backup in the IMGAPI's Manta area, if any. It must
+be run even if it is a no-op (not configured to use Manta, empty Manta area).
+
+    ssh root@$(triton ip ALIAS)
+    imgapi-standalone-restore [OPTIONS]
+
+Dev note: It must always be run because it leaves a marker file indicating that
+it is safe for the background imgapi-standalone-backup process to run and write
+data *to* the backup. Even if not backing up `imgapi-standalone-status` will
+report a problem if it hasn't been successfully run once.
+
+
+## Standalone Setup Step 5: set TLS cert
+
+This step is optional.
+
+Initial setup will create a self-signed TLS certificate. If you have a signed
+certificate you'd like to use, it can be installed as follows:
+
+    cp /var/tmp/your-cert.pem /data/imgapi/etc/cert.pem
+    svcadm restart stud   # restart stud, the TLS terminator
+
+Dev note: Eventually we hope to support Let's Encrypt.
+
+
+## Standalone Setup Step 6: add authkeys for signature auth
+
+This step is optional.
+
+Typically (and by default) a standalone IMGAPI will use HTTP Signature auth
+(`config.authType === "signature"`). Authentication is only done on endpoints
+that modify things (CreateImage, DeleteImage, UpdateImage, etc.) and on the
+Ping endpoint for testing.
+
+For signature auth you need a mapping of usernames to SSH public keys. A good
+way to do that is to add "$username.keys" files in the IMGAPI's Manta area at:
+
+    /${manta.user}/stor/${manta.baseDir}/authkeys/
+
+For example:
+
+    $ mget /joyops/stor/images.joyent.com/authkeys/trentm.keys
+    ssh-rsa AAAAB3NzaC1yc2EAAAABIwAA...
+
+The IMGAPI server periodically (once per hour) syncs changes from that Manta
+area and updates its auth info. Or for the lazy one can do either of:
+
+    ssh root@$(triton ip ALIAS) svcadm restart imgapi
+
+    # The following require already being setup for auth.
+    IMGAPI_CLI_URL=https://myimages.com imgapi-cli reload-auth-keys
+    joyent-imgadm reload-auth-keys      # custom CLI for images.joyent.com
+    updates-imgadm reload-auth-keys     # custom CLI for updates.joyent.com
+
+This isn't the only place that authkeys can be added. See the
+[Authentication](#authentication) section below for full details.
+
+
+## Standalone Setup Step 6: set CNS service tag
+
+This step is optional.
+
+A nice way to setup DNS for a standalone IMGAPI instance is to use
+[CNS](https://docs.joyent.com/public-cloud/network/cns), if available in
+your Triton DC. Set the `triton.cns.services` tag on your instance:
+
+    triton inst tag set -w myimages0 triton.cns.services=myimages
+
+and CNS will create a service ("svc") DNS name:
+
+    $ triton -p joyentsw-sw1 inst get imagesjo0 | json dns_names
+    [
+      "0370c8fc-7f73-11e6-a160-7f089df626c7.inst.f3fabce8-7f72-11e6-98f8-6f6f85da7472.us-sw-1.triton.zone",
+      "myimages0.inst.f3fabce8-7f72-11e6-98f8-6f6f85da7472.us-west-1.triton.zone",
+      "myimages.svc.f3fabce8-7f72-11e6-98f8-6f6f85da7472.us-west-1.triton.zone"
+    ]
+
+Then create a CNAME in your DNS provider mapping, say, "myimages.com"
+to the service name:
+
+    myimgages.com -> myimages.svc.f3fabce8-7f72-11e6-98f8-6f6f85da7472.us-west-1.triton.zone
+
+Then, even if your instance is recycled and replaced, DNS will still work.
+And when imgapi supports multiple instances (for HA), DNS will map to all your
+instances using the "myimages" cns tag.
+
+# Update
+
+DC-mode:
+
+    sdcadm up imgapi
+
+* * *
+
+Standalone: To update a standalone IMGAPI instance use
+[imgapi-standalone-reprovision](../bin/imgapi-standalone-reprovision). It needs
+to be run from the DC's headnode global zone (dev note: because reprovision
+isn't yet a part of CloudAPI).
+
+    imgapi-standalone-reprovision [OPTIONS] INSTANCE IMAGE
+
+This will handle importing the identified 'imgapi' image to the DC, tweaking
+its permissions, and reprovisioning the instance to the new image.
+
+
+# Health
+
+DC-mode:
+
+    sdcadm check-health
+    sdc-healthcheck
+
+(Dev note: Yes, currently there are both of those things. Eventually when
+`sdcadm check-health` improves, the latter can be deprecated.)
+
+* * *
+
+Standalone:
+
+    ssh root@$(triton ip ALIAS)
+    imgapi-standalone-status [-h] [-v]
+
+
+# Backup and Recovery
+
+DC-mode: nothing currently
+
+* * *
+
+Standalone: A regular part of a standalone IMGAPI is a background process
+(see "Background processes" section below) that periodically backs up local data
+to Manta, to `/${manta.user}/stor/${manta.baseDir}/backup/...`. This, of course,
+requires that the config file have manta access (see "Setup" steps above).
+
+Recovery from backup is exactly the setup process described above: read the
+"Setup" section from the start. In particular the 'imgapi-standalone-restore'
+script is the part that restores the local data from backup.
+
+
+# Background processes
+
+DC-mode IMGAPI has the following background processes:
+
+1. A node.js "config-agent" SMF service that handles updating config files
+   (in particular the imgapi service config) from "sapi_templates/..." and
+   SAPI data.
+2. A node.js "registrar" SMF service agent that handles registering this
+   imgapi instance in the Triton DataCenter's "binder".
+3. A node.js "amon-agent" SMF service that handles monitoring.
+   (Dev Note: Current amon usage for imgapi monitoring is not significant.)
+4. An hourly cronjob runs "logadm" to handle log rotation.
+5. A "hermes" SMF service agent runs from the GZ to handle rotated log file
+   upload to Manta (if the Triton DC is so configured).
+
+* * *
+
+Along with the usual 'imgapi' service, HAproxy, and stud; a standalone IMGAPI
+has the following background processes:
+
+1. An hourly cronjob runs "logadm" to handle log rotation.
+2. An hourly cronjob runs
+   [tritonlogupload.sh](../tools/standalone/tritonlogupload.sh) to upload
+   rotated files to manta.
+3. An hourly cronjob runs "imgapi-standalone-backup" to backup local data to
+   Manta.
 
 
 # Configuration
 
-Reference docs on configuration of the IMGAPI server. Default values are in
-"[/opt/smartdc/imgapi/]etc/defaults.json" in the repository. Custom values
-are in a separate JSON configuration file, the first existing file of:
+An IMGAPI process is configured via two files:
 
-1. a path given by `main.js -f CONFIG-PATH`;
-2. "/data/imgapi/etc/imgapi.config.json"
+1.  A defaults JSON file: "etc/defaults.json" in the repository,
+    "/opt/smartdc/imgapi/etc/defaults.json" in an IMGAPI instance.
 
-Note that given custom values override full top-level keys in the factory
-settings. For example: if providing `manta`, one must provide the whole
-`manta` object.
+2.  An instance-specific JSON config file, typically
+    "/data/imgapi/etc/imgapi.config.json" (can be overridden with the `node
+    main.js -f CONFIG-PATH` option). An explicit config file must exist, but
+    it can be the empty `{}` to just use the defaults.
+
+    A DC-mode config file is rendered by the `config-agent` service -- rendered
+    from the template at "sapi_templates/imgapi/template" and instance config
+    from the SAPI GetConfig endpoint
+    (https://github.com/joyent/sdc-sapi/blob/master/docs/index.md). See
+    "SAPI Configuration" below.
+
+    A standalone IMGAPI's config file is initially rendered by the
+    "boot/standalone/setup.sh" setup process from the template at
+    "etc/standalone/imgapi.config.json.handlebars" and setup config vars on
+    instance metadata, if any. See "Standalone Setup Configuration" below
+
+Currently the defaults give you a public-mode standalone IMGAPI,
+that listens at "https://127.0.0.1:8080", uses the local database and local
+storage backends, and uses signature auth for endpoints that
+create/update/delete resources.
+
+Note that given custom values override full top-level keys in the defaults.
+For example: if providing `manta`, one must provide the whole `manta` object.
 
 | var                          | type          | default           | description |
 | ---------------------------- | ------------- | ----------------- | ----------- |
@@ -73,23 +413,20 @@ settings. For example: if providing `manta`, one must provide the whole
 | wfapi.workflows              | String        | -                 | Array of workflows to load. |
 | wfapi.forceReplace           | Boolean       | -                 | Whether to replace all workflows loaded every time the IMGAPI service is started. Ideal for development environments |
 
-While an explicit config file must exist (by default at
-"/data/imgapi/etc/imgapi.config.json"), it can be the empty `{}` -- i.e "use the
-defaults". Currently the defaults give you a public-mode standalone IMGAPI,
-that listens at "https://127.0.0.1:8080", uses the local database and local
-storage backends, and uses signature auth for endpoints that
-create/update/delete resources.
-
-For development and debugging, one can look at the full merged and computed
-config by calling "lib/config.js" as a script. Examples:
+For operational scripts, development, and debugging, one can look at the full
+merged and computed config by calling "lib/config.js" as a script. This should
+always be used in preference to looking at the config files directly to get
+the merged and computed config object values. Examples:
 
     $ node lib/config.js -h
     usage: node .../lib/config.js [OPTIONS] [KEY]
     options:
         -h, --help                          Print this help and exit.
         -f CONFIG-PATH, --file=CONFIG-PATH  Config file path.
+
     $ node lib/config.js -f foo.json authType
     signature
+
     $ node lib/config.js -f foo.json
     {
         "port": 8080,
@@ -100,12 +437,70 @@ config by calling "lib/config.js" as a script. Examples:
         "authType": "signature",
     ...
 
+## SAPI Configuration
+
+DC-node IMGAPI is configured via "metadata" on the "imgapi" SAPI service.
+See [the config template](../sapi_manifests/imgapi/template) for the
+authoritative details.
+
+| Key                            | Type    | Default | Description                                                                  |
+| ------------------------------ | ------- | ------- | ---------------------------------------------------------------------------- |
+| IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM | Boolean  | false | Set this to allow image creation even when the DC is not setup to use a Manta. This is useful for development. See [the setup section](#dc-mode-setup-enable-custom-image-creation-without-manta). |
+|
+| IMGAPI_MANTA_URL | String | - | XXX Whether the headnode should be removed from consideration during allocation. |
+| **ALLOC_FILTER_MIN_DISK**      | Boolean | false   | Whether CNs with insufficient spare disk should be removed.                  |
+| **ALLOC_FILTER_MIN_RESOURCES** | Boolean | true    | Whether CNs with insufficient spare CPU/RAM/disk should be removed.          |
+| **ALLOC_FILTER_LARGE_SERVERS** | Boolean | true    | Whether large servers should be reserved primarily for large allocations.    |
+| **ALLOC_FILTER_VM_COUNT**      | Integer | 224     | CNs with equal or more VMs than this will be removed from consideration.     |
+| **ALLOC_DISABLE_OVERRIDE_OVERPROVISIONING** | Boolean | false | If true, allow packages and CNs to dictate overprovision ratios.  |
+| **ALLOC_OVERRIDE_OVERPROVISION_CPU**        | Float   | 4.0   | The ratio of CPU overprovisioning that will be hard set.          |
+| **ALLOC_OVERRIDE_OVERPROVISION_RAM**        | Float   | 1.0   | The ratio of RAM overprovisioning that will be hard set.          |
+| **ALLOC_OVERRIDE_OVERPROVISION_DISK**       | Float   | 1.0   | The ratio of disk overprovisioning that will be hard set.         |
+
+
+If any of the keys above aren't in the `sdc` `metadata` section, it's treated as
+if the default value was specified. Be careful when changing from the default
+values in production.
+
+ALLOC_SERVER_SPREAD is of particular interest to certain specialised production
+installs. It can have one of four values: `min-ram`, `max-ram`, `min-owner`,
+and `random`.  `min-ram` selects CNs which have the least amount of sufficient
+space for a new VM; this is desirable to keep emptier servers free for larger
+allocations.  `max-ram` selects CNs which have the *most* amount of free
+space; this can be desirable for private SDCs to give VMs the currently least
+busy servers. `min-owner` makes the allocator much more aggressive about
+balancing all VMs belonging to one user across all CNs. And `random` assigns
+randomly across CNs.
+
+A note of warning about ALLOC_FILTER_MIN_DISK: if this is set to true, but
+ALLOC_FILTER_MIN_RESOURCES is set to false, then disk checks will be ignored.
+Both must be true for disk checks to proceed.
+
+ALLOC_OVERRIDE_OVERPROVISION_\* is playing with fire. While twiddling with the
+default cpu overprovision ratio is fairly safe, RAM and disk are hazardous to
+increase beyond 1.0 if KVM instances are ever provisioned; it can lead to KVM
+instances which cannot boot, or KVM instances with corrupt filesystems.  It's
+recommended you don't fiddle with these values unless you know what you're
+doing, have tested this heavily before pushing to production, and are willing to
+deal with the consequences if things go bad.
+
+ALLOC_DISABLE_OVERRIDE_OVERPROVISIONING should only be set to true if all CNs
+and packages have had sane overprovision values set, after careful consideration
+of how the DC will be split up for the differing ratios. If in doubt, don't
+change the default.
+
+
+
+## Standalone Setup Configuration
+
+XXX
+
 
 # Storage
 
-There are two possible storage mechanisms for the (large) image files (and image
-icon files). Which are in use depend on the IMGAPI configuration (and
-availability in the DC). For example:
+There are two possible storage mechanisms for the (possibly large) image files
+(and image icon files). The storage mechanisms used are configured via
+the `storageTypes` config var. For example:
 
     "storageTypes": ["manta", "local"],
     "mode": "dc",
@@ -148,33 +543,39 @@ Configuring for Manta storage is preferred because file storage is then durable.
 For in-DC IMGAPI instances, Manta storage is *required* for user custom image
 creation, i.e. CloudAPI's
 [CreateImageFromMachine](http://apidocs.joyent.com/cloudapi/#CreateImageFromMachine),
-unless [overriden](howto-enable-custom-image-creation-without-manta).
+unless [overriden](#dc-mode-setup-enable-custom-image-creation-without-manta).
 
-For in-DC imgapi instances, the
+For DC-mode imgapi instances, the
 [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-manta-setup)
 and [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-external-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-external-manta-setup)
 scripts are intended for use in setting up to use a Manta. (Longer term this
 responsibility should move to a `sdcadm post-setup ...` command.)
 
-When a file is added (via `AddImageFile`) a storage backend must be selected.
-Non-remote Manta storage, if available, is used in preference to "local"
-storage. If Manta storage is available *but is remote*, then which storage is
-used is a little more complicated. The intention is that user-created custom
-images (i.e. IMGAPI's CreateImageFromVm, aka CreateImageFromMachine on cloudapi)
-go to Manta. However, admin-managed public images for the DC are typically large
-and can't practically live in a remote Manta. Therefore the algorithm is that
-"admin"-owned images prefer local storage to "remote Manta" storage. Images
-owned by others prefer remote Manta storage to local storage.
+At runtime, when a file is added (via `AddImageFile`) a storage backend must be
+selected. Non-remote Manta storage, if available, is used in preference to
+"local" storage. If Manta storage is available *but is remote*, then which
+storage is used is a little more complicated. The intention is that user-created
+custom images (i.e. IMGAPI's CreateImageFromVm, aka CreateImageFromMachine on
+cloudapi) go to Manta. However, admin-managed public images for the DC are
+typically large and can't practically live in a remote Manta. Therefore the
+algorithm is that "admin"-owned images prefer local storage to "remote Manta"
+storage. Images owned by others prefer remote Manta storage to local storage.
 
+The login shell of an IMGAPI instance should be setup to access its configured
+Manta (useful for development and debugging):
+
+    sdc-login -l imgapi
+    rootDir=$(node /opt/smartdc/imgapi/lib/config.json manta.rootDir)
+    mls $rootDir
 
 # Authentication
 
 IMGAPI supports two authentication modes:
 
-1. HTTP Signature auth (`config.authType === "signature").
-2. No auth (`config.authType === "none"`). When running as a component of a
-   Triton DataCenter -- on the DCs private "admin" network -- IMGAPI runs
-   without auth.
+1. HTTP Signature auth (`config.authType === "signature"). This is the default
+   and suggested auth mode for standalone IMGAPI instances.
+2. No auth (`config.authType === "none"`). This is the typical configuration for
+   DC-mode IMGAPI instances, which run on the "admin" network.
 
 ## HTTP Signature auth
 
@@ -190,162 +591,98 @@ can come from:
             "trentm": ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPLIC/hQIyd3gvIteBVOIrhZJ8KJHdZe3O/eb7wZL3yoEAOSQeC5yIZINLyZElFeDjKrgsshhPRnWV0QrPPPfkgnpiHTXbTPU0p5aEqekMgMUVVblGmtKr1QRxuQYW2S1r3HBZkoVC8LnbPBR4xWgtCx8LuVOOwCtYc9+E+e+Yl9EjW415KZyVtMVhpzR7ja8Le+SiapJOUejy7CuO73XS9A9xXDHGw81lQtoDJASgJhJKj8/64tgGFxkNERjBtA/hG/9bofHD/Zw4kxAoR1kjtF49sDop5UKEBT3WlejWedQ/fZqyHCNk+YOpmIt+aM0jF49vNMM+QhQotTN5iYHb DESCRIPTION"]
         }
 
-2. Local ".keys" files in `/data/imgapi/etc/keys/local/$username.keys`. E.g.
+2. Local ".keys" files in `/data/imgapi/etc/authkeys/local/$username.keys`. E.g.
 
-        $ cat /data/imgapi/etc/keys/local/trentm.keys
+        $ cat /data/imgapi/etc/authkeys/local/trentm.keys
         ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPLIC/hQIyd3gvIteBVOIrhZJ8KJHdZe3O/eb7wZL3yoEAOSQeC5yIZINLyZElFeDjKrgsshhPRnWV0QrPPPfkgnpiHTXbTPU0p5aEqekMgMUVVblGmtKr1QRxuQYW2S1r3HBZkoVC8LnbPBR4xWgtCx8LuVOOwCtYc9+E+e+Yl9EjW415KZyVtMVhpzR7ja8Le+SiapJOUejy7CuO73XS9A9xXDHGw81lQtoDJASgJhJKj8/64tgGFxkNERjBtA/hG/9bofHD/Zw4kxAoR1kjtF49sDop5UKEBT3WlejWedQ/fZqyHCNk+YOpmIt+aM0jF49vNMM+QhQotTN5iYHb DESCRIPTION
 
-3. ".keys" files in *Manta* at `${manta.rootDir}/keys/$username.keys`:
+3. ".keys" files in *Manta* at `${manta.rootDir}/authkeys/$username.keys`:
 
-        $ mls /trent.mick/stor/imgapi/keys
+        $ mls /trent.mick/stor/imgapi/authkeys
         trentm.keys
 
     This, of course, requires `config.manta.*` be set. IMGAPI will periodically
-    sync `${manta.rootDir}/keys/*.keys` files in Manta to
-    `/data/imgapi/etc/keys/manta/` locally and load from there. Use the
+    (once per hour) sync `${manta.rootDir}/authkeys/*.keys` files in Manta to
+    `/data/imgapi/etc/authkeys/manta/` locally and load from there. Use the
     [AdminReloadAuthKeys](#AdminReloadAuthKeys) endpoint to trigger a reload.
 
 
-## Logs
+# Logs
 
-| service/path | where | format | tail -f |
-| ------------ | ----- | ------ | ------- |
-| imgapi       | in each "imgapi" zone | [Bunyan](https://github.com/trentm/node-bunyan) | `` sdc-login imgapi; tail -f `svcs -L imgapi` | bunyan `` |
-
-
-## HOWTO: Enable custom image creation without Manta
-
-By default, an IMGAPI in SDC only allows custom image creation (via the
-CreateImageFromVm endpoint) if it is configured with Manta storage for
-custom image files. However for *test* SDC standups you can hack IMGAPI
-to allow local custom image storage.
-
-The symptom of needing to do this from cloudapi or the node-smartdc CLI is:
-
-    $ sdc-createimagefrommachine --machine 3d68ee48-d1fa-685c-9c33-e23064141138 --imageVersion 1.0.0 --name image1 --description "Does this work"
-    sdc-createimagefrommachine: error (NotAvailable): custom image creation is not currently available
+| service/path         | where                  | notes |
+| -------------------- | ---------------------- | ----- |
+| imgapi SMF log       | `svcs -L imgapi`       | \*    |
+| config-agent SMF log | `svcs -L config-agent` | \*, DC-mode only |
+| registrar SMF log    | `svcs -L registrar`    | \*, DC-mode only |
+| amon-agent SMF log   | `svcs -L amon-agent`   | \*, DC-mode only    |
+| backup to Manta      | /var/log/triton/imgapi-backup.log | \*, standalone-mode only |
+| log upload to Manta  | /var/log/tritonlogupload.log      | standalone-mode only |
+| logadm               | /var/log/logadm.log               | standalone-mode only |
 
 
-To allow custom images using *local* storage, run the following in your
-SDC headnode global zone:
+## Log rotation and upload to Manta
 
-    echo '{"metadata": {"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true}}' \
-      | sapiadm update $(sdc-sapi /services?name=imgapi | json -H 0.uuid)
+Logs marked with an asterisk (\*) are rotated and uploaded to Manta.
 
-When the 'config-agent' running in the imgapi zone picks up this change
-(after about 30s), the imgapi service will be restarted with
-`"allowLocalCreateImageFromVm": true` (see [the Configuration
-section](#configuration) above).
+DC-mode IMGAPIs' `logadm` rotates logs hourly to:
+
+    /var/log/sdc/upload/$svc_$zonename_$timestamp.log
+
+and the [hermes](https://github.com/joyent/sdc-hermes) global zone agent
+periodically uploads from there to Manta per [this
+configuration](https://github.com/joyent/sdc-sdc/blob/master/etc/logsets.json#L198),
+removing files after a period after upload.
+
+* * *
+
+Standalone IMGAPIs' `logadm` rotates logs hourly to:
+
+    /var/log/triton/$svc_$nodename_$timestamp.log
+
+The [tritonpostlogrotate.sh](../tools/standalone/tritonpostlogrotate.sh) script
+links those files to:
+
+    /var/log/triton/upload/$svc_$nodename_$normtimestamp.log
+
+From there the [tritonlogupload.sh](../tools/standalone/tritonlogupload.sh)
+script uploads (via an hourly cron job) to Manta:
+
+    /${manta.user}/stor/${manta.baseDir}/logs/$svc/$YYYY/$MM/$DD/$HH/$nodename.log
+
+Dev Note: The result with standalone IMGAPIs' log rotation and upload has
+a few properties different to DC-mode IMGAPIs. These are intentional and
+I (Trent) would like to propagate this pattern to all Triton core services.
+The improvements are:
+
+- Rotated logs for local use are in /var/log/triton/*.log and are retained
+  for the period listed in the /etc/logadm.conf config. Typically that is
+  a week of hourly logs. One common problem of in-prod debugging is that
+  after a few hours (the hermes `retain_time`), the log files may have been
+  uploaded to Manta and deleted from the local instance. Retaining them
+  according to logadm config also means that log space usage behaviour is
+  similar for DCs setup for Manta log upload and those that are not, which is
+  beneficial for dogfooding.
+- The log files in the "upload/" subdir can be deleted immediately after
+  successful upload. This simplifies the log upload script.
+- The basename of uploaded logs is the `$nodename` -- which is the zone's
+  alias. This allows for a predictable name in Manta (rather than an instance
+  zonename UUID) which can allow avoiding an extra `mfind` for Manta jobs
+  for analysis.
 
 
-## HOWTO: Dig into IMGAPI's Manta storage
+## Log-related commands
 
-If this IMGAPI is setup to use Manta.
+Some possibly useful commands follow.
+Tail the imgapi log:
 
-        HN=stage2    # my SDC headnode login
+    tail -f `svcs -L imgapi` | bunyan
 
-        # Get one of the Manta LB IPs:
-        export MANTA_URL=https://$(ssh $HN "/opt/smartdc/bin/sdc-vmapi /vms?tag.manta_role=loadbalancer | json -H -c 'this.state==\"running\"' 0.nics | json -c 'this.nic_tag==\"external\"' 0.ip" 2>/dev/null)
+Restart the IMGAPI service and tail the log:
 
-        # Get a local copy of the admin SSH key being used for Manta access
-        # (or add your own to the admin user).
-        ZONENAME=$(ssh $HN vmadm lookup -1 alias=imgapi0)
-        mkdir -p /var/tmp/$HN
-        cd /var/tmp/$HN
-        scp $HN:/zones/$ZONENAME/root/root/.ssh/id_rsa* .
+    svcadm restart imgapi && tail -f `svcs -L imgapi` | bunyan
 
-        # This would be sufficient for python-manta and mantash:
-        #    export MANTA_KEY_ID=`pwd`/id_rsa
-        # However, node-manta tools are a little more picky. You need to
-        # have your id_rsa in ~/.ssh or in your agent. So we'll do the
-        # latter:
-        chmod 0600 id_rsa*
-        ssh-add `pwd`/id_rsa
-        MANTA_KEY_ID=$(ssh-keygen -l -f id_rsa.pub | awk '{print $2}')
+Use the [Bunyan dtrace
+facility](https://github.com/trentm/node-bunyan/#runtime-log-snooping-via-dtrace)
+to tail *trace*-level logs of the imgapi service:
 
-        export MANTA_USER=admin
-        set | grep MANTA_
-
-        # With mantash from python-manta:
-        mantash -k find /admin/stor/imgapi
-
-        # With node-manta tools:
-        # TODO: I think node-manta tools don't support a non-default path
-        # to the ssh key?
-
-
-## Configuring IMGAPI for HTTPS
-
-This section is for setting up an IMGAPI that lives *outside* of an SDC
-installation. Examples of this are for <https://images.joyent.com> and
-<https://updates.joyent.com>.
-
-On SmartOS, IMGAPI can be deployed to support HTTPS with the use of Stud
-(https://github.com/bumptech/stud) as a SSL/TLS termination proxy. Because of the
-way Stud works we need to put an additional reverse proxy between Stud and IMGAPI:
-HAProxy. The only caveat here is that the latest version of HAProxy doesn't
-fully understand the traffic coming from Stud, so we use a patched version of
-the package.
-
-### Prerequisites and Assumptions
-
-* IMGAPI running on an Image with at least a 2012Q2 release of pkgsrc
-* IMGAPI running on port 8080 if using configuration defaults
-* Generated certficate file
-* gmake
-
-### Installing and Configuring HAProxy
-
-The IMGAPI repository contains the patched copy of HAProxy under the deps/
-directory. cd to that directory and proceed to compile HAProxy as follows:
-
-    cd $IMGAPI_REPO/deps/haproxy-1.4.21/
-    gmake TARGET=solaris
-
-It's not necessary to move the resulting binary to another location. Now, we need
-to configure HAProxy. This repository contains a sample configuration file (on
-etc/haproxy.cfg.in) that will make the proxy listen on port 8443 and redirect
-its traffic to port 8080.
-
-The final step is to import the HAProxy SMF file in order to run the proxy as a
-service. The IMGAPI repository contains a sample service definition file that
-can be imported after updating the exec_method tag and config_file values to
-reflect the current install setup. With a valid SMF file we can proceed to
-import it and start running HAProxy:
-
-    cp $IMGAPI_REPO/smf/manifests/haproxy.xml.in $IMGAPI_REPO/smf/manifests/haproxy.xml
-    # --- Replace variables ---
-    svccfg import $IMGAPI_REPO/smf/manifests/haproxy.xml
-    svcadm enable haproxy:default
-
-### Installing and configuring Stud
-
-Configuring Stud is easier since it doesn't require a custom binary, we use the
-version provided by pksrc. Additionally, pkgsrc provides a sample SMF and
-configuration file to use for Stud. Begin by installing the package:
-
-    # Install Stud
-    pkgin -y in stud-0nb20120827
-
-This package will write a sample configuration file to /opt/local/etc/stud.conf.
-For this guide we assume that Stud will terminate and redirect its traffic to a
-service listening on port 8443. The only additional value we need to modify
-is pem-file, which specifies the location of the SSL certificate to use. After
-updating the configuration file we enable the Stud SMF service, since the sample
-SMF file was already imported (assuming we are OK with using
-/opt/local/etc/stud.conf as the location for our configuration file):
-
-    svcadm enable stud:default
-
-At this point Stud, HAProxy and IMGAPI should all be running correctly. We can
-confirm this with the help of the netstat command:
-
-    netstat -f inet -an
-
-    TCP: IPv4
-       Local Address        Remote Address    Swind Send-Q Rwind Recv-Q    State
-    -------------------- -------------------- ----- ------ ----- ------ -----------
-          *.8080               *.*                0      0 128000      0 LISTEN
-          *.8443               *.*                0      0 128000      0 LISTEN
-    127.0.0.1.8081             *.*                0      0 128000      0 LISTEN
-          *.443                *.*                0      0 128000      0 LISTEN
+    bunyan -p imgapi

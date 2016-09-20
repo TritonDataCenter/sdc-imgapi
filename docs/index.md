@@ -696,7 +696,7 @@ authenticated account. The latter is for operator-only querying.
 | --------------------- | ---------- | --------- | ----- |
 | account (query param) | UUID       | No        | Only allow access to images visible to this account. A user can see: (a) their own images, (b) activated public images, and (c) activated private images for which they are on the ACL. Note that "activated" is different than "active" (see [state](#manifest-state)). This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String     | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
-| inclAdminFields (query param) | Bool | No      | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
+| inclAdminFields (query param) | Bool | No      | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](./operator-guide.md#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 | owner                 | UUID       | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
 | state                 | String     | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'. Note that for standalone IMGAPI instances, unauthenticated requests are limited to 'active' images. |
 | name                  | String     | No        | List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                         |
@@ -869,7 +869,7 @@ authenticated account. The latter is for operator-only querying.
 | --------------------- | ------ | --------- | ----- |
 | account (query param) | UUID   | No        | Only allow access to images visible to this account. A user can see: (a) their own images, (b) activated public images, and (c) activated private images for which they are on the ACL. Note that "activated" is different than "active" (see [state](#manifest-state)). This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                 |
-| inclAdminFields (query param) | Bool | No  | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
+| inclAdminFields (query param) | Bool | No  | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](./operator-guide.md#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 
 ### Returns
 
@@ -955,7 +955,7 @@ Get the image file.
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1001,7 +1001,7 @@ Get the image icon file.
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1046,7 +1046,7 @@ authenticated account. The latter is for operator-only querying.
 
 | Field                 | Type   | Required? | Notes                                                                                                                               |
 | --------------------- | ------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                  |
 
 ### Returns
@@ -1084,7 +1084,7 @@ For IMGAPI servers that support image channels (e.g. updates.joyent.com)
 
 | Field                            | Type    | Required? | Notes                                                                                                                                        |
 | -------------------------------- | ------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param)            | UUID    | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.          |
+| account (query param)            | UUID    | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers.          |
 | channel (query param)            | String  | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                           |
 | force_all_channels (query_param) | Boolean | No        | Set this true to force deletion even if the image exists in multiple channels. Only relevant for IMGAPI servers using [channels](#channels). |
 
@@ -1128,7 +1128,7 @@ provisioning.
 
 | Field                                                    | Type    | Required?                | Notes                                                                                                                                                                                                                                                                                                                                                                       |
 | -------------------------------------------------------- | ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param)                                    | UUID    | Yes\*                    | The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param)                                    | UUID    | Yes\*                    | The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param)                                    | String  | No                       | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                                                                                                                          |
 | [owner](#manifest-owner)                                 | UUID    | Yes\*                    | The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.                                                                                                                                                                                                             |
 | [name](#manifest-name)                                   | String  | Yes                      | A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.                                                                                                                                                                                                                                                                            |
@@ -1522,7 +1522,7 @@ or [*deleted*](#DeleteImage) permanently.
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1584,7 +1584,7 @@ Disables the image. This makes the image unavailable for provisioning -- the
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1646,7 +1646,7 @@ the `state` field will be "active".
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1848,7 +1848,7 @@ Any input is optional but at least one attribute must be updated.
 
 | Field                                                    | Type    | Required? | Notes                                                                                                                                                                                                                                                                |
 | -------------------------------------------------------- | ------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param)                                    | UUID    | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param)                                    | UUID    | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param)                                    | String  | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 | [description](#manifest-description)                     | String  | No        | A short description of the image.                                                                                                                                                                                                                                    |
 | [homepage](#manifest-homepage)                           | URL     | No        | Homepage URL where users can find more information about the image.                                                                                                                                                                                                  |
@@ -2097,7 +2097,7 @@ Raw `curl`:
 (Added in IMGAPI v2.2.0.)
 
 Change which storage is used to store an image's file. An IMGAPI server is
-[configured](#configuration) with one or more storage backends (e.g. "local"
+[configured](./operator-guide.md#configuration) with one or more storage backends (e.g. "local"
 and "manta"). This endpoint allows operators (servers in modes other
 than "dc" require auth to use this endpoint), to control where image files
 are stored. One use case is an operator of a "public" IMGAPI server moving
@@ -2113,7 +2113,7 @@ Query params:
 | Field   | Type    | Required? | Notes |
 | ------  | ------- | --------- | ----- |
 | action  | String  | Yes       | "change-stor" |
-| stor    | String  | Yes       | The new storage type (see "storage.*" fields in the IMGAPI server [config](#configuration)). |
+| stor    | String  | Yes       | The new storage type (see "storage.*" fields in the IMGAPI server [config](./operator-guide.md#configuration)). |
 
 
 ### Returns
@@ -2212,7 +2212,7 @@ See [Errors](#errors) section above.
 
 An IMGAPI server can use "channels". Each channel is an independent set of
 images in the same server. The set of channels is a [static
-configured](#configuration) set of channel names, optionally with a default
+configured](./operator-guide.md#configuration) set of channel names, optionally with a default
 channel. Use [ListChannels](#ListChannels) to see the server's configured
 channels.
 
@@ -2462,3 +2462,9 @@ An empty object: `{}`.
 ### Examples
 
     $ updates-imgadm reload-auth-keys
+
+
+# Configuration
+
+Details on IMGAPI instance configuration was moved to the [Operator
+Guide](./operator-guide.md@configuration).
