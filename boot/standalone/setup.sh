@@ -128,6 +128,8 @@ crontab $crontab
 rm -f $crontab
 
 # MOTD
+# TODO: 'manta rootDir' will be out of date if Manta details are configured
+# after initial setup.
 cat <<EMOTD >/etc/motd
 ** This is a standalone IMGAPI instance.
 **            uuid: $(zonename) ($(mdata-get sdc:alias))

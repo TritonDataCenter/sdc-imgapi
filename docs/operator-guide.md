@@ -443,57 +443,30 @@ DC-node IMGAPI is configured via "metadata" on the "imgapi" SAPI service.
 See [the config template](../sapi_manifests/imgapi/template) for the
 authoritative details.
 
-| Key                            | Type    | Default | Description                                                                  |
-| ------------------------------ | ------- | ------- | ---------------------------------------------------------------------------- |
-| IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM | Boolean  | false | Set this to allow image creation even when the DC is not setup to use a Manta. This is useful for development. See [the setup section](#dc-mode-setup-enable-custom-image-creation-without-manta). |
-|
-| IMGAPI_MANTA_URL | String | - | XXX Whether the headnode should be removed from consideration during allocation. |
-| **ALLOC_FILTER_MIN_DISK**      | Boolean | false   | Whether CNs with insufficient spare disk should be removed.                  |
-| **ALLOC_FILTER_MIN_RESOURCES** | Boolean | true    | Whether CNs with insufficient spare CPU/RAM/disk should be removed.          |
-| **ALLOC_FILTER_LARGE_SERVERS** | Boolean | true    | Whether large servers should be reserved primarily for large allocations.    |
-| **ALLOC_FILTER_VM_COUNT**      | Integer | 224     | CNs with equal or more VMs than this will be removed from consideration.     |
-| **ALLOC_DISABLE_OVERRIDE_OVERPROVISIONING** | Boolean | false | If true, allow packages and CNs to dictate overprovision ratios.  |
-| **ALLOC_OVERRIDE_OVERPROVISION_CPU**        | Float   | 4.0   | The ratio of CPU overprovisioning that will be hard set.          |
-| **ALLOC_OVERRIDE_OVERPROVISION_RAM**        | Float   | 1.0   | The ratio of RAM overprovisioning that will be hard set.          |
-| **ALLOC_OVERRIDE_OVERPROVISION_DISK**       | Float   | 1.0   | The ratio of disk overprovisioning that will be hard set.         |
-
-
-If any of the keys above aren't in the `sdc` `metadata` section, it's treated as
-if the default value was specified. Be careful when changing from the default
-values in production.
-
-ALLOC_SERVER_SPREAD is of particular interest to certain specialised production
-installs. It can have one of four values: `min-ram`, `max-ram`, `min-owner`,
-and `random`.  `min-ram` selects CNs which have the least amount of sufficient
-space for a new VM; this is desirable to keep emptier servers free for larger
-allocations.  `max-ram` selects CNs which have the *most* amount of free
-space; this can be desirable for private SDCs to give VMs the currently least
-busy servers. `min-owner` makes the allocator much more aggressive about
-balancing all VMs belonging to one user across all CNs. And `random` assigns
-randomly across CNs.
-
-A note of warning about ALLOC_FILTER_MIN_DISK: if this is set to true, but
-ALLOC_FILTER_MIN_RESOURCES is set to false, then disk checks will be ignored.
-Both must be true for disk checks to proceed.
-
-ALLOC_OVERRIDE_OVERPROVISION_\* is playing with fire. While twiddling with the
-default cpu overprovision ratio is fairly safe, RAM and disk are hazardous to
-increase beyond 1.0 if KVM instances are ever provisioned; it can lead to KVM
-instances which cannot boot, or KVM instances with corrupt filesystems.  It's
-recommended you don't fiddle with these values unless you know what you're
-doing, have tested this heavily before pushing to production, and are willing to
-deal with the consequences if things go bad.
-
-ALLOC_DISABLE_OVERRIDE_OVERPROVISIONING should only be set to true if all CNs
-and packages have had sane overprovision values set, after careful consideration
-of how the DC will be split up for the differing ratios. If in doubt, don't
-change the default.
-
+| Key                                     | Type    | Default | Description |
+| --------------------------------------- | ------- | ------- | ----------- |
+| IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM | Boolean | false   | Set this to allow image creation even when the DC is not setup to use a Manta. This is useful for development. See [the setup section](#dc-mode-setup-enable-custom-image-creation-without-manta). |
+| IMGAPI_MANTA_\*                         | various | -       | These are typically setup by the `imgapi[-external]-manta-setup` scripts. See the [DC-mode setup: connect to Manta](#dc-mode-setup-connect-to-manta) section |
+| docker_registry_insecure                | Boolean | false   | See <https://github.com/joyent/triton/blob/master/docs/operator-guide/configuration.md#sdc-application-configuration> |
+| http_proxy                              | String  | -       | See <https://github.com/joyent/triton/blob/master/docs/operator-guide/configuration.md#sdc-application-configuration> |
 
 
 ## Standalone Setup Configuration
 
-XXX
+A standalone IMGAPI instance's config is first written at initial setup by
+[imgapi-standalone-gen-setup-config](../bin/imgapi-standalone-gen-setup-config)
+by rendering a [template](../etc/standalone/imgapi.config.json.handlebars). A
+number of keys can be provided on instance metadata for this initial rendering.
+These are called "setup config vars". At time of writing they are (see
+`setupConfigVars` in imgapi-standalone-gen-setup-config):
+
+| Key          | Corresponds to this key from the "Configuration" table |
+| ------------ | ------------------------------------------------------ |
+| mode         | mode |
+| serverName   | serverName |
+| mantaUrl     | manta.url |
+| mantaUser    | manta.user |
+| mantaBaseDir | manta.baseDir |
 
 
 # Storage

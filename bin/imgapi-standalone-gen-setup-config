@@ -51,6 +51,9 @@ var setupConfigVars = [
     'mantaUrl',
     'mantaUser',
     'mantaBaseDir',
+
+    // Not really a setup config var. It is set by setup.sh rather than being
+    // a var that can be passed in via instance metadata at creation time.
     'instPubKey'
 ];
 
