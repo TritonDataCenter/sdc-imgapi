@@ -631,7 +631,7 @@ and relevant for images in an IMGAPI server that uses [channels](#channels).
 | [ListChannels](#ListChannels)                     | GET /channels                                              | List image channels (if the server uses channels).                            |
 | [ChannelAddImage](#ChannelAddImage)               | POST /images/:uuid?action=channel-all                      | Add an existing image to another channel.                                     |
 | [Ping](#Ping)                                     | GET /ping                                                  | Ping if the server is up.                                                     |
-| [AdminReloadAuthKeys](#AdminReloadAuthKeys)       | POST /keys/reload                                          | (Added in v2.3.0.) Tell server to reload its auth keys. This is only relevant for servers using HTTP Signature auth. |
+| [AdminReloadAuthKeys](#AdminReloadAuthKeys)       | POST /authkeys/reload                                          | (Added in v2.3.0.) Tell server to reload its auth keys. This is only relevant for servers using HTTP Signature auth. |
 
 
 
@@ -2441,7 +2441,7 @@ A JSON representation of some internal state.
       ...
     }
 
-## AdminReloadAuthKeys (POST /keys/reload)
+## AdminReloadAuthKeys (POST /authkeys/reload)
 
 Tells the IMGAPI server to reload its auth keys, if the server is using HTTP Signature auth
 (`config.authType === "signature"`). This is an authenticated endpoint. This allows a
