@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 3.1.0
+
+- Updates to support using node v4 (IMGAPI-587).
+
 ## 3.0.0
 
 This is a major ver bump because there was a significant re-write of
