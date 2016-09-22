@@ -101,7 +101,7 @@ var OPTIONS = [
 ];
 
 
-var CONFIG = require('../etc/imgapi.config.json');
+var CONFIG = require('/data/imgapi/etc/imgapi.config.json');
 
 
 

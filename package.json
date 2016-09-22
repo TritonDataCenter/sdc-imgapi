@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "2.3.0",
+  "version": "3.0.0",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -14,10 +14,16 @@
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "expiring-lru-cache": "2.1.0",
     "extsprintf": "1.2.0",
+    "forkexec": "1.1.0",
+    "glob": "7.0.5",
+    "handlebars": "4.0.5",
     "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#91e5d80",
+    "json": "9.0.4",
     "ldapjs": "git+ssh://git@github.com:mcavage/node-ldapjs.git#3edf9de5786170b22581ddc87386b78e9dd5bb6a",
-    "libuuid": "0.1.2",
-    "manta": "git+ssh://git@github.com:joyent/node-manta.git#56e8761",
+    "uuid": "2.0.2",
+    "manta": "2.0.7",
+    "manta-dir-watcher": "1.1.0",
+    "manta-sync": "0.3.4",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
     "moray": "git+ssh://git@github.com:joyent/node-moray.git#b84ef0e",
@@ -28,21 +34,21 @@
     "progbar": "git+ssh://git@github.com:trentm/node-progbar.git#a4c56e6",
     "restify": "git://github.com/joyent/node-restify.git#fd5d5b5",
     "rimraf": "2.2.6",
-    "sdc-clients": "9.3.0",
+    "sdc-clients": "9.5.0",
     "semver": "3.0.1",
+    "sshpk": "1.10.0",
     "trace-event": "1.2.0",
     "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#a7c674b76696fe7ab0fff1e2486f20d3af6a0d1a",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#9bcb3a0ebec7cd5b4052acaacde8fd6e3e2dfcf9"
+    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#adb8803"
   },
   "optionalDependencies": {
-    "http-signature": "0.10.0",
-    "bcrypt": "0.7.6"
+    "http-signature": "0.10.0"
   },
   "devDependencies": {
     "jshint": "2.1",
-    "nodeunit": "0.8.1"
+    "nodeunit": "0.10.2"
   },
   "scripts": {
     "test": "make test"

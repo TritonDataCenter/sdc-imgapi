@@ -11,7 +11,7 @@ apisections: Images, Channels, Miscellaneous API
 -->
 
 <!--
-    Copyright (c) 2015, Joyent, Inc.
+    Copyright (c) 2016, Joyent, Inc.
 -->
 
 # Image API (IMGAPI)
@@ -631,6 +631,7 @@ and relevant for images in an IMGAPI server that uses [channels](#channels).
 | [ListChannels](#ListChannels)                     | GET /channels                                              | List image channels (if the server uses channels).                            |
 | [ChannelAddImage](#ChannelAddImage)               | POST /images/:uuid?action=channel-all                      | Add an existing image to another channel.                                     |
 | [Ping](#Ping)                                     | GET /ping                                                  | Ping if the server is up.                                                     |
+| [AdminReloadAuthKeys](#AdminReloadAuthKeys)       | POST /authkeys/reload                                          | (Added in v2.3.0.) Tell server to reload its auth keys. This is only relevant for servers using HTTP Signature auth. |
 
 
 
@@ -688,15 +689,16 @@ There are two typical calling styles to this endpoint: with 'account=$UUID' and
 without. The former is what cloudapi uses to ask on behalf of a particular
 authenticated account. The latter is for operator-only querying.
 
+
 ### Inputs
 
 | Field                 | Type       | Required? | Notes |
 | --------------------- | ---------- | --------- | ----- |
 | account (query param) | UUID       | No        | Only allow access to images visible to this account. A user can see: (a) their own images, (b) activated public images, and (c) activated private images for which they are on the ACL. Note that "activated" is different than "active" (see [state](#manifest-state)). This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String     | No        | The image channel to use. If not provided the server-side default channel is used. Use '*' to list in all channels. (Only relevant for servers using [channels](#channels).) |
-| inclAdminFields (query param) | Bool | No      | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
+| inclAdminFields (query param) | Bool | No      | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](./operator-guide.md#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 | owner                 | UUID       | No        | Only list images owned by this account.                                                                                                                                                                                                                            |
-| state                 | String     | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'.                                                                                                                                                        |
+| state                 | String     | No        | List images with the given state. Can be one of 'active' (the default), 'disabled', 'unactivated' or 'all'. Note that for standalone IMGAPI instances, unauthenticated requests are limited to 'active' images. |
 | name                  | String     | No        | List images with the given name. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                         |
 | version               | String     | No        | List images with the given version. Prefix with `~` to do a substring match (case-*sensitive*). E.g., `~foo`.                                                                                                                                                      |
 | public                | Boolean    | No        | List just public or just private images.                                                                                                                                                                                                                           |
@@ -867,7 +869,7 @@ authenticated account. The latter is for operator-only querying.
 | --------------------- | ------ | --------- | ----- |
 | account (query param) | UUID   | No        | Only allow access to images visible to this account. A user can see: (a) their own images, (b) activated public images, and (c) activated private images for which they are on the ACL. Note that "activated" is different than "active" (see [state](#manifest-state)). This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                 |
-| inclAdminFields (query param) | Bool | No  | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
+| inclAdminFields (query param) | Bool | No  | Pass `true` to include administrative fields (e.g. `files.*.stor`) in the returned image objects. For IMGAPI servers using ['mode'](./operator-guide.md#configuration) other than `dc`, auth is required to use `admin=true`. Otherwise, `UnauthorizedError` is returned. |
 
 ### Returns
 
@@ -953,7 +955,7 @@ Get the image file.
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -999,7 +1001,7 @@ Get the image icon file.
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1044,7 +1046,7 @@ authenticated account. The latter is for operator-only querying.
 
 | Field                 | Type   | Required? | Notes                                                                                                                               |
 | --------------------- | ------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                  |
 
 ### Returns
@@ -1082,7 +1084,7 @@ For IMGAPI servers that support image channels (e.g. updates.joyent.com)
 
 | Field                            | Type    | Required? | Notes                                                                                                                                        |
 | -------------------------------- | ------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param)            | UUID    | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers.          |
+| account (query param)            | UUID    | No        | Only allow deletion for images *owned* by this account. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers.          |
 | channel (query param)            | String  | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                           |
 | force_all_channels (query_param) | Boolean | No        | Set this true to force deletion even if the image exists in multiple channels. Only relevant for IMGAPI servers using [channels](#channels). |
 
@@ -1126,7 +1128,7 @@ provisioning.
 
 | Field                                                    | Type    | Required?                | Notes                                                                                                                                                                                                                                                                                                                                                                       |
 | -------------------------------------------------------- | ------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param)                                    | UUID    | Yes\*                    | The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param)                                    | UUID    | Yes\*                    | The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. At least one of `account` or `owner` is required. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param)                                    | String  | No                       | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                                                                                                                          |
 | [owner](#manifest-owner)                                 | UUID    | Yes\*                    | The UUID of the owner of this image (the account that created it). If not given, the given `account` is used. At least one of `account` or `owner` is required.                                                                                                                                                                                                             |
 | [name](#manifest-name)                                   | String  | Yes                      | A short name (and optionally version) for this image. Max 512 characters. No uniqueness guantee.                                                                                                                                                                                                                                                                            |
@@ -1520,7 +1522,7 @@ or [*deleted*](#DeleteImage) permanently.
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1582,7 +1584,7 @@ Disables the image. This makes the image unavailable for provisioning -- the
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1644,7 +1646,7 @@ the `state` field will be "active".
 
 | Field                 | Type   | Required? | Notes                                                                                                                                                                                                                                                                |
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 
 ### Returns
@@ -1846,7 +1848,7 @@ Any input is optional but at least one attribute must be updated.
 
 | Field                                                    | Type    | Required? | Notes                                                                                                                                                                                                                                                                |
 | -------------------------------------------------------- | ------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| account (query param)                                    | UUID    | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](#configuration) IMGAPI servers. |
+| account (query param)                                    | UUID    | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param)                                    | String  | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
 | [description](#manifest-description)                     | String  | No        | A short description of the image.                                                                                                                                                                                                                                    |
 | [homepage](#manifest-homepage)                           | URL     | No        | Homepage URL where users can find more information about the image.                                                                                                                                                                                                  |
@@ -2095,7 +2097,7 @@ Raw `curl`:
 (Added in IMGAPI v2.2.0.)
 
 Change which storage is used to store an image's file. An IMGAPI server is
-[configured](#configuration) with one or more storage backends (e.g. "local"
+[configured](./operator-guide.md#configuration) with one or more storage backends (e.g. "local"
 and "manta"). This endpoint allows operators (servers in modes other
 than "dc" require auth to use this endpoint), to control where image files
 are stored. One use case is an operator of a "public" IMGAPI server moving
@@ -2111,7 +2113,7 @@ Query params:
 | Field   | Type    | Required? | Notes |
 | ------  | ------- | --------- | ----- |
 | action  | String  | Yes       | "change-stor" |
-| stor    | String  | Yes       | The new storage type (see "storage.*" fields in the IMGAPI server [config](#configuration)). |
+| stor    | String  | Yes       | The new storage type (see "storage.*" fields in the IMGAPI server [config](./operator-guide.md#configuration)). |
 
 
 ### Returns
@@ -2210,7 +2212,7 @@ See [Errors](#errors) section above.
 
 An IMGAPI server can use "channels". Each channel is an independent set of
 images in the same server. The set of channels is a [static
-configured](#configuration) set of channel names, optionally with a default
+configured](./operator-guide.md#configuration) set of channel names, optionally with a default
 channel. Use [ListChannels](#ListChannels) to see the server's configured
 channels.
 
@@ -2361,9 +2363,10 @@ When not simulating an error response, a "pong" object is returned:
 | Field   | Type    | Description                                                                         |
 | ------- | ------- | ----------------------------------------------------------------------------------- |
 | ping    | String  | "pong"                                                                              |
-| pid     | String  | The PID of IMGAPI server process. Only for non-"public" mode IMGAPI configurations. |
 | version | String  | The version of the IMGAPI app.                                                      |
-| imgapi  | Boolean | true                                                                                |
+| imgapi  | Boolean | Always set `true`. This is to distinguish the server from the old Datasets API that IMGAPI replaced. |
+| pid     | String  | The PID of IMGAPI server process. Only for "dc" mode IMGAPI configurations, or when providing auth. |
+| user    | String  | Set to the authenticated username, if relevant. Note that "dc" mode servers don't use auth. |
 
 When simulating an error, the HTTP response code depends on the error type
 and the response body is an JSON object with:
@@ -2438,259 +2441,30 @@ A JSON representation of some internal state.
       ...
     }
 
+## AdminReloadAuthKeys (POST /authkeys/reload)
 
-# Image file storage
+Tells the IMGAPI server to reload its auth keys, if the server is using HTTP Signature auth
+(`config.authType === "signature"`). This is an authenticated endpoint. This allows a
+server administrator to add keys for users and have the server load those key changes
+without having to restart.
 
-There are two possible storage mechanisms for the (large) image files (and image
-icon files). Which are in use depend on the IMGAPI configuration (and
-availability in the DC).
+Note that when this endpoint returns, the reload is not guaranteed to have completed.
 
-1. manta: Requires an available Manta. All files are stored in the configured
-   user's Manta area (e.g. under "/a-dc-operator/stor/imgapi/"), as opposed
-   to storing images own by Bob under Bob's area in Manta.
-   Manta storage may be local (i.e. within the same region, this is preferred)
-   or remote (a Manta across the WAN).
-2. local: A local dir (or locally mounted dir). Only really meant for testing,
-   development and bootstrapping. Generally 'local' usage is insufficient
-   for producion usage because a locally mounted dir can't handle HA (imgapi
-   zones on more than one server).
 
-The set of available storages is set in the [configuration](#configuration).
-For example:
+### Inputs
 
-    "storage": {
-        "manta": {
-            "url": "https://us-east.manta.joyent.com",
-            "user": "admin",
-            "insecure": false,
-            "remote": true,
-            "key": "/root/.ssh/imgapi.id_rsa",
-            "keyId": "59:8a:63:3f:9d:5d:69:5f:cf:37:2e:0d:84:80:91:da"
-        },
-        "local": {
-            "baseDir": "/data/imgapi"
-        }
-    }
+None.
 
-The [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-manta-setup)
-and [`<imgapi-zone>:/opt/smartdc/imgapi/bin/imgapi-external-manta-setup`](https://github.com/joyent/sdc-imgapi/blob/master/bin/imgapi-external-manta-setup)
-scripts are intended for use in setting up an IMGAPI to use a Manta.
+### Returns
 
-Local Manta storage, if available, is used in preference to "local" storage.
-Manta storage is *required* for user custom image creation, i.e. CloudAPI's
-[CreateImageFromMachine](http://apidocs.joyent.com/cloudapi/#CreateImageFromMachine),
-unless [overriden](howto-enable-custom-image-creation-without-manta).
+An empty object: `{}`.
 
-If Manta storage is available *but is remote*, then which storage is used is a
-little more complicated. The intention is that user-created custom images
-(i.e. IMGAPI's CreateImageFromVm, aka CreateImageFromMachine on cloudapi) go
-to Manta. However, admin-managed public images for the DC are typically large
-and can't practically live in a remote Manta. Therefore the algorithm is that
-"admin"-owned images prefer local storage to "remote Manta" storage. Images
-owned by others prefer remote Manta storage to local storage.
+### Examples
+
+    $ updates-imgadm reload-auth-keys
 
 
 # Configuration
 
-Reference docs on configuration vars to imgapi. Default values are in
-"etc/defaults.json". Custom values are provided in a JSON file passed in with
-the "-f CFG-FILE" command-line option. By default this is
-"./etc/imgapi.config.json". Note that given custom values override full
-top-level keys in the factory settings. For example: if providing
-'ufds', one must provide the whole 'ufds' object.
-
-| var | type | default | description |
-| --- | ---- | ------- | ----------- |
-| port | Number | 8080 | Port number on which to listen. |
-| serverName | String | IMGAPI/$version | Name of the HTTP server. This value is present on every HTTP response in the 'server' header. |
-| logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d,--debug` switch. |
-| maxSockets | Number | 100 | Maximum number of sockets for external API calls |
-| mode | String | public | One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in an SDC datacenter). |
-| datacenterName | String | - | Name of the SDC datacenter on which IMGAPI is running. |
-| adminUuid | String | - | The UUID of the admin user in this SDC. |
-| channels | Array | - | Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. See the example in "etc/imgapi.config.json.in". |
-| placeholderImageLifespanDays | Number | 7 | The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database. |
-| allowLocalCreateImageFromVm | Boolean | false | Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
-| minImageCreationPlatform | Array | see defaults.json | The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm). |
-| ufds.url | String | - | LDAP URL to connect to UFDS. Required if `mode === 'dc'`. |
-| ufds.bindDN | String | - | UFDS root dn. Required if `mode === 'dc'`. |
-| ufds.bindPassword | String | - | UFDS root dn password. Required if `mode === 'dc'`. |
-| auth | Object | - | If in 'public' mode, then auth details are required. 'dc' mode does no auth. |
-| auth.type | String | - | One of 'basic' (HTTP Basic Auth) or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
-| auth.users | Object | - | Required if `auth.type === 'basic'`. A mapping of username to bcrypt-hashed password. Use the `bin/hash-basic-auth-password` tool to create the hash. |
-| auth.keys | Object | - | Required if `auth.type === 'signature'`. A mapping of username to an array of ssh public keys. |
-| database | Object | - | Database info. The "database" is how the image manifest data is stored. |
-| database.type | String | ufds | One of 'ufds' (the default, i.e. use an SDC UFDS directory service) or 'local'. The 'local' type is a quick implementation appropriate only for smallish numbers of images. |
-| database.dir | String | - | The base directory for the database `database.type === 'local'`. |
-| storage | Object | - | The set of available storage mechanisms for the image *files*. There must be at least one. See the [Image file storage](#image-file-storage) section for discussion. |
-| storage.local | Object | - | Object holding config information for "local" disk storage. |
-| storage.local.baseDir | String | - | The base directory in which to store image files and archived manifests for "local" storage. This is required even if "storage.manta" is setup for primary storage, because image manifest archives are first staged locally before upload to manta. |
-| storage.manta | Object | - | Object holding config information for Manta storage. |
-| storage.manta.baseDir | String | - | The base directory, relative to '/${storage.manta.user}/stor', under which image files are stored in Manta. |
-| storage.manta.url | String | - | The Manta API URL. |
-| storage.manta.insecure | Boolean | false | Ignore SSL certs on the Manta URL. |
-| storage.manta.remote | Boolean | - | Whether this Manta is remote to this IMGAPI. This helps IMGAPI determine practical issues on whether manta or local storage is used for large files. |
-| storage.manta.user | String | - | The Manta user under which to store data. |
-| storage.manta.key | String | - | Path to the SSH private key file with which to authenticate to Manta. |
-| storage.manta.keyId | String | - | The SSH public key ID (signature). |
-| wfapi.url | String | - | The Workflow API URL. |
-| wfapi.workflows | String | - | Array of workflows to load. |
-| wfapi.forceReplace | Boolean | - | Wether to replace all workflows loaded every time the IMGAPI service is started. Ideal for development environments |
-
-
-
-# Operator Guide
-
-This section is intended to give necessary information for diagnosing and
-dealing with issues with Image API in a SmartDataCenter installation.
-
-There is one IMGAPI service per datacenter. There might actually be more than
-one "imgapi" zone for HA. Use this to list the imgapi zones in a DC:
-
-    sdc-vmapi /vms?owner_uuid=$(bash /lib/sdc/config.sh -json | json ufds_admin_uuid) \
-        | json -H -c "this.tags.smartdc_role=='imgapi'"
-
-
-## Logs
-
-| service/path | where | format | tail -f |
-| ------------ | ----- | ------ | ------- |
-| imgapi | in each "imgapi" zone | [Bunyan](https://github.com/trentm/node-bunyan) | `` sdc-login imgapi; tail -f `svcs -L imgapi` | bunyan `` |
-
-
-## HOWTO: Enable custom image creation without Manta
-
-By default, an IMGAPI in SDC only allows custom image creation (via the
-CreateImageFromVm endpoint) if it is configured with Manta storage for
-custom image files. However for *test* SDC standups you can hack IMGAPI
-to allow local custom image storage.
-
-The symptom of needing to do this from cloudapi or the node-smartdc CLI is:
-
-    $ sdc-createimagefrommachine --machine 3d68ee48-d1fa-685c-9c33-e23064141138 --imageVersion 1.0.0 --name image1 --description "Does this work"
-    sdc-createimagefrommachine: error (NotAvailable): custom image creation is not currently available
-
-
-To allow custom images using *local* storage, run the following in your
-SDC headnode global zone:
-
-    echo '{"metadata": {"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true}}' \
-      | sapiadm update $(sdc-sapi /services?name=imgapi | json -H 0.uuid)
-
-When the 'config-agent' running in the imgapi zone picks up this change
-(after about 30s), the imgapi service will be restarted with
-`"allowLocalCreateImageFromVm": true` (see [the Configuration
-section](#configuration) above).
-
-
-## HOWTO: Dig into IMGAPI's Manta storage
-
-If this IMGAPI is setup to use Manta.
-
-        HN=stage2    # my SDC headnode login
-
-        # Get one of the Manta LB IPs:
-        export MANTA_URL=https://$(ssh $HN "/opt/smartdc/bin/sdc-vmapi /vms?tag.manta_role=loadbalancer | json -H -c 'this.state==\"running\"' 0.nics | json -c 'this.nic_tag==\"external\"' 0.ip" 2>/dev/null)
-
-        # Get a local copy of the admin SSH key being used for Manta access
-        # (or add your own to the admin user).
-        ZONENAME=$(ssh $HN vmadm lookup -1 alias=imgapi0)
-        mkdir -p /var/tmp/$HN
-        cd /var/tmp/$HN
-        scp $HN:/zones/$ZONENAME/root/root/.ssh/id_rsa* .
-
-        # This would be sufficient for python-manta and mantash:
-        #    export MANTA_KEY_ID=`pwd`/id_rsa
-        # However, node-manta tools are a little more picky. You need to
-        # have your id_rsa in ~/.ssh or in your agent. So we'll do the
-        # latter:
-        chmod 0600 id_rsa*
-        ssh-add `pwd`/id_rsa
-        MANTA_KEY_ID=$(ssh-keygen -l -f id_rsa.pub | awk '{print $2}')
-
-        export MANTA_USER=admin
-        set | grep MANTA_
-
-        # With mantash from python-manta:
-        mantash -k find /admin/stor/imgapi
-
-        # With node-manta tools:
-        # TODO: I think node-manta tools don't support a non-default path
-        # to the ssh key?
-
-
-## Configuring IMGAPI for HTTPS
-
-This section is for setting up an IMGAPI that lives *outside* of an SDC
-installation. Examples of this are for <https://images.joyent.com> and
-<https://updates.joyent.com>.
-
-On SmartOS, IMGAPI can be deployed to support HTTPS with the use of Stud
-(https://github.com/bumptech/stud) as a SSL/TLS termination proxy. Because of the
-way Stud works we need to put an additional reverse proxy between Stud and IMGAPI:
-HAProxy. The only caveat here is that the latest version of HAProxy doesn't
-fully understand the traffic coming from Stud, so we use a patched version of
-the package.
-
-### Prerequisites and Assumptions
-
-* IMGAPI running on an Image with at least a 2012Q2 release of pkgsrc
-* IMGAPI running on port 8080 if using configuration defaults
-* Generated certficate file
-* gmake
-
-### Installing and Configuring HAProxy
-
-The IMGAPI repository contains the patched copy of HAProxy under the deps/
-directory. cd to that directory and proceed to compile HAProxy as follows:
-
-    cd $IMGAPI_REPO/deps/haproxy-1.4.21/
-    gmake TARGET=solaris
-
-It's not necessary to move the resulting binary to another location. Now, we need
-to configure HAProxy. This repository contains a sample configuration file (on
-etc/haproxy.cfg.in) that will make the proxy listen on port 8443 and redirect
-its traffic to port 8080.
-
-The final step is to import the HAProxy SMF file in order to run the proxy as a
-service. The IMGAPI repository contains a sample service definition file that
-can be imported after updating the exec_method tag and config_file values to
-reflect the current install setup. With a valid SMF file we can proceed to
-import it and start running HAProxy:
-
-    cp $IMGAPI_REPO/smf/manifests/haproxy.xml.in $IMGAPI_REPO/smf/manifests/haproxy.xml
-    # --- Replace variables ---
-    svccfg import $IMGAPI_REPO/smf/manifests/haproxy.xml
-    svcadm enable haproxy:default
-
-### Installing and configuring Stud
-
-Configuring Stud is easier since it doesn't require a custom binary, we use the
-version provided by pksrc. Additionally, pkgsrc provides a sample SMF and
-configuration file to use for Stud. Begin by installing the package:
-
-    # Install Stud
-    pkgin -y in stud-0nb20120827
-
-This package will write a sample configuration file to /opt/local/etc/stud.conf.
-For this guide we assume that Stud will terminate and redirect its traffic to a
-service listening on port 8443. The only additional value we need to modify
-is pem-file, which specifies the location of the SSL certificate to use. After
-updating the configuration file we enable the Stud SMF service, since the sample
-SMF file was already imported (assuming we are OK with using
-/opt/local/etc/stud.conf as the location for our configuration file):
-
-    svcadm enable stud:default
-
-At this point Stud, HAProxy and IMGAPI should all be running correctly. We can
-confirm this with the help of the netstat command:
-
-    netstat -f inet -an
-
-    TCP: IPv4
-       Local Address        Remote Address    Swind Send-Q Rwind Recv-Q    State
-    -------------------- -------------------- ----- ------ ----- ------ -----------
-          *.8080               *.*                0      0 128000      0 LISTEN
-          *.8443               *.*                0      0 128000      0 LISTEN
-    127.0.0.1.8081             *.*                0      0 128000      0 LISTEN
-          *.443                *.*                0      0 128000      0 LISTEN
+Details on IMGAPI instance configuration was moved to the [Operator
+Guide](./operator-guide.md@configuration).

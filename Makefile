@@ -17,31 +17,28 @@
 #
 NAME		:= imgapi
 
-DOC_FILES	 = index.md design.md search.md
+DOC_FILES	 = index.md operator-guide.md search.md
 EXTRA_DOC_DEPS += deps/restdown-brand-remora/.git
 RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 
 JS_FILES	:= $(shell ls *.js) \
 	$(shell find lib test -name '*.js' | grep -v '/tmp/') \
 	bin/imgapi-external-manta-setup \
-	bin/imgapi-manta-setup \
-	bin/hash-basic-auth-password
+	bin/imgapi-manta-setup
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
-SMF_MANIFESTS_IN = smf/manifests/imgapi.xml.in
+SMF_MANIFESTS = $(shell ls smf/manifests/*.xml)
 NODEUNIT	:= ./node_modules/.bin/nodeunit
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v0.10.46
+NODE_PREBUILT_VERSION=v0.12.15
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
-	# Allow building on a SmartOS image other than sdc-smartos@1.6.3.
-	NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
+	# Allow building on other than image sdc-minimal-multiarch-lts@15.4.1.
+	NODE_PREBUILT_IMAGE=18b094b0-eb01-11e5-80c1-175dac7ddf02
 endif
-IMAGES_JOYENT_COM_NODE=/root/opt/node-0.10.45
-UPDATES_JOYENT_COM_NODE=/root/opt/node-0.10.45
 
 
 include ./tools/mk/Makefile.defs
@@ -64,55 +61,18 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) images.joyent.com-node-hack updates.joyent.com-node-hack docs | $(NODEUNIT) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) docs | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
 	$(NPM) install
-
-# Node hack for images.joyent.com and updates.joyent.com
-#
-# Fake out 'Makefile.node_prebuilt.*' by symlinking build/node
-# to the node we want to use. We can't use sdcnode here because
-# of GCC mismatch with current sdcnode builds.
-.PHONY: images.joyent.com-node-hack
-images.joyent.com-node-hack:
-	if [[ -f "$(HOME)/THIS-IS-IMAGES.JOYENT.COM.txt" ]]; then \
-		if [[ ! -d "$(TOP)/build/node" ]]; then \
-			mkdir -p $(TOP)/build; \
-			(cd $(TOP)/build && ln -s $(IMAGES_JOYENT_COM_NODE) node); \
-			touch $(NODE_EXEC); \
-			touch $(NPM_EXEC); \
-		fi; \
-	fi
-.PHONY: updates.joyent.com-node-hack
-updates.joyent.com-node-hack:
-	if [[ -f "$(HOME)/THIS-IS-UPDATES.JOYENT.COM.txt" ]]; then \
-		if [[ ! -d "$(TOP)/build/node" ]]; then \
-			mkdir -p $(TOP)/build; \
-			(cd $(TOP)/build && ln -s $(UPDATES_JOYENT_COM_NODE) node); \
-			touch $(NODE_EXEC); \
-			touch $(NPM_EXEC); \
-		fi; \
-	fi
 
 $(NODEUNIT) node_modules/restify: | $(NPM_EXEC)
 	$(NPM) install
 
-.PHONY: test test-kvm7 test-images.joyent.com
+.PHONY: test
 test: | $(NODEUNIT)
-	./test/runtests -lp  # test local 'public' mode
-	./test/runtests -l   # test local 'dc' mode
-test-kvm7: | $(NODEUNIT)
-	./tools/rsync-to-kvm7
-	./tools/runtests-on-kvm7
-test-images.joyent.com: | $(NODEUNIT)
-	./test/runtests -p -r default
-
-
-.PHONY: test-coal
-COAL=root@10.99.99.7
-test-coal:
-	./tools/rsync-to $(COAL)
-	ssh $(COAL) "/opt/smartdc/bin/sdc-login imgapi /opt/smartdc/imgapi/test/runtests"
-
+	echo "error: standalone test suite is currently broken"
+	exit 1
+	#./test/runtests -lp  # test local 'public' mode
+	#./test/runtests -l   # test local 'dc' mode
 
 # We get the IMGAPI errors table from "lib/errors.js". This should be re-run
 # for "lib/errors.js" changes!
@@ -141,7 +101,7 @@ doc-update-error-table: lib/errors.js | node_modules/restify $(NODE_EXEC)
 	    fs.writeFileSync("docs/index.md", index, enc);'
 	@echo "'docs/index.md' updated"
 
-DOC_CLEAN_FILES = docs/{index,design}.{html,json} \
+DOC_CLEAN_FILES = docs/{index,operator-guide}.{html,json} \
 	build/errors.md \
 	build/docs
 .PHONY: clean-docs
@@ -177,6 +137,7 @@ release: all
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/tools
 	cp -r \
+		$(TOP)/tools/standalone \
 		$(TOP)/tools/seed-packages \
 		$(TOP)/tools/prepare-image \
 		$(TOP)/tools/get-image-dataset-guid.sh \
@@ -216,47 +177,6 @@ publish: release
 	fi
 	mkdir -p $(BITS_DIR)/$(NAME)
 	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
-
-.PHONY: deploy-images.joyent.com
-deploy-images.joyent.com:
-	@echo '# Deploy to images.joyent.com. This is a *production* server.'
-	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
-	@read
-	ssh root@images.joyent.com ' \
-		set -x \
-		&& export PATH=$(IMAGES_JOYENT_COM_NODE)/bin:$$PATH \
-		&& which node && node --version && npm --version \
-		&& test ! -d /root/services/imgapi.deploying \
-		&& cd /root/services \
-		&& cp -PR imgapi imgapi.deploying \
-		&& cd /root/services/imgapi.deploying \
-		&& git fetch origin \
-		&& git pull --rebase origin master \
-		&& git submodule update --init \
-		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
-		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
-		&& mv /root/services/imgapi.deploying /root/services/imgapi \
-		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi'
-
-.PHONY: deploy-updates.joyent.com
-deploy-updates.joyent.com:
-	@echo '# Deploy to updates.joyent.com. This is a *production* server.'
-	@echo '# Press <Enter> to continue, <Ctrl+C> to cancel.'
-	@read
-	ssh root@updates.joyent.com ' \
-		set -x \
-		&& export PATH=$(UPDATES_JOYENT_COM_NODE)/bin:$$PATH \
-		&& test ! -d /root/services/imgapi.deploying \
-		&& cd /root/services \
-		&& cp -PR imgapi imgapi.deploying \
-		&& cd /root/services/imgapi.deploying \
-		&& git fetch origin \
-		&& git pull --rebase origin master \
-		&& git submodule update --init \
-		&& PATH=/opt/local/gnu/bin:$$PATH make distclean all \
-		&& mv /root/services/imgapi /root/services/imgapi.`date "+%Y%m%dT%H%M%SZ"` \
-		&& mv /root/services/imgapi.deploying /root/services/imgapi \
-		&& svcadm clear imgapi 2>/dev/null || svcadm restart imgapi'
 
 .PHONY: devrun
 devrun:

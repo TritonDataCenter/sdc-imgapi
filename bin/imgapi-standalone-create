@@ -1,0 +1,263 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright 2016 Joyent, Inc.
+#
+
+#
+# Provision a standalone IMGAPI instance.
+#
+# This is meant to be run from the headnode GZ. See notes in
+# "docs/operator-guide.md".
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+PATH=/usr/bin:/usr/sbin:/smartdc/bin:/opt/smartdc/bin:/opt/local/bin:/opt/local/sbin
+
+#---- support stuff
+
+function usage () {
+    echo "Usage:"
+    echo "  imgapi-standalone-create [OPTIONS] OWNER IMAGE PACKAGE ALIAS"
+    echo ""
+    echo "Options:"
+    echo "  -h          Show this help and exit."
+    echo "  -C CHANNEL  Updates channel in which to look for the given IMAGE."
+    echo "  -m KEY=VAL  Setup config var to add to metadata (used by initial "
+    echo "              setup to configure IMGAPI)."
+    echo "  -t TAG=VAL  Tag to add to created instance."
+    echo ""
+    echo "Where OWNER is an account UUID or login; IMAGE is an 'imgapi' image"
+    echo "UUID or 'latest' to get the latest from the current (or given) "
+    echo "channel of updates.joyent.com; PACKAGE is a package UUID or name; and"
+    echo "ALIAS is an alias for the new instance (try to avoid '.' so the name"
+    echo "will work as part of a DNS name)."
+    echo ""
+    echo "Examples:"
+    echo ""
+    echo "- First you'll need to get the create script to your headnode GZ:"
+    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/bin/imgapi-standalone-create"
+    echo ""
+    echo "- A play IMGAPI in COAL using a local 'trentm' COAL account and"
+    echo "  /trent.mick/stor/tmp/images in Manta:"
+    echo "    /var/tmp/imgapi-standalone-create -C experimental \\"
+    echo "        -m mantaUrl=https://us-east.manta.joyent.com \\"
+    echo "        -m mantaUser=trent.mick -m mantaBaseDir=tmp/images \\"
+    echo "        trentm latest sample-2G img0"
+    echo ""
+
+}
+
+function fatal {
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+function errexit {
+    [[ $1 -ne 0 ]] || exit 0
+    fatal "error exit status $1"
+}
+
+
+#---- mainline
+
+trap 'errexit $?' EXIT
+
+[[ $(zonename) == "global" ]] || fatal "must run this from the global zone"
+
+optChannel=
+optMetadata="{}"
+optTags="{}"
+while getopts "hC:m:t:" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        C)
+            optChannel=$OPTARG
+            ;;
+        m)
+            arg=$OPTARG
+            k="${OPTARG%%=*}"
+            v="${OPTARG#*=}"
+            optMetadata=$(echo "$optMetadata" | json -e "this.$k = '$v'")
+            ;;
+        t)
+            arg=$OPTARG
+            k="${OPTARG%%=*}"
+            v="${OPTARG#*=}"
+            optTags=$(echo "$optTags" | json -e "this['$k'] = '$v'")
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+OWNER=$1
+[[ -n $OWNER ]] || fatal 'no OWNER arg given'
+IMAGE=$2
+[[ -n $IMAGE ]] || fatal 'no IMAGE arg given'
+PACKAGE=$3
+[[ -n $PACKAGE ]] || fatal 'no PACKAGE arg given'
+ALIAS=$4
+[[ -n $ALIAS ]] || fatal 'no ALIAS arg given'
+
+echo "Looking up owner $OWNER"
+ownerJson=$(sdc-useradm get $OWNER)
+ownerUuid=$(echo "$ownerJson" | json uuid)
+ownerLogin=$(echo "$ownerJson" | json login)
+
+echo "Looking up package $PACKAGE"
+packageJson=$(sdc-papi /packages?active=true \
+    | json -c "this.name==='$PACKAGE' || this.uuid==='$PACKAGE'" -H 0)
+[[ -n "$packageJson" ]] || fatal "could not find package '$PACKAGE'"
+packageUuid=$(echo "$packageJson" | json uuid)
+packageName=$(echo "$packageJson" | json name)
+
+if [[ -n "$optChannel" ]]; then
+    channel=$optChannel
+else
+    channel=$(sdcadm channel get)
+fi
+if [[ "$IMAGE" == "latest" ]]; then
+    echo "Finding latest imgapi image (in '$channel' channel) on updates.jo"
+    imageUuid=$(updates-imgadm -C $channel list name=imgapi --latest -H -o uuid)
+    [[ -n "$imageUuid" ]] || fatal "no imgapi image in $channel change"
+else
+    imageUuid=$IMAGE
+fi
+imageJson=$(sdc-imgadm get $imageUuid 2>/dev/null || true)
+if [[ -z "$imageJson" ]]; then
+    echo "Importing image $imageUuid from updates.jo"
+    sdc-imgadm import $imageUuid -S https://updates.joyent.com?channel=$channel
+    imageJson=$(sdc-imgadm get $imageUuid)
+else
+    echo "Already have image $imageUuid in local IMGAPI"
+fi
+imageName=$(echo "$imageJson" | json name)
+[[ "$imageName" == "imgapi" ]] \
+    || fatal "image $imageUuid is name=$imageName (expected 'name=imgapi')"
+imageVersion=$(echo "$imageJson" | json version)
+
+# Ensure OWNER is on image ACL.
+onAcl=$(echo "$imageJson" | json acl | json -a | (grep $ownerUuid || true))
+if [[ -z "$onAcl" ]]; then
+    echo "Adding owner ($ownerUuid) to image ACL"
+    sdc-imgadm add-acl $imageUuid $ownerUuid
+else
+    echo "Owner ($ownerUuid) is already on the image ACL"
+fi
+
+# Network
+echo "Find a suitable external network"
+networkPoolJson=$(sdc-napi /network_pools?provisionable_by=$ownerUuid | json -Hc 'this.nic_tag==="external"' 0)
+if [[ -z "$networkPoolJson" ]]; then
+    networkJson=$(sdc-napi /networks?provisionable_by=$ownerUuid\&fabric=false | json -Hc 'this.nic_tag==="external"' 0)
+    [[ -n "$networkJson" ]] || fatal "could not find a suitable network"
+    netJson="$networkJson"
+else
+    netJson="$networkPoolJson"
+fi
+netUuid=$(echo "$netJson" | json uuid)
+netName=$(echo "$netJson" | json name)
+
+# Create the VM
+vmUuid=$(uuid)
+optMetadata=$(echo "$optMetadata" \
+    | json -e "this['user-script'] = '/opt/smartdc/boot/standalone/user-script'")
+echo ""
+echo "Creating standalone imgapi VM:"
+echo "       uuid: $vmUuid"
+echo "      alias: $ALIAS"
+echo "      owner: $ownerUuid ($ownerLogin)"
+echo "      image: $imageUuid ($imageName@$imageVersion)"
+echo "    package: $packageUuid ($packageName)"
+echo "    network: $netUuid ($netName)"
+echo "       tags: $(echo "$optTags" | json -o json-0)"
+echo "   metadata:"
+echo "$optMetadata" | sed  's/^/        /'
+echo ""
+sdc-vmapi /vms -X POST -d@- <<EOP | json -H | sdc-waitforjob
+{
+    "uuid": "$vmUuid",
+    "alias": "$ALIAS",
+    "owner_uuid": "$ownerUuid",
+    "billing_id": "$packageUuid",
+    "networks": [{"uuid": "$netUuid"}],
+    "brand": "joyent",
+    "image_uuid": "$imageUuid",
+    "delegate_dataset": true,
+    "tags": $optTags,
+    "customer_metadata": $optMetadata
+}
+EOP
+
+# ^^^ does that exit non-zero on job failure? It would be nice.
+
+# Poll until get a 200 status ping (give it up to 2 minutes)
+echo ""
+echo "Waiting for IMGAPI service ping to respond with a 200"
+MAX_TRIES=40
+instIp=$(sdc-vmadm get $vmUuid | json nics | json -c 'this.primary' 0.ip)
+[[ -n $instIp ]] || fatal "could not determine VM $vmUuid primary IP"
+nTries=0
+pingResponse=
+pingStatus=
+while [[ nTries -lt $MAX_TRIES ]]; do
+    sleep 3
+    echo -n '.'
+    pingResponse=$(curl -ski --connect-timeout 2 --max-time 5 https://$instIp/ping || true)
+    pingStatus=$(echo "$pingResponse" | head -1 | awk '{print $2}')
+    if [[ $pingStatus == "200" ]]; then
+        break
+    fi
+    nTries=$(( $nTries + 1 ))
+done
+if [[ $pingStatus != "200" ]]; then
+    fatal "timeout waiting for IMGAPI ping to respond with 200:
+--
+$pingResponse
+--"
+fi
+echo ""
+
+mantaUser=$(echo "$optMetadata" | json mantaUser)
+if [[ -n "$mantaUser" ]]; then
+    # Configured for Manta: show the command needed to get the imgapi instance
+    # key on the user.
+    echo ""
+    echo "* * *"
+    echo "For this IMGAPI instance to talk to Manta, its instance SSH key"
+    echo "needs to be added to the '$mantaUser' account. If the Manta being"
+    echo "used is part of this Triton cloud, then this should work:"
+    echo ""
+    echo "    sdc-vmadm get $vmUuid \\"
+    echo "        | json customer_metadata.instPubKey > /tmp/imgapi.id_rsa.pub"
+    echo "    keyname=\$(cat /tmp/imgapi.id_rsa.pub | head -1 | awk '{print \$3}')"
+    echo "    sdc-useradm add-key -n \$keyname $mantaUser /tmp/imgapi.id_rsa.pub"
+    echo ""
+    echo "If the Manta is part of a separate cloud then, for an appropriate"
+    echo "Triton CLI profile, the following might work:"
+    echo ""
+    echo "    triton inst get $ALIAS | json metadata.instPubKey \\"
+    echo "        | triton -p PROFILE key add -"
+    echo "* * *"
+fi
+
+# TODO: Would like to have ping be 503 if cannot connect to Manta (if
+# configured for Manta. Then have this script gracefully handle that.
+
+exit 0

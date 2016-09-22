@@ -1,5 +1,6 @@
 {
     "port": 80,
+    "address": "0.0.0.0",
     "logLevel": "info",
     "mode": "dc",
     "datacenterName": "{{{datacenter_name}}}",
@@ -24,30 +25,25 @@
             "minTimeout": 500
         }
     },
-    "database": {
-        "type": "moray"
-    },
-    "storage": {
+    "authType": "none",
+    "databaseType": "moray",
 {{#IMGAPI_MANTA_URL}}
-        "manta": {
-            "url": "{{IMGAPI_MANTA_URL}}",
-            "user": "{{IMGAPI_MANTA_USER}}",
-            "key": "/root/.ssh/imgapi.id_rsa",
-            "keyId": "{{IMGAPI_KEY_ID}}",
-            "insecure": {{IMGAPI_MANTA_INSECURE}},
-            "remote": {{IMGAPI_MANTA_REMOTE}},
-            "baseDir": "{{{STORAGE_MANTA_BASEDIR}}}"
-        },
-{{/IMGAPI_MANTA_URL}}
-        "local": {
-{{#STORAGE_LOCAL_BASEDIR}}
-            "baseDir": "{{{STORAGE_LOCAL_BASEDIR}}}"
-{{/STORAGE_LOCAL_BASEDIR}}
-{{^STORAGE_LOCAL_BASEDIR}}
-            "baseDir": "/data/imgapi"
-{{/STORAGE_LOCAL_BASEDIR}}
-        }
+    "manta": {
+        "url": "{{IMGAPI_MANTA_URL}}",
+        "user": "{{IMGAPI_MANTA_USER}}",
+        "key": "/root/.ssh/imgapi.id_rsa",
+        "keyId": "{{IMGAPI_KEY_ID}}",
+        "insecure": {{IMGAPI_MANTA_INSECURE}},
+        "remote": {{IMGAPI_MANTA_REMOTE}},
+        "baseDir": "{{{STORAGE_MANTA_BASEDIR}}}"
     },
+{{/IMGAPI_MANTA_URL}}
+    "storageTypes": [
+{{#IMGAPI_MANTA_URL}}
+        "manta",
+{{/IMGAPI_MANTA_URL}}
+        "local"
+    ],
     "wfapi": {
         "forceMd5Check": true,
         "workflows": ["create-from-vm", "import-remote-image"],

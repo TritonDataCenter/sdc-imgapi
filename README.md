@@ -5,7 +5,7 @@
 -->
 
 <!--
-    Copyright (c) 2016, Joyent, Inc.
+    Copyright 2016 Joyent, Inc.
 -->
 
 # sdc-imgapi
@@ -16,58 +16,53 @@ guidelines](https://github.com/joyent/triton/blob/master/CONTRIBUTING.md) --
 [Triton project](https://github.com/joyent/triton) page.
 
 The Image API (IMGAPI) is the API in each Triton data center for managing
-VM (i.e. KVM and Zones) images.
+instance images. It is also the software behind standalone IMGAPI services
+like <https://images.joyent.com> and <https://updates.joyent.com>.
+
 
 # Development
 
+For an IMGAPI running as part of a Triton DataCenter, please start with a
+[CoaL setup](https://github.com/joyent/triton#getting-started). Then a common
+dev cycle goes something like this:
+
+    # Make local changes:
     git clone git@github.com:joyent/sdc-imgapi.git
     cd sdc-imgapi
-    git submodule update --init
-    make all
-    node main.js [OPTIONS]
+    make
+
+    # Sync local changes to the "imgapi0" zone in CoaL:
+    ./tools/rsync-to root@10.99.99.7
+
+Note that this has limitations in that binary modules from, say, a Mac
+laptop obviously cannot be sync'd to the SmartOS imgapi0 zone.
+
+* * *
+
+For a standalone IMGAPI, see the [Operator Guide](./docs/operator-guide.md)
+for deployment and update details.
 
 
 # Testing
 
-There are two common flavours of IMGAPI server:
+A `mode=dc` IMGAPI's test suite is run as follows:
 
-- DC: `config.mode === "dc"` E.g. the IMGAPI in an SDC datacenter.
-- Public: `config.mode === "public"` E.g. <https://images.joyent.com>.
+    ssh HEADNODE   # e.g. ssh root@10.99.99.7
 
-There are different testing entry points for testing these.
+    # Indicate that this is a non-production DC.
+    touch /lib/sdc/.sdc-test-no-production-data
 
-1. Test a COAL SDC standup's IMGAPI.:
+    sdc-login -l imgapi
+    /opt/smartdc/imgapi/test/runtests
 
-        make test-coal
+The test suite leaves some test data lying around for faster re-runs of the
+test suite. You can clean up via:
 
-2. Test an SDC standup's IMGAPI.
+    sdc-login -l imgapi /opt/smartdc/imgapi/test/runtests -c
 
-        $ ssh HEADNODE
-        [root@headnode]# IMGAPI_ZONE=$(vmadm lookup -1 alias=imgapi0)
-        [root@headnode]# /zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/test/runtests
+* * *
 
-    This will not run in a production system (guard on the
-    '/lib/sdc/.sdc-test-no-production-data' file). It leaves some test data
-    lieing around for faster re-runs of the test suite. You can clean up via:
-
-        [root@headnode]# /zones/$IMGAPI_ZONE/root/opt/smartdc/imgapi/test/runtests -c
-
-3. Test public-flavour locally:
-
-        ./test/runtests -p -l
-
-4. Test the *production* <https://images.joyent.com>:
-
-        ./test/runtests -p
-
-    To successfully run this, you also need to have the follow env setup
-    (the same env setup for using the `joyent-imgadm` tool):
-
-        JOYENT_IMGADM_USER=<username>
-        JOYENT_IMGADM_IDENTITY=<signature-of-configured-key-for-username>
-
-    These are required to authenticate with image.joyent.com's HTTP signature
-    auth.
+For standalone IMGAPI instances the test suite is currently broken.
 
 
 # Related Repositories

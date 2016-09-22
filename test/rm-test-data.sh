@@ -74,12 +74,10 @@ done
 
 
 if [[ -n "$opt_local" ]]; then
-    CFG_FILE=$TOP/test/imgapi-config-local-$opt_mode.json
-    rm -rf $(json database.dir <$CFG_FILE)
-    rm -rf $(json storage.local.dir <$CFG_FILE)
+    rm -rf /var/tmp/imgapitest-local-base-dir
 elif [[ "$opt_mode" == "dc" ]]; then
     # Load image into moray with putobject
-    CFG_FILE=$TOP/etc/imgapi.config.json
+    CFG_FILE=/data/imgapi/etc/imgapi.config.json
     uuids="c58161c0-2547-11e2-a75e-9fdca1940570"
     uuids+=" 47e6af92-daf0-11e0-ac11-473ca1173ab0"
     uuids+=" 1fc068b0-13b0-11e2-9f4e-2f3f6a96d9bc"

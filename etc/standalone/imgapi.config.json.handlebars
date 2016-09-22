@@ -1,0 +1,21 @@
+{
+    {{#if mode}}"mode": "{{{mode}}}",{{/if}}
+    {{#if serverName}}"serverName": "{{{serverName}}}",{{/if}}
+
+    {{#if mantaUser}}
+    "manta": {
+        "url": "{{{mantaUrl}}}",
+        "user": "{{{mantaUser}}}",
+        "key": "{{{mantaKey}}}",
+        "keyId": "{{{mantaKeyId}}}",
+        "baseDir": "{{{mantaBaseDir}}}"
+    },
+    {{/if}}
+
+    "authType": "signature",
+    "databaseType": "local",
+    "storageTypes": [
+        {{#if mantaUser}}"manta",{{/if}}
+        "local"
+    ]
+}

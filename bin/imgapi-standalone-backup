@@ -1,0 +1,152 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright 2016 Joyent, Inc.
+#
+
+#
+# Backup local IMGAPI data to Manta.
+#
+# This is typically run hourly in cron (see "./setup.sh" for cron entries).
+#
+# Note that "local IMGAPI data" isn't *all* IMGAPI data. For example, with
+# "manta" in "config.storageTypes", some or all image files might be stored
+# in Manta. This backup will backup the other bits, to
+#       ${manta.rootDir}/backup/...
+#
+# Coordinating backup and restore: One bad scenario would be for a new
+# instance, which hasn't yet restored data from backup, to run this script and
+# wipe the backup in Manta. To guard against that, this script will fail unless
+# `imgapi-standalone-restore` has been successfully run. That is noted by the
+# "/data/imgapi/run/restored.marker" file.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+# ---- globals and config
+
+export PATH=/opt/smartdc/imgapi/build/node/bin:/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
+
+MANTASYNC=/opt/smartdc/imgapi/node_modules/.bin/manta-sync
+CONFIG=/data/imgapi/etc/imgapi.config.json
+RESTORED_MARKER=/data/imgapi/run/restored.marker
+BACKUP_STATUS=/data/imgapi/run/backup.status
+
+
+# ---- support functions
+
+function usage () {
+    echo "Usage:"
+    echo "  imgapi-standalone-backup [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -h          Show this help and exit."
+    echo "  -y          Skip the confirmation before backing up."
+}
+
+function fatal
+{
+    echo "$0: fatal error: $*" >&2
+    exit 1
+}
+
+function onexit
+{
+    mkdir -p $(dirname $BACKUP_STATUS)
+    echo "$1" > $BACKUP_STATUS
+
+    [[ $1 -ne 0 ]] || exit 0
+    echo "$0: error exit status $1"
+    exit $1
+}
+
+
+#---- mainline
+
+optYes=no
+while getopts "hy" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        y)
+            optYes=yes
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+# Bail if haven't run restore yet.
+if [[ ! -f $RESTORED_MARKER ]]; then
+    fatal "cannot run backup, because 'imgapi-standalone-restore' has not run"
+fi
+
+config="$(node /opt/smartdc/imgapi/lib/config.js)"
+
+# Guard that this is run only in a standalone IMGAPI.
+mode=$(echo "$config" | json mode)
+if [[ $mode == "dc" ]]; then
+    fatal "cannot run in a 'mode=dc' IMGAPI instance"
+fi
+
+# Get manta info from config
+export MANTA_URL=$(echo "$config" | json manta.url)
+[[ -n "$MANTA_URL" ]] || fatal "not configured to use Manta: no 'manta.url' in config"
+export MANTA_USER=$(echo "$config" | json manta.user)
+[[ -n "$MANTA_USER" ]] || fatal "not configured to use Manta: no 'manta.user' in config"
+# Current manta-sync doesn't support the newer KEY_ID's, so we'll rebuild it
+# from the key path.
+mantaKeyPath=$(echo "$config" | json manta.key)
+[[ -n "$mantaKeyPath" ]] || fatal "not configured to use Manta: no 'manta.key' in config"
+export MANTA_KEY_ID=$(ssh-keygen -E md5 -lf $mantaKeyPath | awk '{print $2}' | cut -c5-)
+if [[ "$(echo "$config" | json manta.insecure)" == "true" ]]; then
+    export MANTA_TLS_INSECURE=1
+fi
+bakDir=$(echo "$config" | json manta.rootDir)/backup
+
+echo "[$(date '+%Y%m%dT%H%M%S')] Backup local IMGAPI data to Manta:"
+echo "              local: /data/imgapi/{images,manifests}"
+echo "  backup (in Manta): $bakDir/{images,manifests}"
+echo ""
+if [[ $optYes != "yes" ]]; then
+    echo "Hit enter to continue / Ctrl+C to abort."
+    read
+fi
+
+trap 'onexit $?' EXIT
+
+startTimeSec=$(date -u +%s)
+startTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
+echo $MANTASYNC --delete /data/imgapi/images $bakDir/images
+$MANTASYNC --delete /data/imgapi/images $bakDir/images \
+    | (grep -v "size same as source file, skipping" || true)
+echo $MANTASYNC --delete /data/imgapi/manifests $bakDir/manifests
+$MANTASYNC --delete /data/imgapi/manifests $bakDir/manifests \
+    | (grep -v "size same as source file, skipping" || true)
+
+endTimeSec=$(date -u +%s)
+endTimestamp=$(date -u '+%Y-%m-%dT%H:%M:%S')
+echo ""
+echo "Successfully backed up local IMGAPI data to Manta"
+echo "   started: $startTimestamp"
+echo "  finished: $endTimestamp"
+echo "   elapsed: $(( $endTimeSec - $startTimeSec ))s"
+
+#
+# vim: set softtabstop=4 shiftwidth=4:
+#

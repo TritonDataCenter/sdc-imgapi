@@ -93,7 +93,7 @@ var OPTIONS = [
 ];
 
 
-var config = require('../etc/imgapi.config.json');
+var config = require('/data/imgapi/etc/imgapi.config.json');
 
 
 
