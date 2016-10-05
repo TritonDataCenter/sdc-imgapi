@@ -41,7 +41,7 @@
     "ufds": "1.2.0",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "git+https://github.com/joyent/sdc-wf-client.git#adb8803"
+    "wf-client": "0.2.0"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0"
