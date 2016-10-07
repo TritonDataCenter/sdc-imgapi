@@ -25,7 +25,6 @@
 var p = console.log;
 var fs = require('fs');
 var path = require('path');
-var ldap = require('ldapjs');
 var assert = require('assert-plus');
 var async = require('async');
 var passwd = require('passwd');
