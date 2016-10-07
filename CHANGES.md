@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 3.1.1
+
+- DOCKER-663 Support Amazon ECR Registry
+
 ## 3.1.0
 
 - Updates to support using node v4 (IMGAPI-587).
