@@ -156,6 +156,7 @@ elif [[ $infoStatus != "200" ]]; then
 else
     echo "Restore /data/imgapi/images"
     $MANTASYNC -r $bakDir/images /data/imgapi/images
+    chown -R nobody:nobody /data/imgapi/images
 fi
 
 echo ""
@@ -168,6 +169,7 @@ elif [[ $infoStatus != "200" ]]; then
 else
     echo "Restore /data/imgapi/manifests"
     $MANTASYNC -r $bakDir/manifests /data/imgapi/manifests
+    chown -R nobody:nobody /data/imgapi/manifests
 fi
 
 # The restored.marker file is used to tell 'imgapi-standalone-backup' that it
