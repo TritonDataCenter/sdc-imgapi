@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 3.1.2
+
+- DOCKER-950 docker pull fails on registry that does not use authentication
+
 ## 3.1.1
 
 - DOCKER-663 Support Amazon ECR Registry
