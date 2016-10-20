@@ -17,7 +17,7 @@
 #
 NAME		:= imgapi
 
-DOC_FILES	 = index.md operator-guide.md search.md
+DOC_FILES	 = index.md operator-guide.md
 EXTRA_DOC_DEPS += deps/restdown-brand-remora/.git
 RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 
