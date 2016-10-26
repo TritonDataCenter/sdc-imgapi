@@ -20,7 +20,6 @@ var fs = require('fs');
 var dns = require('dns');
 var https = require('https');
 var async = require('async');
-var restify = require('restify');
 var lib_uuid = require('uuid');
 
 var IMGAPI = require('sdc-clients').IMGAPI;

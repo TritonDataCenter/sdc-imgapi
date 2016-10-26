@@ -17,11 +17,11 @@ var util = require('util');
 var path = require('path');
 var fs = require('fs');
 
-var EffluentLogger = require('effluent-logger');
 var nopt = require('nopt');
 var restify = require('restify');
 var bunyan = require('bunyan');
 var assert = require('assert-plus');
+var tritonTracer = require('triton-tracer');
 var vasync = require('vasync');
 
 var mod_config = require('./lib/config');
@@ -118,20 +118,6 @@ function handleArgv() {
 }
 
 
-function addFluentdHost(log_, host) {
-    var evtLogger = new EffluentLogger({
-        filter: function _evtFilter(obj) { return (!!obj.evt); },
-        host: host,
-        log: log_,
-        port: 24224,
-        tag: 'debug'
-    });
-    log_.addStream({
-        stream: evtLogger,
-        type: 'raw'
-    });
-}
-
 
 //---- mainline
 
@@ -140,7 +126,14 @@ function main() {
     var config;
     var opts = handleArgv();
 
+
     vasync.pipeline({funcs: [
+        function initTracing(_, next) {
+            // handleArgv created the log, so now we want to initialize tracer.
+            tritonTracer.init({log: log});
+            next();
+        },
+
         function getConfig(_, next) {
             var loadOpts = {log: log, path: opts.file};
             mod_config.loadConfig(loadOpts, function (err, config_) {
@@ -155,11 +148,6 @@ function main() {
                 if (log.level() <= bunyan.TRACE) {
                     log.src = true;
                 }
-            }
-
-            // EXPERIMENTAL
-            if (config.fluentd_host) {
-                addFluentdHost(log, config.fluentd_host);
             }
 
             // Log config (but don't put passwords in the log file).

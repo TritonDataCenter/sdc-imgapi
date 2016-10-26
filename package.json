@@ -12,7 +12,6 @@
     "cmdln": "3.2.1",
     "dashdash": "1.10.0",
     "docker-registry-client": "3.3.0",
-    "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "expiring-lru-cache": "2.1.0",
     "extsprintf": "1.2.0",
     "forkexec": "1.1.0",
@@ -35,17 +34,17 @@
     "progbar": "git+https://github.com/trentm/node-progbar.git#a4c56e6",
     "restify": "4.3.1",
     "rimraf": "2.2.6",
-    "sdc-clients": "11.3.0",
+    "sdc-clients": "git+https://github.com/joyent/node-sdc-clients.git#rfd-35-cls",
     "semver": "5.4.1",
     "sshpk": "1.13.0",
     "through2": "2.0.3",
-    "trace-event": "1.2.0",
     "triton-metrics": "0.1.1",
+    "triton-tracer": "git+https://github.com/joshwilsdon/triton-tracer.git#rfd-35-cls",
     "ufds": "1.2.0",
     "uuid": "2.0.2",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "0.2.1"
+    "wf-client": "git+https://github.com/joyent/sdc-wf-client.git#rfd-35-cls"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0"
