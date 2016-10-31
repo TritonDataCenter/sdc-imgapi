@@ -1,5 +1,8 @@
 # IMGAPI changelog
 
+## 3.1.3
+
+
 ## 3.1.2
 
 - DOCKER-950 docker pull fails on registry that does not use authentication
