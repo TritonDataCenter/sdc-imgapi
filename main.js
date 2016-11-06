@@ -130,7 +130,16 @@ function main() {
     vasync.pipeline({funcs: [
         function initTracing(_, next) {
             // handleArgv created the log, so now we want to initialize tracer.
-            tritonTracer.init({log: log});
+            tritonTracer.init({
+                log: log
+                sampling: {
+                    route: {
+                        ping: 0.1
+                    }, GET: {
+                        '/ping': 0.1
+                    }
+                }
+            });
             next();
         },
 
