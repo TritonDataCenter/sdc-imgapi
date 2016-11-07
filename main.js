@@ -131,7 +131,7 @@ function main() {
         function initTracing(_, next) {
             // handleArgv created the log, so now we want to initialize tracer.
             tritonTracer.init({
-                log: log
+                log: log,
                 sampling: {
                     route: {
                         ping: 0.1
