@@ -4,15 +4,6 @@ markdown2extras: tables, code-friendly, cuddled-lists, link-patterns
 markdown2linkpatternsfile: link-patterns.txt
 apisections: Images, Channels, Miscellaneous API
 ---
-<!--
-    This Source Code Form is subject to the terms of the Mozilla Public
-    License, v. 2.0. If a copy of the MPL was not distributed with this
-    file, You can obtain one at http://mozilla.org/MPL/2.0/.
--->
-
-<!--
-    Copyright (c) 2016, Joyent, Inc.
--->
 
 # Image API (IMGAPI)
 
@@ -201,12 +192,21 @@ A version string for this image. Maximum 128 characters. This is an opaque
 string, i.e. no particular format or structure is enforced and
 no ordering with other versions is implied. However, it is strongly suggested
 that the [semver](http://semver.org/) versioning scheme be
-followed. Further, the simple `Major.Minor.Patch` semver subset is ideal.
+followed.
 
 Note that image `name` and `version` do not make a unique identifier for
 an image. Separate users (and even the same user) can create images with
 the same name and version. The image `uuid` is the only unique identifier
 for an image.
+
+Starting in IMGAPI v3.2.0, support was added to allow '+' in the "version"
+field, because this is one of the characters [allowed by
+semver](http://semver.org/#spec-item-10). However, it wasn't until OS-5798 that
+`imgadm` (v3.7.0) in the platform was update to allow '+' in a version.
+Therefore a **warning**: do not use '+' in an image version until you know that
+the minimum platform version for any server in your target DC(s) is greater than
+or equal to 20161118T231131Z (when OS-5798 was
+[integrated](https://github.com/joyent/smartos-live/commit/fc5816a)).
 
 
 ## Manifest: description
