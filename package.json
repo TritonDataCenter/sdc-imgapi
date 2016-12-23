@@ -41,7 +41,7 @@
     "ufds": "1.2.0",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "0.2.0"
+    "wf-client": "0.2.1"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0"
