@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2017 Joyent, Inc.
  */
 
 /*
@@ -146,16 +146,18 @@ test('AdminImportImage from local .imgmanifest', function (t) {
 
     function create(next) {
         self.client.adminImportImage(data, function (err, image, res) {
-            t.ifError(err, err);
-            t.ok(image);
+            t.ifError(err);
+            t.ok(image, 'got an image object');
             if (image) {
-                t.equal(image.uuid, data.uuid);
-                t.equal(image.published_at, data.published_at);
-                t.equal(image.state, 'unactivated');
+                t.equal(image.uuid, data.uuid, 'expected image.uuid matched');
+                t.equal(image.published_at, data.published_at,
+                    'expected image.published_at matched');
+                t.equal(image.state, 'unactivated',
+                    'image.state is unactivated');
                 t.equal(image.inherited_directories.join(','),
                     data.inherited_directories.join(','),
-                    'inherited_directories');
-                t.ok(image.billing_tags);
+                    'expected inherited_directories matched');
+                t.ok(image.billing_tags, 'have image.billing_tags');
             }
             next(err);
         });
