@@ -34,7 +34,7 @@
     "progbar": "git+https://github.com/trentm/node-progbar.git#a4c56e6",
     "restify": "4.1.1",
     "rimraf": "2.2.6",
-    "sdc-clients": "10.0.1",
+    "sdc-clients": "10.0.4",
     "semver": "3.0.1",
     "sshpk": "1.10.0",
     "trace-event": "1.2.0",
