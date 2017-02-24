@@ -652,6 +652,7 @@ Error codes that can be returned from IMGAPI endpoints.
 | OperatorOnly | 403 | Operator-only endpoint called by a non-operator. |
 | ImageUuidAlreadyExists | 409 | Attempt to import an image with a conflicting UUID |
 | Upload | 400 | There was a problem with the upload. |
+| Download | 400 | There was a problem with the download. |
 | StorageIsDown | 503 | Storage system is down. |
 | StorageUnsupported | 503 | The storage type for the image file is unsupported. |
 | RemoteSourceError | 503 | Error contacting the remote source. |
@@ -660,9 +661,11 @@ Error codes that can be returned from IMGAPI endpoints.
 | NotImageOwner | 422 | The caller is not the owner of this image. |
 | NotMantaPathOwner | 422 | The caller is not the owner of this Manta path. |
 | OriginDoesNotExist | 422 | No image exists with the UUID given in the "origin" field for image creation or import. |
+| OriginIsNotActive | 422 | An origin image of the given image exists, but is not active. |
 | InsufficientServerVersion | 422 | Image creation is not supported for this VM because the host server version is not of a recent enough version. |
 | ImageHasDependentImages | 422 | An error raised when attempting to delete an image which has dependent incremental images (images whose "origin" is this image). |
 | NotAvailable | 501 | Functionality is not available. |
+| NotImplemented | 400 | Attempt to use a feature that is not yet implemented |
 | InternalError | 500 | Internal Server Error |
 | ResourceNotFound | 404 | Not Found |
 | InvalidHeader | 400 | An invalid header was given in the request. |
