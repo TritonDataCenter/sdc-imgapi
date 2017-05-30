@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright 2017 Joyent, Inc.
 #
 
 #
@@ -60,13 +60,13 @@ echo 'if [ "$PS1" ]; then eval $(/opt/smartdc/imgapi/bin/manta-env 2>/dev/null |
 if [[ ! -d /data/imgapi ]]; then
     # etc/ and instance ssh key
     mkdir -p /data/imgapi/etc
-    [[ ! -f /data/imgapi/etc/imgapi-*.id_rsa ]] \
-        || fatal "unexpected existing IMGAPI instance key files: /data/imgapi/etc/imgapi-*.id_rsa"
+    [[ ! -f /data/imgapi/etc/imgapi-*.id_ecdsa ]] \
+        || fatal "unexpected existing IMGAPI instance key files: /data/imgapi/etc/imgapi-*.id_ecdsa"
     keyName=$NODENAME-$(date -u '+%Y%m%d')
-    ssh-keygen -t rsa -b 4096 -N "" \
-        -C "$keyName" -f /data/imgapi/etc/$keyName.id_rsa
+    ssh-keygen -t ecdsa -b 256 -N "" \
+        -C "$keyName" -f /data/imgapi/etc/$keyName.id_ecdsa
     # Write pubkey to mdata so outside tooling can use it for setup.
-    mdata-put instPubKey < /data/imgapi/etc/$keyName.id_rsa.pub
+    mdata-put instPubKey < /data/imgapi/etc/$keyName.id_ecdsa.pub
 
     # Self-signed cert
     /opt/local/bin/openssl req -x509 -nodes -subj '/CN=*' -newkey rsa:2048 \
@@ -85,18 +85,17 @@ if [[ ! -d /data/imgapi ]]; then
     # imgapi SMF service runs as 'nobody'
     chown nobody:nobody /data/imgapi
     chown nobody:nobody /data/imgapi/etc
-    chown nobody:nobody /data/imgapi/etc/$keyName.id_rsa{,.pub}
+    chown nobody:nobody /data/imgapi/etc/$keyName.id_ecdsa{,.pub}
     chown nobody:nobody /data/imgapi/etc/cert.pem
     chown nobody:nobody /data/imgapi/etc/imgapi.config.json
     chown nobody:nobody /data/imgapi/etc/authkeys
     chown nobody:nobody /data/imgapi/etc/authkeys/local
-else
-    keyName=$(mdata-get instPubKey | awk '{print $3}')
 fi
 
 # Manta CLI tools require that key be in ~/.ssh
-ln -s /data/imgapi/etc/$keyName.id_rsa ~/.ssh/
-ln -s /data/imgapi/etc/$keyName.id_rsa.pub ~/.ssh/
+privKeyPath=$(/opt/smartdc/imgapi/build/node/bin/node /opt/smartdc/imgapi/lib/config.js | json manta.key)
+ln -s $privKeyPath ~/.ssh/
+ln -s $privKeyPath.pub ~/.ssh/
 
 # Log rotation
 mkdir -p /var/log/triton/upload

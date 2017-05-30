@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -47,6 +47,7 @@ var templatePath = path.resolve(topDir, 'etc', 'standalone',
 
 var setupConfigVars = [
     'mode',
+    'channels',
     'serverName',
     'mantaUrl',
     'mantaUser',
@@ -167,7 +168,8 @@ function main() {
             arg.setupConfig.mantaKeyId
                 = pubKey.fingerprint('sha256').toString();
 
-            var privKeyPath = '/data/imgapi/etc/' + pubKey.comment + '.id_rsa';
+            var privKeyPath = '/data/imgapi/etc/' + pubKey.comment
+                + '.id_ecdsa';
             fs.exists(privKeyPath, function (exists) {
                 if (!exists) {
                     next(new VError('expected IMGAPI instance private key '
@@ -176,6 +178,33 @@ function main() {
                     arg.setupConfig.mantaKey = privKeyPath;
                     next();
                 }
+            });
+        },
+
+        /*
+         * "channels" may be the special value "standard", which is
+         * transformed to .../etc/standalone/standard-channels.json. These are
+         * the channels used by updates.joyent.com.
+         */
+        function handleChannelsStandard(arg, next) {
+            if (!arg.setupConfig.channels
+                || arg.setupConfig.channels !== 'standard')
+            {
+                next();
+                return;
+            }
+
+            var stdChansFile = path.resolve(topDir, 'etc', 'standalone',
+                'standard-channels.json');
+            fs.readFile(stdChansFile, {
+                encoding: 'utf8'
+            }, function (readErr, text) {
+                if (readErr) {
+                    next(readErr);
+                    return;
+                }
+                arg.setupConfig.channels = text;
+                next();
             });
         },
 

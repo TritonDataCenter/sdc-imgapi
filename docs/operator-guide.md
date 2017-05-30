@@ -20,7 +20,7 @@ There are two main types of IMGAPI:
 2. `standalone`: A standalone IMGAPI, that runs independent of a Triton
    DataCenter. These are configured with `mode === "public"` (for public images,
    example "images.joyent.com") or `mode === "private"` (for repos with private
-   images, example "updates.joyent.com"). These server HTTPS over a public
+   images, example "updates.joyent.com"). These serve HTTPS over a public
    network (via stud for SSL termination, to HAproxy for possible load
    balancing, to one or more node.js IMGAPI processes). They are typically
    configured to use HTTP Signature auth (like Triton's CloudAPI and Manta's web
@@ -125,18 +125,21 @@ For example:
 
     cd /var/tmp
     curl -kO https://raw.githubusercontent.com/joyent/sdc-imgapi/master/bin/imgapi-standalone-create
+    chmod +x imgapi-standalone-create
 
     # A play IMGAPI in COAL using a local 'trentm' COAL account and
     # /trent.mick/stor/tmp/images in Manta:
-    bash ./imgapi-standalone-create \
+    ./imgapi-standalone-create \
         -m mantaUrl=https://us-east.manta.joyent.com \
-        -m mantaUser=trent.mick -m mantaBaseDir=tmp/images \
+        -m mantaUser=trent.mick \
+        -m mantaBaseDir=tmp/images \
         trentm latest sample-2G myimages0
 
     # An deployment of images.joyent.com might look like this:
-    bash ./imgapi-standalone-create \
+    ./imgapi-standalone-create \
         -m mantaUrl=https://us-east.manta.joyent.com \
-        -m mantaUser=joyops -m mantaBaseDir=images.joyent.com \
+        -m mantaUser=joyops \
+        -m mantaBaseDir=images.joyent.com \
         -t triton.cns.services=imagesjo \
         joyops latest g4-highcpu-2G imagesjo0
 
@@ -148,7 +151,7 @@ below). The `-t` option adds an instance tag -- in this case to use
 
 ## Standalone Setup Step 2: edit config
 
-After creation one may edit the generated config file at
+After creation, one may edit the generated config file at
 "/data/imgapi/etc/imgapi.config.json" manually. Afterwards, remember to
 restart the imgapi service:
 
@@ -282,6 +285,15 @@ isn't yet a part of CloudAPI).
 
     imgapi-standalone-reprovision [OPTIONS] INSTANCE IMAGE
 
+For example:
+
+    cd /var/tmp
+    curl -kO https://raw.githubusercontent.com/joyent/sdc-imgapi/master/bin/imgapi-standalone-reprovision
+    chmod +x imgapi-standalone-reprovision
+
+    ./imgapi-standalone-reprovision 98cf10d4-7550-11e6-8930-ef291247b988 latest
+
+
 This will handle importing the identified 'imgapi' image to the DC, tweaking
 its permissions, and reprovisioning the instance to the new image.
 
@@ -383,7 +395,7 @@ For example: if providing `manta`, one must provide the whole `manta` object.
 | ---------------------------- | ------------- | ----------------- | ----------- |
 | port                         | Number        | 8080              | Port number on which to listen. |
 | address                      | String        | 127.0.0.1         | Address on which to listen. |
-| serverName                   | String        | IMGAPI/$version   | Name of the HTTP server. This value is present on every HTTP response in the 'server' header. |
+| serverName                   | String        | imgapi/$version   | Name of the HTTP server. This value is present on every HTTP response in the 'Server' header. |
 | logLevel                     | String/Number | debug             | Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d,--debug` switch. |
 | maxSockets                   | Number        | 100               | Maximum number of sockets for external API calls |
 | mode                         | String        | public            | One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in a Triton DataCenter). |
@@ -467,6 +479,7 @@ These are called "setup config vars". At time of writing they are (see
 | mantaUrl     | manta.url |
 | mantaUser    | manta.user |
 | mantaBaseDir | manta.baseDir |
+| channels     | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
 
 
 # Storage
@@ -481,7 +494,7 @@ the `storageTypes` config var. For example:
     "manta": {
         "url": "https://us-east.manta.joyent.com",
         "user": "alice",
-        "key": "/data/imgapi/etc/imgapi-img7-37591570-20160831.id_rsa",
+        "key": "/data/imgapi/etc/imgapi-img7-37591570-20160831.id_ecdsa",
         "keyId": "SHA256:UlGQ8CXT0BIvJXq2IoPllUHUOTJUCwNLhsKMzdc8/30",
         "baseDir": "imgapi",
         "insecure": false,

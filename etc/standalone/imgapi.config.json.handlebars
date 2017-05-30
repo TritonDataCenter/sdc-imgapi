@@ -12,6 +12,10 @@
     },
     {{/if}}
 
+    {{#if channels}}
+    "channels": {{{channels}}},
+    {{/if}}
+
     "authType": "signature",
     "databaseType": "local",
     "storageTypes": [

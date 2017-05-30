@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "3.2.2",
+  "version": "3.3.0",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -23,7 +23,7 @@
     "uuid": "2.0.2",
     "manta": "3.1.2",
     "manta-dir-watcher": "1.1.0",
-    "manta-sync": "0.4.0",
+    "manta-sync": "0.4.2",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
     "moray": "git+https://github.com/joyent/node-moray.git#fd5781bc25a9bfe2ba82167664639753fb9f0ca5",
@@ -36,7 +36,7 @@
     "rimraf": "2.2.6",
     "sdc-clients": "10.0.4",
     "semver": "3.0.1",
-    "sshpk": "1.10.0",
+    "sshpk": "1.13.0",
     "trace-event": "1.2.0",
     "ufds": "1.2.0",
     "vasync": "1.6.3",

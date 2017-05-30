@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -21,7 +21,7 @@
  *
  * This script will:
  *
- * - Generate a new passphrase-less ssh-rsa "imgapi key", if necessary.
+ * - Generate a new passphrase-less ECDSA "imgapi key", if necessary.
  * - Add this key to the admin ($ufds_admin_login) user.
  * - Set the following metadata on the 'imgapi' service in SAPI:
  *
@@ -229,7 +229,7 @@ function getUfdsClient(master, sdcApp, callback) {
 function generateKey(keyName, callback) {
     assert.func(callback, 'callback');
 
-    var privPath = format('/var/tmp/imgapi.%s.id_rsa', process.pid);
+    var privPath = format('/var/tmp/imgapi.%s.key', process.pid);
     var pubPath = privPath + '.pub';
     var key = {
         name: keyName
@@ -237,7 +237,8 @@ function generateKey(keyName, callback) {
 
     async.series([
         function (next) {
-            var cmd = format('/usr/bin/ssh-keygen -t rsa -f %s -N "" -C "%s"',
+            var cmd = format(
+                '/usr/bin/ssh-keygen -t ecdsa -b 256 -f %s -N "" -C "%s"',
                 privPath, key.name);
             log.info({cmd: cmd}, 'generating SSH key');
             exec(cmd, function (err, stdout, stderr) {

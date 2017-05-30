@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright 2017 Joyent, Inc.
 #
 
 #
@@ -28,29 +28,24 @@ PATH=/usr/bin:/usr/sbin:/smartdc/bin:/opt/smartdc/bin:/opt/local/bin:/opt/local/
 
 function usage () {
     echo "Usage:"
-    echo "  imgapi-standalone-reprovision [OPTIONS] INSTANCE IMAGE"
+    echo "    imgapi-standalone-reprovision [OPTIONS] INSTANCE IMAGE"
     echo ""
     echo "Options:"
-    echo "  -h          Show this help and exit."
-    echo "  -y          Skip the confirmation before reprovisioning."
-    echo "  -I          Allow reprovision with same image."
-    echo "  -C CHANNEL  Updates channel in which to look for the given IMAGE."
+    echo "    -h          Show this help and exit."
+    echo "    -y          Skip the confirmation before reprovisioning."
+    echo "    -I          Allow reprovision with the current image."
+    echo "    -C CHANNEL  Updates channel in which to look for the given IMAGE."
     echo ""
-    echo "Where INSTANCE is an existing standalone IMGAPI instance UUID, and"
-    echo "IMAGE is an 'imgapi' image UUID or 'latest' to get the latest from"
-    echo "the current (or given) channel of updates.joyent.com."
+    echo "Where INSTANCE is an existing standalone IMGAPI instance UUID,"
+    echo "and IMAGE is an 'imgapi' image UUID or 'latest' to get the latest"
+    echo "from the current (or given) channel of updates.joyent.com."
     echo ""
     echo "Examples:"
     echo ""
-    echo "- First you'll need to get the create script to your headnode GZ:"
-    echo "    cd /var/tmp && curl -O https://raw.githubusercontent.com/joyent/sdc-imgapi/IMGAPI-567/bin/imgapi-standalone-reprovision"
-    echo ""
     echo "- Reprovision an images.joyent.com inst with the latest experimental"
     echo "  'imgapi' image:"
-    echo "    /var/tmp/imgapi-standalone-reprovision -C experimental \\"
-    echo "        205c49c8-715e-11e6-9134-239a750f414c latest"
-    echo ""
-
+    echo "      ./imgapi-standalone-reprovision -C experimental \\"
+    echo "          205c49c8-715e-11e6-9134-239a750f414c latest"
 }
 
 function fatal {
@@ -118,7 +113,7 @@ ownerJson=$(sdc-useradm get $ownerUuid)
 ownerLogin=$(echo "$ownerJson" | json login)
 ownerCompany=$(echo "$ownerJson" | json company)
 
-# Guard against a possible accidental reprovisioning a *core* IMGAPI zone
+# Guard against a possible accidental reprovisioning of a *core* IMGAPI zone
 # for this DC (which will be owned by 'admin').
 if [[ $ownerLogin == "admin" ]]; then
     fatal "instance $INSTANCE ($instAlias) is owned by 'admin': are you accidentally trying to reprovision a core DC IMGAPI?"

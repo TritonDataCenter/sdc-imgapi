@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright 2017 Joyent, Inc.
 #
 
 #
@@ -26,8 +26,8 @@
 # be unnecessary.
 #
 
+export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 if [[ -n "$TRACE" ]]; then
-    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
     set -o xtrace
 fi
 set -o errexit
@@ -52,6 +52,7 @@ function usage () {
     echo "Options:"
     echo "  -h          Show this help and exit."
     echo "  -y          Skip the confirmation before restoring."
+    echo "  -v          Trace output (mostly equivalent to TRACE=1)."
 }
 
 function fatal {
@@ -64,13 +65,36 @@ function errexit {
     fatal "error exit status $1"
 }
 
+function imgapi_wait_until_running {
+    local imgapi_url
+    imgapi_url=http://$(echo "$config" | json address):$(echo "$config" | json port)
+    for i in 1 2 3 4 5 6 7 8 9; do
+        sleep 0.5
+        if imgapi_is_running $imgapi_url; then
+            break
+        fi
+    done
+    imgapi_is_running $imgapi_url || fatal 'imgapi did not start'
+}
+
+function imgapi_is_running {
+    local imgapi_url=$1
+    local response=$(curl -iSs -H accept:application/json \
+        localhost:8080/ping?caller=imgapi-standalone-restore 2>/dev/null)
+    if [[ $(echo "$response" | json -qH ping) == "pong" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 
 #---- mainline
 
 trap 'errexit $?' EXIT
 
 optYes=no
-while getopts "hy" opt
+while getopts "hyv" opt
 do
     case "$opt" in
         h)
@@ -79,6 +103,9 @@ do
             ;;
         y)
             optYes=yes
+            ;;
+        v)
+            set -o xtrace
             ;;
         *)
             usage
@@ -152,7 +179,7 @@ if [[ $infoStatus == "404" ]]; then
     echo "This means either (a) all image files for this IMGAPI are stored in "
     echo "Manta, which is a good thing; or (b) this is a brand new IMGAPI repo."
 elif [[ $infoStatus != "200" ]]; then
-    fatal "unexpected status code getting `minfo $bakDir/images`: $infoStatus"
+    fatal "unexpected status code getting 'minfo $bakDir/images': $infoStatus"
 else
     echo "Restore /data/imgapi/images"
     $MANTASYNC -r $bakDir/images /data/imgapi/images
@@ -165,7 +192,7 @@ if [[ $infoStatus == "404" ]]; then
     echo "Nothing in $bakDir/manifests to restore."
     echo "This means either that this is a brand new IMGAPI repo."
 elif [[ $infoStatus != "200" ]]; then
-    fatal "unexpected status code getting `minfo $bakDir/manifests`: $infoStatus"
+    fatal "unexpected status code getting 'minfo $bakDir/manifests': $infoStatus"
 else
     echo "Restore /data/imgapi/manifests"
     $MANTASYNC -r $bakDir/manifests /data/imgapi/manifests
@@ -182,5 +209,7 @@ mkdir -p $(dirname $RESTORED_MARKER)
 echo "restored at $restoredTimestamp" >>$RESTORED_MARKER
 
 echo ""
-echo "Restarting imgapi service"
-svcadm restart imgapi
+echo "Restarting imgapi service (and wait until it is running)"
+svcadm disable -s imgapi
+svcadm enable -s imgapi
+imgapi_wait_until_running

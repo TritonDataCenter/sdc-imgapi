@@ -1,7 +1,30 @@
 # IMGAPI changelog
 
+## 3.3.0
+
+- IMGAPI-627 With this change, a standalone IMGAPI will use an ECDSA key for
+  auth to its Manta storage (if any). Before this a 4k RSA key was used, which,
+  for node at least, is slow so put a significant limit on req/s.
+
+## 3.2.2
+
+- IMGAPI-621 handling of query params with '.' broken since IMGAPI-587
+
+## 3.2.1
+
+- DOCKER-984 'docker pull some-unreachable-ip/name:tag' takes a LONG time to fail
+- DOCKER-983 'docker --tls pull nope.example.com/nope' is way too slow
+
+## 3.2.0
+
+- IMGAPI-601 IMGAPI should allow '+' in a manifest version
+
 ## 3.1.3
 
+- DOCKER-959 Unable to pull from registry when registry response sends multiple
+  Docker-Distribution-Api-Version headers
+- IMGAPI-600 AdminImportDockerImage 'error' progress message should use
+  restify-errors err.name as a fallback code
 
 ## 3.1.2
 

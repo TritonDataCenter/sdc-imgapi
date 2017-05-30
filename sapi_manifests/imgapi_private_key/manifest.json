@@ -1,5 +1,5 @@
 {
     "name": "imgapi_private_key",
-    "path": "/root/.ssh/imgapi.id_rsa",
-    "post_cmd": "chmod 600 /root/.ssh/imgapi.id_rsa; chown nobody:nobody /root/.ssh/imgapi.id_rsa"
+    "path": "/root/.ssh/imgapi.key",
+    "post_cmd": "chmod 600 /root/.ssh/imgapi.key; chown nobody:nobody /root/.ssh/imgapi.key"
 }

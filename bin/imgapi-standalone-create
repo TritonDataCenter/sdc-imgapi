@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright 2017 Joyent, Inc.
 #
 
 #
@@ -245,9 +245,9 @@ if [[ -n "$mantaUser" ]]; then
     echo "used is part of this Triton cloud, then this should work:"
     echo ""
     echo "    sdc-vmadm get $vmUuid \\"
-    echo "        | json customer_metadata.instPubKey > /tmp/imgapi.id_rsa.pub"
-    echo "    keyname=\$(cat /tmp/imgapi.id_rsa.pub | head -1 | awk '{print \$3}')"
-    echo "    sdc-useradm add-key -n \$keyname $mantaUser /tmp/imgapi.id_rsa.pub"
+    echo "        | json customer_metadata.instPubKey > /tmp/imgapi.id_ecdsa.pub"
+    echo "    keyname=\$(cat /tmp/imgapi.id_ecdsa.pub | head -1 | awk '{print \$3}')"
+    echo "    sdc-useradm add-key -n \$keyname $mantaUser /tmp/imgapi.id_ecdsa.pub"
     echo ""
     echo "If the Manta is part of a separate cloud then, for an appropriate"
     echo "Triton CLI profile, the following might work:"

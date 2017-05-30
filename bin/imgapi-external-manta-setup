@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -20,7 +20,7 @@
  *
  * This script will:
  *
- * - Take the given url, user, and ssh-rsa key and set the following metadata
+ * - Take the given url, user, and SSH key and set the following metadata
  *   on the 'imgapi' service in SAPI:
  *
  *      IMGAPI_MANTA_URL

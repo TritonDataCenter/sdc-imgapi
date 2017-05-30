@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright 2017 Joyent, Inc.
 #
 
 #
@@ -17,7 +17,7 @@
 # This is to allow log rotation to complete.
 #
 #       0 * * * * /usr/sbin/logadm -v >>/var/log/logadm.log 2>&1
-#       1 * * * * /.../tritonlogupload.sh -a 5 >>/var/log/tritonlogupload.log 2>&1
+#       1 * * * * /opt/smartdc/imgapi/bin/tritonlogupload.sh -a 5 >>/var/log/tritonlogupload.log 2>&1
 #
 # Currently this is hardcoded for standalone IMGAPI usage, getting
 # manta config info from $CONFIG. TODO: generalize this.

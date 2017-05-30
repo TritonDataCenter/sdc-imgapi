@@ -31,7 +31,7 @@
     "manta": {
         "url": "{{IMGAPI_MANTA_URL}}",
         "user": "{{IMGAPI_MANTA_USER}}",
-        "key": "/root/.ssh/imgapi.id_rsa",
+        "key": "/root/.ssh/imgapi.key",
         "keyId": "{{IMGAPI_KEY_ID}}",
         "insecure": {{IMGAPI_MANTA_INSECURE}},
         "remote": {{IMGAPI_MANTA_REMOTE}},
