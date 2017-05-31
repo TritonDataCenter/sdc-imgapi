@@ -84,6 +84,13 @@ var OPTIONS = [
         help: 'Print this help and exit.'
     },
     {
+        names: ['force', 'f'],
+        type: 'bool',
+        default: false,
+        help: 'Force re-creation of a new key, even if there is already one '
+            + 'setup. This can be useful for key rotation.'
+    },
+    {
         names: ['remote', 'r'],
         type: 'bool',
         default: false,
@@ -320,41 +327,84 @@ function getSdcApp(config, callback) {
  *
  * ...
  * @param callback {Function} `function (err, key)`
+ *      where `key` is an object of the form returned by `generateKey`,
+ *      i.e. with "name", "priv", "pub" and "id" fields.
  */
-function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, mantaInsecure,
-        mantaRemote, callback) {
+function ensureImgapiSapiServiceSetup(args, callback) {
+    assert.object(args, 'args');
+    assert.object(args.config, 'args.config');
+    assert.object(args.sdcApp, 'args.sdcApp');
+    assert.string(args.mantaUrl, 'args.mantaUrl');
+    assert.bool(args.mantaInsecure, 'args.mantaInsecure');
+    assert.bool(args.mantaRemote, 'args.mantaRemote');
+    assert.bool(args.forceUpdate, 'args.forceUpdate');
+
+    var key;
+    var keyName = format('%s imgapi key',
+        args.sdcApp.metadata.datacenter_name);
     var sapi = new sdcClients.SAPI({
-        url: 'http://' + config.sapi_service,
+        url: 'http://' + args.config.sapi_service,
         log: log,
         agent: false
     });
+    var svc;
 
-    var svc, key;
     async.series([
         function (next) {
-            log.info('check whether the imgapi SAPI svc is setup for manta');
-            var searchOpts = {name: 'imgapi', application_uuid: sdcApp.uuid};
+            var searchOpts = {
+                name: 'imgapi',
+                application_uuid: args.sdcApp.uuid
+            };
             sapi.listServices(searchOpts, function (sErr, svcs) {
                 if (sErr)
                     return next(sErr);
                 svc = svcs[0];
-                if (!svc.metadata.IMGAPI_MANTA_URL ||
-                    !svc.metadata.IMGAPI_MANTA_USER ||
-                    !svc.metadata.IMGAPI_MANTA_INSECURE ||
-                    !svc.metadata.IMGAPI_MANTA_REMOTE ||
-                    !svc.metadata.IMGAPI_PUBLIC_KEY ||
-                    !svc.metadata.IMGAPI_PRIVATE_KEY ||
-                    !svc.metadata.IMGAPI_KEY_ID)
-                {
-                    return next();
+
+                if (args.forceUpdate) {
+                    log.info({forceUpdate: args.forceUpdate},
+                        'forcing key re-generation');
+                    next();
+                    return;
                 }
-                next(true); // signal to exit early, everything is good
+
+                var expectedFields = [
+                    'IMGAPI_MANTA_URL',
+                    'IMGAPI_MANTA_USER',
+                    'IMGAPI_MANTA_INSECURE',
+                    'IMGAPI_MANTA_REMOTE',
+                    'IMGAPI_PUBLIC_KEY',
+                    'IMGAPI_PRIVATE_KEY',
+                    'IMGAPI_KEY_ID'
+                ];
+                var missingFields = [];
+                expectedFields.forEach(function (field) {
+                    if (!Object.prototype.hasOwnProperty.call(
+                            svc.metadata, field)) {
+                        missingFields.append(field);
+                    }
+                });
+                if (missingFields.length > 0) {
+                    log.info({missingFields: missingFields},
+                        'SAPI imgapi svc is *not* fully setup for Manta: '
+                        + 'missing %d metadata fields', missingFields.length);
+                    next();
+                } else {
+                    log.info(
+                        {keyId: svc.metadata.IMGAPI_KEY_ID, keyName: keyName},
+                        'SAPI imgapi svc already has a key for use with '
+                        + 'Manta: skipping generating a new key');
+                    key = {
+                        name: keyName,
+                        pub: svc.metadata.IMGAPI_PUBLIC_KEY,
+                        priv: svc.metadata.IMGAPI_PRIVATE_KEY,
+                        id: svc.metadata.IMGAPI_KEY_ID
+                    };
+                    next(true); // signal to exit early, everything is good
+                }
             });
         },
         function (next) {
-            log.info('generate a new key');
-            var keyName = format('%s imgapi key',
-                sdcApp.metadata.datacenter_name);
+            log.info({keyName: keyName}, 'generate a new key');
             generateKey(keyName, function (kErr, key_) {
                 if (kErr)
                     return next(kErr);
@@ -365,10 +415,10 @@ function ensureImgapiSapiServiceSetup(config, sdcApp, mantaUrl, mantaInsecure,
         },
         function (next) {
             var md = {
-                IMGAPI_MANTA_URL: mantaUrl,
-                IMGAPI_MANTA_USER: config.ufds_admin_login,
-                IMGAPI_MANTA_INSECURE: mantaInsecure,
-                IMGAPI_MANTA_REMOTE: mantaRemote,
+                IMGAPI_MANTA_URL: args.mantaUrl,
+                IMGAPI_MANTA_USER: args.config.ufds_admin_login,
+                IMGAPI_MANTA_INSECURE: args.mantaInsecure,
+                IMGAPI_MANTA_REMOTE: args.mantaRemote,
                 IMGAPI_PRIVATE_KEY: key.priv,
                 IMGAPI_PUBLIC_KEY: key.pub,
                 IMGAPI_KEY_ID: key.id
@@ -486,9 +536,14 @@ function main() {
         },
 
         function (next) {
-            ensureImgapiSapiServiceSetup(CONFIG, sdcApp, mantaUrl,
-                opts.insecure, opts.remote,
-                function (sErr, key_) {
+            ensureImgapiSapiServiceSetup({
+                config: CONFIG,
+                sdcApp: sdcApp,
+                mantaUrl: mantaUrl,
+                mantaInsecure: opts.insecure,
+                mantaRemote: opts.remote,
+                forceUpdate: opts.force
+            }, function (sErr, key_) {
                     key = key_;
                     next(sErr);
                 }
