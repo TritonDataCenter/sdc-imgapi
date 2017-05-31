@@ -110,7 +110,7 @@ fi
 
 # 1. Create the new key
 echo "# Generating new key (in /data/imgapi/etc/newinstkey)"
-/opt/smartdc/boot/standalone/new-inst-key
+/opt/smartdc/boot/standalone/new-inst-key.sh
 
 newPubKeyPath=$(ls /data/imgapi/etc/newinstkey/imgapi-*.pub)
 keyId=$(ssh-keygen -E sha256 -lf $newPubKeyPath | awk '{print $2}')

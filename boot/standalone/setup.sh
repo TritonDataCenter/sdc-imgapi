@@ -63,7 +63,7 @@ if [[ ! -d /data/imgapi ]]; then
     [[ ! -f /data/imgapi/etc/imgapi-*.id_ecdsa ]] \
         || fatal "unexpected existing IMGAPI instance key files: /data/imgapi/etc/imgapi-*.id_ecdsa"
 
-    /opt/smartdc/boot/standalone/new-inst-key
+    /opt/smartdc/boot/standalone/new-inst-key.sh
     newPubKeyPath=$(ls /data/imgapi/etc/newinstkey/imgapi-*.pub)
     keyBase=$(basename $newPubKeyPath .pub)
     newPrivKeyPath=/data/imgapi/etc/newinstkey/$keyBase
