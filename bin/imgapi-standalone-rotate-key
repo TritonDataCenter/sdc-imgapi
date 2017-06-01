@@ -1,0 +1,233 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Copyright 2017 Joyent, Inc.
+#
+
+#
+# Rotate the instance key for this standalone IMGAPI instance.
+# This is meant to be run from within the IMGAPI instance.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+#---- support stuff
+
+function usage () {
+    echo "Usage:"
+    echo "    imgapi-standalone-rotate-key [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "    -h          Show this help and exit."
+    echo ""
+    echo "This command will guide through the process of rotating the"
+    echo "instance SSH key used by this standalone IMGAPI instance for"
+    echo "authenticating with Manta."
+    echo ""
+    echo "Note: An IMGAPI instance does not in general know how to talk to an"
+    echo "appropriate CloudAPI with which to add the new key. The script will"
+    echo "pause waiting for the operator to manually add the new pubkey."
+}
+
+function fatal {
+    echo "$0: fatal error: $*"
+    exit 1
+}
+
+function errexit {
+    [[ $1 -ne 0 ]] || exit 0
+    fatal "error exit status $1"
+}
+
+function imgapi_wait_until_running {
+    for i in {1..9}; do
+        sleep 0.5
+        if imgapi_is_running; then
+            break
+        fi
+    done
+    imgapi_is_running || fatal 'imgapi did not start'
+}
+
+function imgapi_is_running {
+    local response=$(curl -iSs -H accept:application/json \
+        localhost:8080/ping 2>/dev/null)
+    if [[ $(echo "$response" | json -qH ping) == "pong" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+
+#---- mainline
+
+trap 'errexit $?' EXIT
+
+while getopts "h" opt
+do
+    case "$opt" in
+        h)
+            usage
+            exit 0
+            ;;
+        *)
+            usage
+            exit 1
+            ;;
+    esac
+done
+shift $((OPTIND - 1))
+
+
+configMode=$(node /opt/smartdc/imgapi/lib/config.js mode)
+[[ "$configMode" == "public" || "$configMode" == "private" ]] \
+    || fatal "this is not a standalone IMGAPI: config mode=$configMode"
+configManta=$(node /opt/smartdc/imgapi/lib/config.js manta)
+[[ -n "$configManta" ]] || fatal "this IMGAPI doesn't used manta"
+
+
+echo "This command will guide you through the process of rotating the"
+echo "instance SSH key used by this standalone IMGAPI instance for"
+echo "authenticating with Manta."
+echo ""
+printf "Do you want to continue? [y/N] "
+read answer
+echo ""
+if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
+    echo "Aborting."
+    exit 0
+fi
+
+# 1. Create the new key
+echo "# Generating new key (in /data/imgapi/etc/newinstkey)"
+/opt/smartdc/boot/standalone/new-inst-key.sh
+
+newPubKeyPath=$(ls /data/imgapi/etc/newinstkey/imgapi-*.pub)
+keyId=$(ssh-keygen -E sha256 -lf $newPubKeyPath | awk '{print $2}')
+keyIdMd5=$(ssh-keygen -E md5 -lf $newPubKeyPath | awk '{print $2}' | cut -d: -f2-)
+keyBase=$(basename $newPubKeyPath .pub)
+newPrivKeyPath=/data/imgapi/etc/newinstkey/$keyBase
+
+# 2. Write pubkey to mdata so outside tooling can use it for setup.
+echo ""
+echo "# Writing new pubkey to metadata.instPubKey"
+mdata-put instPubKey < $newPubKeyPath
+
+# 3. Tell operator to update key, and wait for it to get through.
+mantaUrl=$(echo "$configManta" | json url)
+mantaUser=$(echo "$configManta" | json user)
+instAlias=$(mdata-get sdc:alias)
+echo ""
+echo "* * *"
+echo "You must now add the new key to the Manta user this IMGAPI is using:"
+echo "    Manta URL:    $mantaUrl"
+echo "    Manta user:   $mantaUser"
+echo "    Public key:   $newPubKeyPath"
+echo "    Key id:       $keyId"
+echo "    Key id (md5): $keyIdMd5"
+echo ""
+echo "If this Manta belongs to the same cloud as your the Triton CLI profile"
+echo "owning this IMGAPI instance, then the following should work to update"
+echo "the key:"
+echo "    triton inst get $instAlias | json metadata.instPubKey | triton key add -"
+echo ""
+printf "Press Enter to continue when you have updated the key..."
+read
+echo "* * *"
+
+echo ""
+echo "# Waiting up to 5 minutes for key to propagate for Manta access"
+export MANTA_URL=$mantaUrl
+export MANTA_USER=$mantaUser
+export MANTA_KEY_ID=$keyId
+if [[ "$(echo "$configManta" | json insecure)" == "true" ]]; then
+    export MANTA_TLS_INSECURE=1
+fi
+mantaRootDir=$(echo "$configManta" | json rootDir)
+ln -s $newPubKeyPath ~/.ssh/
+ln -s $newPrivKeyPath ~/.ssh/
+
+for i in $(seq 60); do
+    sleep 5
+    accessCheckStatus=$(minfo "$mantaRootDir" | head -1 | awk '{print $2}')
+    if [[ $accessCheckStatus == "200" ]]; then
+        echo "  [$(date '+%Y%m%dT%H%M%S')] can connect to Manta with new key"
+        break
+    elif [[ $accessCheckStatus == "403" ]]; then
+        echo "  [$(date '+%Y%m%dT%H%M%S')] cannot yet access Manta ($accessCheckStatus)"
+    else
+        fatal "error: unexpected response from minfo: $accessCheckStatus"
+    fi
+done
+if [[ $accessCheckStatus != "200" ]]; then
+    fatal "error: could not connect to Manta with the new key after ~5m"
+    exit 1
+fi
+
+echo "Waiting an additional 30s for all Manta web heads to get the new key"
+sleep 30
+
+# 4. Move the new key in place, update the IMGAPI config, and restart.
+echo ""
+echo "# Switching imgapi service to the new key"
+echo "Move new key into place (in /data/imgapi/etc and ~/.ssh)"
+mv $newPubKeyPath $newPrivKeyPath /data/imgapi/etc/
+chown nobody:nobody /data/imgapi/etc/$keyBase{,.pub}
+ln -sf /data/imgapi/etc/$keyBase ~/.ssh/
+ln -sf /data/imgapi/etc/$keyBase.pub ~/.ssh/
+rmdir /data/imgapi/etc/newinstkey
+
+echo "Update config (/data/imgapi/etc/imgapi.config.json)"
+mkdir -p /data/imgapi/etc/oldinstkeys
+cp /data/imgapi/etc/imgapi.config.json /data/imgapi/etc/oldinstkeys/
+json -If /data/imgapi/etc/imgapi.config.json \
+    -e "this.manta.key='/data/imgapi/etc/$keyBase'" \
+    -e "this.manta.keyId='$keyId'"
+chown nobody:nobody /data/imgapi/etc/imgapi.config.json
+
+echo "Moving old key to /data/imgapi/etc/oldinstkeys"
+oldPrivKeyPath=$(echo "$configManta" | json key)
+if [[ -n "$oldPrivKeyPath" ]]; then
+    if [[ -f $oldPrivKeyPath ]]; then
+        oldKeyIdMd5=$(ssh-keygen -E md5 -lf $oldPrivKeyPath | awk '{print $2}' | cut -d: -f2-)
+        [[ -n "$oldPrivKeyPath" ]] || fatal "no 'key' on config.manta"
+        mv -f $oldPrivKeyPath $oldPrivKeyPath.pub /data/imgapi/etc/oldinstkeys/
+    fi
+    rm -f ~/.ssh/$(basename $oldPrivKeyPath)*
+fi
+
+echo "Restarting imgapi service"
+svcState=$(svcs -H -o state imgapi)
+if [[ "$svcState" == "maintenance" ]]; then
+    svcadm clear imgapi
+else
+    svcadm disable -s imgapi
+    svcadm enable -s imgapi
+fi
+imgapi_wait_until_running
+
+echo ""
+echo "* * *"
+echo "IMGAPI key successfully rotated."
+echo ""
+echo "You may now remove old 'imgapi-*' key(s) from the Manta user:"
+echo "    Manta URL:    $mantaUrl"
+echo "    Manta user:   $mantaUser"
+if [[ -n "$oldKeyIdMd5" ]]; then
+    echo "    Key id (md5): $oldKeyIdMd5"
+    echo "For example, the following may work:"
+    echo "    triton key rm -y $oldKeyIdMd5"
+fi
+echo "* * *"
+
+exit 0

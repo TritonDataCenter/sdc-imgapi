@@ -160,6 +160,9 @@ triton keys -H -o name \
 # picked up on first startup.
 echo ""
 echo "# Deploy authkeys"
+export MANTA_URL=$mantaUrl
+export MANTA_USER=$mantaUser
+export MANTA_KEY_ID=$profileKeyId
 mmkdir -p ~~/stor/$MBASEDIR/authkeys
 triton keys -A | mput ~~/stor/$MBASEDIR/authkeys/${profileAccount}.keys
 
@@ -202,8 +205,8 @@ triton inst get $ALIAS | json metadata.instPubKey | triton key add -
 # There currently isn't a good way to wait for a new key to make it through
 # Manta. Polling to check for a successful auth can pass on one request
 # and then fail later on another request if one hits separate Manta webapis.
-echo "Waiting for 2 minutes in hopes that Manta takes up the new key by then..."
-sleep 120
+echo "Waiting for 5 minutes in hopes that Manta takes up the new key by then..."
+sleep 600
 
 # Step 4 (from IMGAPI Operator Guide): imgapi-standalone-restore
 echo ""

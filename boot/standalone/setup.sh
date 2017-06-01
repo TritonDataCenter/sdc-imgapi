@@ -62,11 +62,16 @@ if [[ ! -d /data/imgapi ]]; then
     mkdir -p /data/imgapi/etc
     [[ ! -f /data/imgapi/etc/imgapi-*.id_ecdsa ]] \
         || fatal "unexpected existing IMGAPI instance key files: /data/imgapi/etc/imgapi-*.id_ecdsa"
-    keyName=$NODENAME-$(date -u '+%Y%m%d')
-    ssh-keygen -t ecdsa -b 256 -N "" \
-        -C "$keyName" -f /data/imgapi/etc/$keyName.id_ecdsa
+
+    /opt/smartdc/boot/standalone/new-inst-key.sh
+    newPubKeyPath=$(ls /data/imgapi/etc/newinstkey/imgapi-*.pub)
+    keyBase=$(basename $newPubKeyPath .pub)
+    newPrivKeyPath=/data/imgapi/etc/newinstkey/$keyBase
+    mv $newPubKeyPath /data/imgapi/etc/
+    mv $newPrivKeyPath /data/imgapi/etc/
+
     # Write pubkey to mdata so outside tooling can use it for setup.
-    mdata-put instPubKey < /data/imgapi/etc/$keyName.id_ecdsa.pub
+    mdata-put instPubKey < /data/imgapi/etc/$keyBase.pub
 
     # Self-signed cert
     /opt/local/bin/openssl req -x509 -nodes -subj '/CN=*' -newkey rsa:2048 \
@@ -85,7 +90,7 @@ if [[ ! -d /data/imgapi ]]; then
     # imgapi SMF service runs as 'nobody'
     chown nobody:nobody /data/imgapi
     chown nobody:nobody /data/imgapi/etc
-    chown nobody:nobody /data/imgapi/etc/$keyName.id_ecdsa{,.pub}
+    chown nobody:nobody /data/imgapi/etc/$keyBase{,.pub}
     chown nobody:nobody /data/imgapi/etc/cert.pem
     chown nobody:nobody /data/imgapi/etc/imgapi.config.json
     chown nobody:nobody /data/imgapi/etc/authkeys
