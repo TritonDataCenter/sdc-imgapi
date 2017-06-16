@@ -20,10 +20,10 @@
 set -o errexit
 set -o pipefail
 
-# Trace logging to /tmp/prepare-image-trace.log to be partially passed back
-# as prepare-image:error. Note that I would have used 'prepare-image:trace'
-# but deployed `imgadm` is already looking for the former.
-TRACELOG=/tmp/prepare-image-trace.log
+# Trace logging to be partially passed back as prepare-image:error metadata.
+# Note that I would have used 'prepare-image:trace' but deployed `imgadm` is
+# already looking for the former.
+TRACELOG=/.prepare-image-trace.log # Avoid /tmp because it is wiped.
 touch $TRACELOG
 exec 4<> $TRACELOG
 export PS4='[\D{%FT%TZ}] :${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
@@ -51,8 +51,14 @@ function errexit
     if [[ $1 -eq 0 ]]; then
         exit 0
     fi
-    echo "error exit status $1"
-    cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error
+    echo "error exit status $1" >&2
+
+    # The 'echo' here is to ensure we have *some* output, because 'mdata-put'
+    # fails on an empty value.
+    (echo "Tail of prepare-image trace log:"; cat $TRACELOG | tail -n 50) \
+        | /usr/sbin/mdata-put prepare-image:error
+    rm -f $TRACELOG
+
     /usr/sbin/mdata-put prepare-image:state error
     fatal "error exit status $1"
 }
@@ -65,8 +71,7 @@ function cleanup_logs() {
 }
 
 function cleanup_tmp() {
-    rm -rf /var/tmp/*
-    rm -rf /tmp/*
+    find /var/tmp /tmp -depth -mindepth 1 -delete
 }
 
 function cleanup_ssh() {
@@ -189,5 +194,6 @@ history -c
 /usr/sbin/mdata-put prepare-image:state success
 # Successful, but we still emit tail of trace log for info.
 cat $TRACELOG | tail -n50 | /usr/sbin/mdata-put prepare-image:error || true
+rm -f $TRACELOG
 sleep 3
 shutdown -p now
