@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 3.3.1
+
+- IMGAPI-632 Fix potential crash from in static served URLs.
+
 ## 3.3.0
 
 - IMGAPI-627 With this change, a standalone IMGAPI will use an ECDSA key for

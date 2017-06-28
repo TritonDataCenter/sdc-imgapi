@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -32,7 +32,7 @@
     "passwd": "0.0.11",
     "posix-getopt": "1.0.0",
     "progbar": "git+https://github.com/trentm/node-progbar.git#a4c56e6",
-    "restify": "4.3.0",
+    "restify": "4.3.1",
     "rimraf": "2.2.6",
     "sdc-clients": "10.0.4",
     "semver": "3.0.1",
