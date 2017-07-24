@@ -359,6 +359,8 @@ uploaded. A "file" entry has the following fields:
 | compression  | The type of file compression used by the file. One of 'bzip2', 'gzip', 'none'.                                                                                                                                                                                                                                                                    |
 | dataset_guid | Optional. The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`). |
 | stor         | Only included if `?inclAdminFields=true` is passed to GetImage/ListImages. The IMGAPI storage type used to store this file. |
+| digest       | Optional. Docker digest of the file contents. Only used when manifest.type is 'docker'. This field gets set automatically by the AdminImportDockerImage call. |
+| uncompressedDigest | Optional. Docker digest of the uncompressed file contents. Only used when manifest.type is 'docker'. This field gets set automatically by the AdminImportDockerImage call. Note that this field will be removed in a future version of IMGAPI. |
 
 Example:
 
@@ -2061,8 +2063,29 @@ Headers:
 
 ### Returns
 
-A stream of progress messages.
-<!-- TODO: spec the messages -->
+A stream of messages in JSON format. These messages will be a mix of status and
+action messages, some of which are used by sdc-docker and some of which are
+sent back to the docker client. The messages will always have a 'type' (string)
+field, which must be one the following:
+
+* **status** - for status information regarding the pull. Example:
+
+    {"type":"status","payload":{"status":"latest: Pulling from busybox (req f3b0c95c-461f-4ace-843b-f34cd21af3c3)"},"id":"docker.io/busybox"}
+
+* **head** - information for which image layer is the top "head" layer. Example:
+
+    {"type":"head","head":"bbed08f07a6bccc8aca4f6053dd1b5bdf1050f830e0989738e6532dd4a703a58","id":"docker.io/busybox"}
+
+* **progress** - like status, but may also contain a payload.progressDetail field which shows the progress for downloading an image layer. Example:
+
+    {"type":"progress","payload":{"id":"27144aa8f1b9","status":"Downloading","progressDetail":{"current":539527,"total":699243,"start":1497634554}},"id":"docker.io/busybox"}
+
+* **create-docker-image** - message for sdc-docker to create an entry in the
+    docker_images_v2 bucket. Example:
+
+    {"type":"create-docker-image","config_digest":"sha256:c30178c5239f2937c21c261b0365efcda25be4921ccb95acd63beeeb78786f27", ...}
+
+#### Error Event
 
 ### Errors
 
@@ -2082,17 +2105,17 @@ Raw `curl`:
     x-server-name: ec0cd67d-7731-422a-a6c2-f91eb98c6c52
     Connection: keep-alive
     Transfer-Encoding: chunked
-
-    {"type":"status","payload":{"status":"Pulling repository busybox"},"id":"docker.io/busybox"}
-    {"type":"head","head":"8c2e06607696bd4afb3d03b687e361cc43cf8ec1a4a725bc96e39f05ba97dd55","id":"docker.io/busybox"}
-    {"type":"progress","payload":{"id":"8c2e06607696","status":"Pulling dependent layers"},"id":"docker.io/busybox"}
-    {"type":"data","id":"docker.io/busybox","payload":{...}}
-    {"type":"progress","id":"docker.io/busybox","payload":{"id":"8c2e06607696","status":"Pulling metadata."}}
-    {"type":"progress","id":"docker.io/busybox","payload":{"id":"cf2616975b4a","status":"Pulling metadata."}}
-    ...
-    {"type":"progress","id":"docker.io/busybox","payload":{"id":"8c2e06607696","status":"Download complete."}}
-    {"type":"status","id":"docker.io/busybox","payload":{"status":"Status: Downloaded newer image for busybox:latest"}}
-
+    
+    {"type":"status","payload":{"status":"latest: Pulling from busybox (req 7734c61d-ad6b-40f5-ac93-ecacd53e4387)"},"id":"docker.io/busybox"}
+    {"type":"status","payload":{"id":"27144aa8f1b9","progressDetail":{},"status":"Pulling fs layer"},"id":"docker.io/busybox"}
+    {"type":"progress","payload":{"id":"27144aa8f1b9","status":"Pulling fs layer"},"id":"docker.io/busybox"}
+    {"type":"progress","payload":{"id":"27144aa8f1b9","status":"Downloading","progressDetail":{"current":539527,"total":699243,"start":1497634554}},"id":"docker.io/busybox"}
+    {"type":"progress","payload":{"id":"27144aa8f1b9","status":"Download complete"},"id":"docker.io/busybox"}
+    {"type":"create-docker-image","config_digest":"sha256:c30178c5239f2937c21c261b0365efcda25be4921ccb95acd63beeeb78786f27","head":true,...}
+    {"type":"progress","payload":{"id":"27144aa8f1b9","status":"Activating image"},"id":"docker.io/busybox"}
+    {"type":"progress","payload":{"id":"27144aa8f1b9","status":"Pull complete"},"id":"docker.io/busybox"}
+    {"type":"status","payload":{"status":"Digest: sha256:be3c11fdba7cfe299214e46edc642e09514dbb9bbefcd0d3836c05a1e0cd0642"},"id":"docker.io/busybox"}
+    {"type":"status","payload":{"status":"Status: Downloaded newer image for busybox:latest"},"id":"docker.io/busybox"}
 
 
 ## AdminChangeImageStor (POST /images/$uuid?action=change-stor&stor=$newstor)

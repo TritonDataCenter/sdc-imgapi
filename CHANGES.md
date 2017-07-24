@@ -1,5 +1,12 @@
 # IMGAPI changelog
 
+## 4.0.0
+
+- DOCKER-929 Support the docker v2.2 manifest format.
+
+This is a major version bump because of the significant changes to the docker
+image pull handling, which is incompatible with previous versions of IMGAPI.
+
 ## 3.3.1
 
 - IMGAPI-632 Fix potential crash from in static served URLs.
