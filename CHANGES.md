@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.1
+
+- IMGAPI-635: imgapi crashing on 'docker pull holzi/quine-relay:latest'
+
 ## 4.0.0
 
 - DOCKER-929 Support the docker v2.2 manifest format.
