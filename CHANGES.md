@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.2
+
+- IMGAPI-636: docker pull retry not working for v2.1 images
+
 ## 4.0.1
 
 - IMGAPI-635: imgapi crashing on 'docker pull holzi/quine-relay:latest'
