@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.3
+
+- IMGAPI-637: correctly report when docker image is update to date
+
 ## 4.0.2
 
 - IMGAPI-636: docker pull retry not working for v2.1 images
