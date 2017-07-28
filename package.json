@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "4.0.13",
+  "version": "4.1.0",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -38,6 +38,7 @@
     "sdc-clients": "10.0.4",
     "semver": "5.4.1",
     "sshpk": "1.13.0",
+    "through2": "2.0.3",
     "trace-event": "1.2.0",
     "ufds": "1.2.0",
     "uuid": "2.0.2",

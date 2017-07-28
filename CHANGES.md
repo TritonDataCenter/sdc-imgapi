@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.1.0
+
+- DOCKER-524: Implement docker push
+
 ## 4.0.14
 
 - TRITON-114 cloudapi test failing on image create from vm
