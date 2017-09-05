@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.4
+
+- joyent/sdc-imgapi#13 imgapi crash when pulling from docker.io with invalid credentials
+
 ## 4.0.3
 
 - IMGAPI-637: correctly report when docker image is update to date
