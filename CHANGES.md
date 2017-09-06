@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.5
+
+- DOCKER-1097 docker pull fails for registry server that has no auth setup
+
 ## 4.0.4
 
 - joyent/sdc-imgapi#13 imgapi crash when pulling from docker.io with invalid credentials
