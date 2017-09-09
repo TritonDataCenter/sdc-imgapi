@@ -1,5 +1,10 @@
 # IMGAPI changelog
 
+## 4.0.7
+
+- IMGAPI-642 missing file0 from imgapi docker image causing container provision
+  failure
+
 ## 4.0.6
 
 - IMGAPI-643 docker pull crashes if an unexpected x-registry-config header is
