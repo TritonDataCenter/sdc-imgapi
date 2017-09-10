@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.8
+
+- IMGAPI-644 the docker image cache must clear activated image entries
+
 ## 4.0.7
 
 - IMGAPI-642 missing file0 from imgapi docker image causing container provision
