@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.9
+
+- IMGAPI-645 create a simple and fast imgapiadm check-files
+
 ## 4.0.8
 
 - IMGAPI-644 the docker image cache must clear activated image entries
