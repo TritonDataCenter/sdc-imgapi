@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.10
+
+- DOCKER-1104 support docker manifest lists
+
 ## 4.0.9
 
 - IMGAPI-645 create a simple and fast imgapiadm check-files
