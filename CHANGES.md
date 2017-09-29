@@ -1,5 +1,11 @@
 # IMGAPI changelog
 
+## 4.0.11
+
+- joyent/node-docker-registry-client#23 Namespace validation too strict
+- DOCKER-1095 docker pull should distinguish between auth error and not found
+  error
+
 ## 4.0.10
 
 - DOCKER-1104 support docker manifest lists
