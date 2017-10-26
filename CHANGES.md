@@ -1,5 +1,15 @@
 # IMGAPI changelog
 
+## 4.0.12
+
+- IMGAPI-651 for lx-dataset images `imgadm publish ...` inherits min_platform
+  from the origin image (or removes it for non-incremental images) when an
+  older imgadm version < 3.7.4 is used.
+- Dropped obsolete IMGAPI-312 workaround, which would set min_platform for
+  SmartOS images when the version of imgadm did not already set min_platform.
+- Dropped obsolete IMGAPI-251 workaround, which ensured incremental images set
+  min_platform to a version that included imgadm incremental image support.
+
 ## 4.0.11
 
 - joyent/node-docker-registry-client#23 Namespace validation too strict
