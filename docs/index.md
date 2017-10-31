@@ -2105,7 +2105,7 @@ Raw `curl`:
     x-server-name: ec0cd67d-7731-422a-a6c2-f91eb98c6c52
     Connection: keep-alive
     Transfer-Encoding: chunked
-    
+
     {"type":"status","payload":{"status":"latest: Pulling from busybox (req 7734c61d-ad6b-40f5-ac93-ecacd53e4387)"},"id":"docker.io/busybox"}
     {"type":"status","payload":{"id":"27144aa8f1b9","progressDetail":{},"status":"Pulling fs layer"},"id":"docker.io/busybox"}
     {"type":"progress","payload":{"id":"27144aa8f1b9","status":"Pulling fs layer"},"id":"docker.io/busybox"}
@@ -2118,7 +2118,7 @@ Raw `curl`:
     {"type":"status","payload":{"status":"Status: Downloaded newer image for busybox:latest"},"id":"docker.io/busybox"}
 
 
-## AdminChangeImageStor (POST /images/$uuid?action=change-stor&stor=$newstor)
+## AdminChangeImageStor (POST /images/:uuid?action=change-stor&amp;stor=:newstor)
 
 (Added in IMGAPI v2.2.0.)
 
