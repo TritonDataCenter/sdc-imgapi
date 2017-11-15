@@ -33,7 +33,7 @@ SMF_MANIFESTS = $(shell ls smf/manifests/*.xml)
 NODEUNIT	:= ./node_modules/.bin/nodeunit
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v4.8.5
+NODE_PREBUILT_VERSION=v6.12.0
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
 	# Allow building on other than image sdc-minimal-multiarch-lts@15.4.1.
