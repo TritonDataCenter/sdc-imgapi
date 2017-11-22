@@ -36,7 +36,7 @@
     "restify": "4.3.1",
     "rimraf": "2.2.6",
     "sdc-clients": "10.0.4",
-    "semver": "3.0.1",
+    "semver": "5.4.1",
     "sshpk": "1.13.0",
     "trace-event": "1.2.0",
     "ufds": "1.2.0",
