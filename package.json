@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "4.0.12",
+  "version": "4.0.13",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -11,7 +11,7 @@
     "bunyan": "1.8.8",
     "cmdln": "3.2.1",
     "dashdash": "1.10.0",
-    "docker-registry-client": "3.2.12",
+    "docker-registry-client": "3.2.13",
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "expiring-lru-cache": "2.1.0",
     "extsprintf": "1.2.0",

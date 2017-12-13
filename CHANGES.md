@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.13
+
+- DOCKER-1095 add redirect handling for docker registry client getManifest
+
 ## 4.0.12
 
 - IMGAPI-651 for lx-dataset images `imgadm publish ...` inherits min_platform
