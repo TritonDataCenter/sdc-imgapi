@@ -1,5 +1,11 @@
 # IMGAPI changelog
 
+## 4.1.0
+
+- DOCKER-524: Implement docker push. This adds a new AdminPushDockerImage
+  /images/:uuid/push endpoint that the sdc-docker zone will use to push docker
+  images.
+
 ## 4.0.14
 
 - TRITON-114 cloudapi test failing on image create from vm
