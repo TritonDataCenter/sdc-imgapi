@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.0.14
+
+- TRITON-114 cloudapi test failing on image create from vm
+
 ## 4.0.13
 
 - DOCKER-1095 add redirect handling for docker registry client getManifest
