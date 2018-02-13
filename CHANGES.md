@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.1.1
+
+- TRITON-134 imgapi docker push allows insecure docker pushes
+
 ## 4.1.0
 
 - DOCKER-524: Implement docker push. This adds a new AdminPushDockerImage
