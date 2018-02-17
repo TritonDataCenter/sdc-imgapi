@@ -4,6 +4,10 @@
     "logLevel": "info",
     "mode": "dc",
     "datacenterName": "{{{datacenter_name}}}",
+    "serviceName": "{{SERVICE_NAME}}",
+    "instanceUuid": "{{auto.ZONENAME}}",
+    "serverUuid": "{{auto.SERVER_UUID}}",
+    "adminIp": "{{auto.ADMIN_IP}}",
     "adminUuid": "{{{ufds_admin_uuid}}}",
     {{#IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}
     "allowLocalCreateImageFromVm": {{{IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}},

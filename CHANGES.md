@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.2.0
+
+- TRITON-98 Add artedi metrics collection to IMGAPI
+
 ## 4.1.1
 
 - TRITON-134 imgapi docker push allows insecure docker pushes

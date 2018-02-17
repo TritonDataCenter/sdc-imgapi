@@ -444,6 +444,10 @@ For example: if providing `manta`, one must provide the whole `manta` object.
 | maxSockets                   | Number        | 100               | Maximum number of sockets for external API calls |
 | mode                         | String        | public            | One of 'public' (default, running as a public server e.g. images.joyent.com), 'private' (a ironically "public" server that only houses images marked `public=false`), or 'dc' (running as the IMGAPI in a Triton DataCenter). |
 | datacenterName               | String        | -                 | Name of the Triton DataCenter on which IMGAPI is running. Only relevant if `mode === "dc"`. |
+| serviceName                  | String        | -                 | The name of the service. Only relevant if `mode === "dc"`. |
+| instanceUuid                 | String        | -                 | The instance UUID. Only relevant if `mode === "dc"`. |
+| serverUuid                   | String        | -                 | The server (CN) UUID on which the instance is running. Only relevant if `mode === "dc"`. |
+| adminIp                      | String        | -                 | The admin IP address. The metrics server will be exposed on this network. Only relevant if `mode === "dc"`. |
 | adminUuid                    | String        | -                 | The UUID of the admin user in this Triton DataCenter. Only relevant if `mode === "dc"`. |
 | channels                     | Array         | -                 | Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. |
 | placeholderImageLifespanDays | Number        | 7                 | The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database. |
@@ -716,3 +720,38 @@ facility](https://github.com/trentm/node-bunyan/#runtime-log-snooping-via-dtrace
 to tail *trace*-level logs of the imgapi service:
 
     bunyan -p imgapi
+
+# Metrics
+
+IMGAPI exposes metrics via [node-artedi](https://github.com/joyent/node-artedi).  For development, it is probably easiest to use `curl` to scrape metrics:
+
+```
+$ curl http://<ADMIN_IP>:8881/metrics
+```
+The metrics are returned in Prometheus v0.0.4 text format.
+
+The following metrics are collected:
+
+- http_requests_completed
+- http_request_duration_seconds
+
+Each of the metrics returned include the following metadata labels:
+
+- datacenter (Datacenter name e.g. us-east-1)
+- service (Service name e.g. vmapi)
+- instance (Instance UUID)
+- server (Server UUID)
+- method (e.g. 'PUT')
+- status_code (e.g. 200)
+- route (e.g. 'listvms')
+- user_agent (only the first token e.g. restify/1.5.2)
+
+The metric collection facility provided is intended to be consumed by a monitoring service like a Prometheus or InfluxDB server.
+
+Notably, some metadata labels are not being collected due to their potential for
+high cardinality. Metadata labels that have a large number of unique values
+cause memory strain on metric client processes (imgapi) as well as metric
+servers (Prometheus). It's important to understand what kind of an effect on
+the entire system the addition of metrics and metadata labels can have before
+adding them. This is an issue that would likely not appear in a development or
+staging environment.
