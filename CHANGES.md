@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.2.1
+
+- TRITON-221 sdc-imgadm import broken for lx images
+
 ## 4.2.0
 
 - TRITON-98 Add artedi metrics collection to IMGAPI
