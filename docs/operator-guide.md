@@ -723,35 +723,4 @@ to tail *trace*-level logs of the imgapi service:
 
 # Metrics
 
-IMGAPI exposes metrics via [node-artedi](https://github.com/joyent/node-artedi).  For development, it is probably easiest to use `curl` to scrape metrics:
-
-```
-$ curl http://<ADMIN_IP>:8881/metrics
-```
-The metrics are returned in Prometheus v0.0.4 text format.
-
-The following metrics are collected:
-
-- http_requests_completed
-- http_request_duration_seconds
-
-Each of the metrics returned include the following metadata labels:
-
-- datacenter (Datacenter name e.g. us-east-1)
-- service (Service name e.g. vmapi)
-- instance (Instance UUID)
-- server (Server UUID)
-- method (e.g. 'PUT')
-- status_code (e.g. 200)
-- route (e.g. 'listvms')
-- user_agent (only the first token e.g. restify/1.5.2)
-
-The metric collection facility provided is intended to be consumed by a monitoring service like a Prometheus or InfluxDB server.
-
-Notably, some metadata labels are not being collected due to their potential for
-high cardinality. Metadata labels that have a large number of unique values
-cause memory strain on metric client processes (imgapi) as well as metric
-servers (Prometheus). It's important to understand what kind of an effect on
-the entire system the addition of metrics and metadata labels can have before
-adding them. This is an issue that would likely not appear in a development or
-staging environment.
+IMGAPI exposes metrics via [node-triton-metrics](https://github.com/joyent/node-triton-metrics) on `http://<ADMIN_IP>:8881/metrics`

@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.2.2
+
+- TRITON-222 Use node-triton-metrics for IMGAPI metrics collection
+
 ## 4.2.1
 
 - TRITON-221 sdc-imgadm import broken for lx images
