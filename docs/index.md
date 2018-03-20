@@ -1254,14 +1254,15 @@ from an existing VM:
 
 ### Inherited Fields
 
-The following is the list of fields that the new Image will inherit from the source
-Image of the VM in question and therefore cannot be specified:
+The following is the list of fields that the new image will inherit either
+(a) from the origin image (i.e. the image used to create this VM), or
+(b) from properites of the VM itself.
 
 | Field                                                    | Type    | Notes                                                                                                                                                                                           |
 | -------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [type](#manifest-type)                                   | String  | The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "lx-dataset" for a Lx-brand image, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose. |
 | [os](#manifest-os)                                       | String  | The OS family this image provides. One of "smartos", "windows", and "linux".                                                                                                                    |
-| [requirements](#manifest-requirements)                   | Object  | A set of named requirements for provisioning a VM with this image. See [the requirements docs](#manifest-requirements) above for supported fields.                                              |
+| [requirements](#manifest-requirements)                   | Object  | A set of named requirements for provisioning a VM with this image. `requirements.min_platform` is set to the VM server's platform version for SmartOS VMs (where `vm.brand` is either "joyent" or "joyent-minimal"). `requirements.brand` is set to the VM's `brand` value for "lx", "kvm", and "bhyve" VMs. See [the requirements section](#manifest-requirements) above for details. |
 | [users](#manifest-users)                                 | Array   | A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`                            |
 | [billing_tags](#manifest-billing-tags)                   | Array   | A list of tags that can be used by operators for additional billing processing.                                                                                                                 |
 | [traits](#manifest-traits)                               | Object  | An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.                                                                   |

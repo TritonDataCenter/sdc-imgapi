@@ -1,5 +1,10 @@
 # IMGAPI changelog
 
+## 4.3.0
+
+- TRITON-178 Add support for image creation with bhyve brand (requires platform
+  support)
+
 ## 4.2.2
 
 - TRITON-222 Use node-triton-metrics for IMGAPI metrics collection
