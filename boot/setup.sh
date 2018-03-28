@@ -40,7 +40,6 @@ if [[ ! -d $LOCAL_BASE_DIR ]]; then
 fi
 chown nobody:nobody $LOCAL_BASE_DIR
 
-$(/opt/local/bin/gsed -i"" -e "s/@@PREFIX@@/\/opt\/smartdc\/imgapi/g" /opt/smartdc/imgapi/smf/manifests/imgapi.xml)
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi.xml
 
 # Log rotation.
