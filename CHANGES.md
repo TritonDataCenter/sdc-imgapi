@@ -1,5 +1,8 @@
 # IMGAPI changelog
 
+## 4.3.1
+- TRITON-489 Add metricPort metadata to IMGAPI for cmon-agent
+
 ## 4.3.0
 
 - TRITON-178 Add support for image creation with bhyve brand (requires platform

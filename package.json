@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -40,7 +40,7 @@
     "sshpk": "1.13.0",
     "through2": "2.0.3",
     "trace-event": "1.2.0",
-    "triton-metrics": "0.1.0",
+    "triton-metrics": "0.1.1",
     "ufds": "1.2.0",
     "uuid": "2.0.2",
     "vasync": "1.6.3",
