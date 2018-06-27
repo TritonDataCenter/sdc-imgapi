@@ -621,6 +621,7 @@ and relevant for images in an IMGAPI server that uses [channels](#channels).
 | [EnableImage](#EnableImage)                       | POST /images/:uuid?action=enable                           | Enable the image.                                                             |
 | [AddImageAcl](#AddImageAcl)                       | POST /images/:uuid/acl?action=add                          | Add account UUIDs to the image ACL.                                           |
 | [RemoveImageAcl](#RemoveImageAcl)                 | POST /images/:uuid/acl?action=remove                       | Remove account UUIDs from the image ACL.                                      |
+| [CloneImage](#CloneImage)                         | POST /images/:uuid/clone                                   | Clone this image.
 | [AddImageIcon](#AddImageIcon)                     | POST /images/:uuid/icon                                    | Add the image icon.                                                           |
 | [GetImageIcon](#GetImageIcon)                     | GET /images/:uuid/icon                                     | Get the image icon file.                                                      |
 | [DeleteImageIcon](#DeleteImageIcon)               | DELETE /images/:uuid/icon                                  | Remove the image icon.                                                        |
@@ -1898,6 +1899,67 @@ CLI tool:
     $ sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874 description='new description'
     $ cat data.json | sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874
 
+
+
+## CloneImage (POST /images/:uuid/clone?account=:account)
+
+Clone this image. This endpoint is only available when IMGAPI is in 'dc' mode.
+
+This makes a copy of the given image (including origin images). The provided
+`account` param must be on the image ACL in order to clone the image, see
+[AddImageAcl](#AddImageAcl). The newly-cloned image(s) will have a different
+uuid to the original, the `owner` field will be set to the `account` param, and
+the cloned image will have an empty ACL.
+
+### Inputs
+
+| Field                 | Type | Required? | Default | Notes                                                |
+| --------------------- | ---- | --------- | ------- | ---------------------------------------------------- |
+| account (query param) | UUID | Yes       | -       | The owner the cloned image will be assigned to.      |
+
+### Returns
+
+The cloned image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool:
+
+    $ sdc-imgapi /images/e70502b0-705e-498e-a810-53a03980eabf/clone?account=ab0896af-bf8c-48d4-885c-6573a94b1895 -X POST
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 356
+    Date: Tue, 08 Jan 2013 20:21:17 GMT
+    Server: IMGAPI/1.0.0
+    x-request-id: f5645880-59d0-11e2-b638-4b6ffa4ca56f
+    x-response-time: 110
+    x-server-name: 70f0978d-7efa-4c45-8ebf-8cb9e3a887f7
+    Connection: keep-alive
+
+    {
+      "uuid": "e70502b0-705e-498e-a810-53a03980eabf",
+      "owner": "ab0896af-bf8c-48d4-885c-6573a94b1895",
+      "name": "foo",
+      "version": "1.0.0",
+      "state": "active",
+      "disabled": false,
+      "public": false,
+      "published_at": "2013-01-08T20:21:17.932Z",
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "cd0e0510c4a0799551687901077d7c4c06a4ebd8",
+          "size": 42,
+          "compression": "bzip2"
+        }
+      ],
+      "acl": []
+    }
 
 
 ## AdminImportImage (POST /images/:uuid?action=import)

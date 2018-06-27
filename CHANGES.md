@@ -1,6 +1,12 @@
 # IMGAPI changelog
 
+## 4.4.0
+
+- TRITON-53 x-account image clone, adds a new CloneImage
+  /images/:uuid/clone endpoint.
+
 ## 4.3.1
+
 - TRITON-489 Add metricPort metadata to IMGAPI for cmon-agent
 
 ## 4.3.0

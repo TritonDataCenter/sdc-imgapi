@@ -109,12 +109,20 @@ elif [[ "$opt_mode" == "dc" ]]; then
     CFG_FILE=/data/imgapi/etc/imgapi.config.json
     test_images=$TOP/test/dc-test-images.json
     num_test_images=$(json length <$test_images)
+    stor_dir=$(node $TOP/lib/constants.js LOCAL_BASE_DIR)
     i=0
     while [[ $i < $num_test_images ]]; do
         image=$(json $i <$test_images)
         uuid=$(echo "$image" | json uuid)
         echo "Adding $uuid"
         MORAY_URL=moray://$(json moray.host <$CFG_FILE) $TOP/test/putobject -d "$image" imgapi_images $uuid
+        # Add local file object.
+        file_path=$stor_dir/images/${uuid:0:3}/$uuid/file0
+        mkdir -p $(dirname $file_path)
+        echo "file" >$file_path
+        icon_path=$stor_dir/images/${uuid:0:3}/$uuid/icon
+        mkdir -p $(dirname $icon_path)
+        echo "icon" >$icon_path
         i=$(($i + 1))
     done
 fi
