@@ -1,0 +1,37 @@
+{
+  "v": 2,
+  "uuid": "c58161c0-2547-11e2-a75e-9fdca1940570",
+  "owner": "ba28f844-8cb4-f141-882d-46d6251e6a9f",
+  "name": "inc-level-1",
+  "version": "1.0.0",
+  "description": "Base operator owned public image",
+  "state": "active",
+  "disabled": false,
+  "public": true,
+  "published_at": "2018-01-04T11:35:37Z",
+  "type": "zone-dataset",
+  "os": "smartos",
+  "files": [
+    {
+      "sha1": "f6217f583a64e1b39cea7a8700b96cbb2375bb23",
+      "size": 65,
+      "compression": "bzip2",
+      "stor": "local"
+    }
+  ],
+  "requirements": {
+    "min_platform": {
+      "7.0": "20141030T081701Z"
+    },
+    "networks": [
+      {
+        "name": "net0",
+        "description": "public"
+      }
+    ]
+  },
+  "tags": {
+    "role": "os",
+    "group": "minimal-64-lts"
+  }
+}

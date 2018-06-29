@@ -48,6 +48,9 @@
 {{/IMGAPI_MANTA_URL}}
         "local"
     ],
+{{#IMGAPI_URL_FROM_DATACENTER}}
+    "imgapiUrlFromDatacenter": {{{IMGAPI_URL_FROM_DATACENTER}}},
+{{/IMGAPI_URL_FROM_DATACENTER}}
     "wfapi": {
         "forceMd5Check": true,
         "workflows": ["create-from-vm", "import-remote-image"],

@@ -1,0 +1,34 @@
+{
+  "v": 2,
+  "uuid": "900cffef-55e3-4e7d-b7ec-ccf439a159e3",
+  "owner": "86055c40-2547-11e2-8a6b-4bb37edc84ba",
+  "name": "inc-level-2",
+  "version": "1.0.0",
+  "description": "Vader incremental image generated from base inc-level-1 image",
+  "state": "active",
+  "disabled": false,
+  "public": false,
+  "published_at": "2018-03-06T21:12:15.436Z",
+  "type": "zone-dataset",
+  "os": "smartos",
+  "files": [
+    {
+      "sha1": "f6217f583a64e1b39cea7a8700b96cbb2375bb23",
+      "size": 65,
+      "compression": "bzip2",
+      "stor": "local"
+    }
+  ],
+  "requirements": {
+    "min_platform": {
+      "7.0": "20170608T172457Z"
+    },
+    "networks": [
+      {
+        "name": "net0",
+        "description": "public"
+      }
+    ]
+  },
+  "origin": "c58161c0-2547-11e2-a75e-9fdca1940570"
+}

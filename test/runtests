@@ -205,6 +205,12 @@ if [[ "$opt_mode" == "dc" ]]; then
         else
             export IMGAPI_IMAGE_CREATION_ENABLED=false
         fi
+        # Check if x-DC "TestDc" is configured.
+        imgapi_xdc_enabled=$(json imgapiUrlFromDatacenter.TestDc <$CFG_FILE)
+        if [[ -n "$imgapi_xdc_enabled" ]]; then
+            export IMGAPI_XDC_ENABLED=true
+            export IMGAPI_DC_NAME=$(json datacenterName <$CFG_FILE)
+        fi
     fi
 else
     # "public" mode

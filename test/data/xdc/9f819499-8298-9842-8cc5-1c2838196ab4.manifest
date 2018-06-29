@@ -1,0 +1,22 @@
+{
+  "v": 2,
+  "uuid": "9f819499-8298-9842-8cc5-1c2838196ab4",
+  "owner": "86055c40-2547-11e2-8a6b-4bb37edc84ba",
+  "name": "i-am-your-father",
+  "version": "0.0.1",
+  "description": "Vader base image - used for 'image already exists' test",
+  "state": "active",
+  "disabled": false,
+  "public": false,
+  "published_at": "2012-11-02T22:46:45.992Z",
+  "os": "smartos",
+  "type": "zone-dataset",
+  "files": [
+    {
+      "sha1": "f6217f583a64e1b39cea7a8700b96cbb2375bb23",
+      "size": 65,
+      "compression": "bzip2",
+      "stor": "local"
+    }
+  ]
+}

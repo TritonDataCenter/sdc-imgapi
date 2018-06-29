@@ -1,5 +1,14 @@
 # IMGAPI changelog
 
+## 4.5.0
+
+- TRITON-52 x-DC image copy. This adds a new ImportImageFromDatacenter
+  endpoint, which will allow a user to copy an image between datacenters in the
+  same cloud. As an optimization (and when configured by the cloud operator),
+  images that use the same Manta storage will be able to take advantage of snap
+  linking, instead of directly copying the file bits, which greatly speeds up
+  the image copying process.
+
 ## 4.4.0
 
 - TRITON-53 x-account image clone, adds a new CloneImage

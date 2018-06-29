@@ -627,7 +627,7 @@ and relevant for images in an IMGAPI server that uses [channels](#channels).
 | [DeleteImageIcon](#DeleteImageIcon)               | DELETE /images/:uuid/icon                                  | Remove the image icon.                                                        |
 | [CreateImageFromVm](#CreateImageFromVm)           | POST /images?action=create-from-vm                         | Create a new (activated) image from an existing VM.                           |
 | [ExportImage](#ExportImage)                       | POST /images/:uuid?action=export                           | Exports an image to the specified Manta path.                                 |
-| [CopyRemoteImage](#CopyRemoteImage)               | POST /images/$uuid?action=copy-remote&dc=us-west-1         | **NYI (IMGAPI-278)** Copy one's own image from another DC in the same cloud.  |
+| [ImportFromDatacenter](#ImportFromDatacenter)     | POST /images/$uuid?action=import-from-datacenter&datacenter=us-west-1  | Copy one's own image from another datacenter in the same cloud.  |
 | [AdminImportRemoteImage](#AdminImportRemoteImage) | POST /images/$uuid?action=import-remote&source=$imgapi-url | Import an image from another IMGAPI                                           |
 | [AdminImportImage](#AdminImportImage)             | POST /images/$uuid?action=import                           | Only for operators to import an image and maintain `uuid` and `published_at`. |
 | [AdminGetState](#AdminGetState)                   | GET /state                                                 | Dump internal server state (for dev/debugging)                                |
@@ -1899,6 +1899,56 @@ CLI tool:
     $ sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874 description='new description'
     $ cat data.json | sdc-imgadm update f9bbbc9f-d281-be42-9651-72c6be875874
 
+
+## ImportFromDatacenter (POST /images?action=import-from-datacenter&datacenter=)
+
+Import an image and all origin images (preserving the image `uuid` and
+`published_at` fields) from the provided datacenter `datacenter`.
+
+An end user can only import an image for which they are the image owner. Images
+owned by the admin (operator images) or shared images (where `account` in on
+the image ACL) cannot be imported from another datacenter.
+
+All usage of IMGAPI on behalf of end users is required to use `account=UUID`.
+
+### Query String Inputs
+
+| Field            | Type    | Required? | Notes |
+| ---------------- | ------- | --------- | ----- |
+| account          | UUID    | Yes       | The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter. |
+| datacenter       | String  | Yes       | The datacenter name that holds the source image. |
+
+### Returns
+
+A Job object. The location of the workflow API where the status of the job can
+be polled is available in the workflow-api header of the response.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool (against an SDC's IMGAPI). This queues the copying of an existing
+Image in another datacenter to be copied into this datacenter:
+
+    $ sdc-imgapi '/images/859eb57c-d969-4962-8a87-3e5980e237ee?action=import-from-datacenter&datacenter=us-west-1' \
+        -X POST --data-binary '{}'
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Content-Length: 236
+    Date: Tue, 08 Jan 2018 20:04:01 GMT
+    Server: IMGAPI/1.0.0
+    workflow-api: http://workflow.coal.joyent.us
+    x-request-id: ed5f60d6-a66d-4ff5-9991-935a36636c8b
+    x-response-time: 236
+    x-server-name: 616a4e4b-7bdd-4d6b-87cb-7a4458dc08b0
+    Connection: keep-alive
+
+    {
+      "image_uuid": "859eb57c-d969-4962-8a87-3e5980e237ee",
+      "job_uuid": "ddc2ec53-2dd8-4b0d-a992-0a7cafda6e8d"
+    }
 
 
 ## CloneImage (POST /images/:uuid/clone?account=:account)

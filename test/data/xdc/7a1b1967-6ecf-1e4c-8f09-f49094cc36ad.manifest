@@ -1,0 +1,22 @@
+{
+  "v": 2,
+  "uuid": "7a1b1967-6ecf-1e4c-8f09-f49094cc36ad",
+  "owner": "ba28f844-8cb4-f141-882d-46d6251e6a9f",
+  "name": "public-operator-image-1",
+  "version": "0.0.1",
+  "description": "Operator image - used for 'import admin image' test",
+  "state": "active",
+  "disabled": false,
+  "public": true,
+  "published_at": "2012-11-02T22:46:45.992Z",
+  "os": "smartos",
+  "type": "zone-dataset",
+  "files": [
+    {
+      "sha1": "f6217f583a64e1b39cea7a8700b96cbb2375bb23",
+      "size": 65,
+      "compression": "bzip2",
+      "stor": "local"
+    }
+  ]
+}
