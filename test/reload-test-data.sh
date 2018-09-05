@@ -125,4 +125,6 @@ elif [[ "$opt_mode" == "dc" ]]; then
         echo "icon" >$icon_path
         i=$(($i + 1))
     done
+    # Change image ownership, as imgapi runs as user 'nobody'.
+    chown -R nobody:nobody /data/imgapi/images
 fi
