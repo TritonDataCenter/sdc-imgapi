@@ -6,16 +6,16 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
  * Setup this IMGAPI to use a Manta (for storage) that shares the same master
- * UFDS as this IMGAPI. This IMGAPI+Manta setup (provide the Manta is local,
- * i.e. not across the WAN) is the preferred setup.: local Manta, uses the
- * $ufds_admin_login (typically the "admin" login) user.
+ * UFDS as this IMGAPI. This IMGAPI+Manta setup (provided the Manta is local,
+ * i.e. not across the WAN) is the preferred setup. It uses the
+ * $ufds_admin_login (typically the "admin" login) account.
  *
- * The *alternative* (e.g. to have IMAGE use a Manta with a separate UFDS
+ * The *alternative* (e.g. to have IMGAPI use a Manta with a separate UFDS
  * database) is to use the 'imgapi-external-manta-setup' script in this same
  * directory.
  *
@@ -62,7 +62,7 @@ var bunyan = require('bunyan');
 var log; // set in `main()`
 
 var USAGE = (
-    'Setup IMGAPI in this SmartDataCenter to use a Manta sharing the same\n'
+    'Setup IMGAPI in this TritonDC to use a Manta sharing the same\n'
     + 'master UFDS. Preferrably the Manta is local (i.e. not across the WAN).\n'
     + 'This will do the appropriate setup for all instances of IMGAPI in this\n'
     + 'DC. This is also re-runnable if it fails part way.\n'
@@ -134,6 +134,7 @@ function getMantaUrl(mantaUrl, sdcApp, callback) {
 
     var sapi = new sdcClients.SAPI({
         url: 'http://' + sdcApp.metadata.SAPI_SERVICE,
+        version: '~2',
         log: log,
         agent: false
     });

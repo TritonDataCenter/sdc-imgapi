@@ -1,5 +1,10 @@
 # IMGAPI changelog
 
+## 4.5.1
+
+- TRITON-760 Fix imgapi-external-manta-setup and imgapi-manta-setup tooling
+  broken in v4.4.0 by TRITON-53.
+
 ## 4.5.0
 
 - TRITON-52 x-DC image copy. This adds a new ImportImageFromDatacenter
