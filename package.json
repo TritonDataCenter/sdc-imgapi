@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for SDC 7",
-  "version": "4.5.1",
+  "version": "4.5.2",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -18,7 +18,7 @@
     "forkexec": "1.1.0",
     "glob": "7.0.5",
     "handlebars": "4.0.5",
-    "imgmanifest": "3.0.0",
+    "imgmanifest": "3.1.0",
     "json": "9.0.4",
     "jsprim": "^1.4.0",
     "ldap-filter": "0.3.1",

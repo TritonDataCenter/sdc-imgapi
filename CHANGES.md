@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.5.2
+
+- TRITON-682 imgapi support for requirements.bootrom
+
 ## 4.5.1
 
 - TRITON-760 Fix imgapi-external-manta-setup and imgapi-manta-setup tooling
