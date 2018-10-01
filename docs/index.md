@@ -108,6 +108,7 @@ A summary of fields (details are provided below):
 | [requirements.max_ram](#manifest-requirementsmax_ram)           | Integer | No                            | Yes      | Maximum RAM (in MiB) this image may be provisioned with.                                                                                                                                        |
 | [requirements.min_platform](#manifest-requirementsmin_platform) | Object  | No                            | Yes      | Minimum platform requirement for provisioning with this image.                                                                                                                                  |
 | [requirements.max_platform](#manifest-requirementsmax_platform) | Object  | No                            | Yes      | Maximum platform requirement for provisioning with this image.                                                                                                                                  |
+| [requirements.bootrom](#manifest-requirementsbootrom)           | String  | No                            | Yes      | Bootrom image to use with this image.                                                                                                                                  |
 | [users](#manifest-users)                                        | Array   | No                            | Yes      | A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`                            |
 | [billing_tags](#manifest-billing_tags)                          | Array   | No                            | Yes      | A list of tags that can be used by operators for additional billing processing.                                                                                                                 |
 | [traits](#manifest-traits)                                      | Object  | No                            | Yes      | An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.                                                                   |
@@ -511,6 +512,12 @@ then:
    above, then this image **may** be used on this platform. This rule could
    have gone either way, depending on circumstances, hence the decision to
    *allow* in the face of ambiguity.
+
+
+## Manifest: requirements.bootrom
+
+Optional. `bootrom` defines the boot ROM image to use. May take values `"bios"`
+or `"uefi"`. Only valid when `brand` is `bhyve`.
 
 
 ## Manifest: users
