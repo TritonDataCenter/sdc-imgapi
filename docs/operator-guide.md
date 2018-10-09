@@ -472,6 +472,7 @@ For example: if providing `manta`, one must provide the whole `manta` object.
 | wfapi.url                    | String        | -                 | The Workflow API URL. |
 | wfapi.workflows              | String        | -                 | Array of workflows to load. |
 | wfapi.forceReplace           | Boolean       | -                 | Whether to replace all workflows loaded every time the IMGAPI service is started. Ideal for development environments |
+| imgapiUrlFromDatacenter      | Object        | -                 | The mapping of short dc name to the imgapi admin url, which an image in this imgapi can be copied to. This can also be set using [SAPI Configuration](#sapi-configuration). |
 
 For operational scripts, development, and debugging, one can look at the full
 merged and computed config by calling "lib/config.js" as a script. This should
@@ -509,7 +510,7 @@ authoritative details.
 | IMGAPI_MANTA_\*                         | various | -       | These are typically setup by the `imgapi[-external]-manta-setup` scripts. See the [DC-mode setup: connect to Manta](#dc-mode-setup-connect-to-manta) section |
 | docker_registry_insecure                | Boolean | false   | See <https://github.com/joyent/triton/blob/master/docs/operator-guide/configuration.md#sdc-application-configuration> |
 | http_proxy                              | String  | -       | See <https://github.com/joyent/triton/blob/master/docs/operator-guide/configuration.md#sdc-application-configuration> |
-
+| IMGAPI_URL_FROM_DATACENTER              | Object  | -       | See [x-DC Image Copying](#x-dc-image-copying) description. |
 
 ## Standalone Setup Configuration
 
@@ -529,6 +530,30 @@ These are called "setup config vars". At time of writing they are (see
 | mantaBaseDir | manta.baseDir |
 | channels     | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
 
+## x-DC Image Copying
+
+It is possible to configure IMGAPI to allow users to copy images from one
+datacenter to another.
+
+To be able to use x-DC image copying, each datacenter must have SAPI
+configuration, which will specify the IMGAPI endpoints that a datacenter is
+allowed to copy into.
+
+The configuration will be a JSON object, which contains a mapping of the dc
+short name or the IMGAPI **admin** url where IMGAPI is listening. Note that the
+short dc name should match what is shown via:
+[CloudAPI ListDatacenters](https://apidocs.joyent.com/cloudapi/#ListDatacenters).
+
+For example, to allow us-east-1 to copy images into both us-sw-1 and us-west-1
+you would run the following SAPI configuration command:
+
+    $ login to us-east-1 headnode
+    $ SAPI_IMGAPI_UUID=$(sdc-sapi /services?name=imgapi | json -Hga uuid)
+    $ echo '{ "metadata": { "IMGAPI_URL_FROM_DATACENTER": { "us-sw-1": "http://10.2.15.22", "us-west-1": "http://10.2.18.8" }}}' | \
+        sapiadm update "$SAPI_IMGAPI_UUID"
+
+Then restart config-agent in the imgapi zone (or wait until imgapi notices the
+config has changed, at which point imgapi will then restart itself).
 
 # Storage
 
