@@ -1,5 +1,10 @@
 # IMGAPI changelog
 
+## 4.6.0
+
+- TRITON-774 imgapi should allow admin-only file-add from URLs, adds a new
+  AddImageFileFromUrl endpoint /images/:uuid/file/from-url (POST).
+
 ## 4.5.2
 
 - TRITON-682 imgapi support for requirements.bootrom

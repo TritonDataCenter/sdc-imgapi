@@ -622,26 +622,27 @@ and relevant for images in an IMGAPI server that uses [channels](#channels).
 | [DeleteImage](#DeleteImage)                       | DELETE /images/:uuid                                       | Delete an image (and its file).                                               |
 | [CreateImage](#CreateImage)                       | POST /images                                               | Create a new (unactivated) image from a manifest.                             |
 | [AddImageFile](#AddImageFile)                     | PUT /images/:uuid/file                                     | Upload the image file.                                                        |
+| [AddImageFileFromUrl](#AddImageFileFromUrl)       | POST /images/:uuid/file/from-url                           | Upload the image file using a URL source.                                     |
 | [ActivateImage](#ActivateImage)                   | POST /images/:uuid?action=activate                         | Activate the image.                                                           |
 | [UpdateImage](#UpdateImage)                       | POST /images/:uuid?action=update                           | Update image manifest fields. This is limited. Some fields are immutable.     |
 | [DisableImage](#DisableImage)                     | POST /images/:uuid?action=disable                          | Disable the image.                                                            |
 | [EnableImage](#EnableImage)                       | POST /images/:uuid?action=enable                           | Enable the image.                                                             |
 | [AddImageAcl](#AddImageAcl)                       | POST /images/:uuid/acl?action=add                          | Add account UUIDs to the image ACL.                                           |
 | [RemoveImageAcl](#RemoveImageAcl)                 | POST /images/:uuid/acl?action=remove                       | Remove account UUIDs from the image ACL.                                      |
-| [CloneImage](#CloneImage)                         | POST /images/:uuid/clone                                   | Clone this image.
+| [CloneImage](#CloneImage)                         | POST /images/:uuid/clone                                   | Clone this image.                                                             |
 | [AddImageIcon](#AddImageIcon)                     | POST /images/:uuid/icon                                    | Add the image icon.                                                           |
 | [GetImageIcon](#GetImageIcon)                     | GET /images/:uuid/icon                                     | Get the image icon file.                                                      |
 | [DeleteImageIcon](#DeleteImageIcon)               | DELETE /images/:uuid/icon                                  | Remove the image icon.                                                        |
 | [CreateImageFromVm](#CreateImageFromVm)           | POST /images?action=create-from-vm                         | Create a new (activated) image from an existing VM.                           |
 | [ExportImage](#ExportImage)                       | POST /images/:uuid?action=export                           | Exports an image to the specified Manta path.                                 |
-| [ImportFromDatacenter](#ImportFromDatacenter)     | POST /images/$uuid?action=import-from-datacenter&datacenter=us-west-1  | Copy one's own image from another datacenter in the same cloud.  |
+| [ImportFromDatacenter](#ImportFromDatacenter)     | POST /images/$uuid?action=import-from-datacenter&datacenter=us-west-1  | Copy one's own image from another datacenter in the same cloud.   |
 | [AdminImportRemoteImage](#AdminImportRemoteImage) | POST /images/$uuid?action=import-remote&source=$imgapi-url | Import an image from another IMGAPI                                           |
 | [AdminImportImage](#AdminImportImage)             | POST /images/$uuid?action=import                           | Only for operators to import an image and maintain `uuid` and `published_at`. |
 | [AdminGetState](#AdminGetState)                   | GET /state                                                 | Dump internal server state (for dev/debugging)                                |
 | [ListChannels](#ListChannels)                     | GET /channels                                              | List image channels (if the server uses channels).                            |
 | [ChannelAddImage](#ChannelAddImage)               | POST /images/:uuid?action=channel-all                      | Add an existing image to another channel.                                     |
 | [Ping](#Ping)                                     | GET /ping                                                  | Ping if the server is up.                                                     |
-| [AdminReloadAuthKeys](#AdminReloadAuthKeys)       | POST /authkeys/reload                                          | (Added in v2.3.0.) Tell server to reload its auth keys. This is only relevant for servers using HTTP Signature auth. |
+| [AdminReloadAuthKeys](#AdminReloadAuthKeys)       | POST /authkeys/reload                                      | (Added in v2.3.0.) Tell server to reload its auth keys. This is only relevant for servers using HTTP Signature auth. |
 
 
 
@@ -1446,6 +1447,95 @@ CLI tool:
     Added file "file.bz2" to image 25ab9ddf-96e8-4157-899d-1dc8be7b9810
 
 
+## AddImageFileFromUrl (POST /images/:uuid/file/from-url)
+
+Almost identical to the AddImageFile PUT method, this POST method allows users
+to specify a URL from which the imgapi instance should retrieve the image file.
+
+HTTPS is the only scheme supported by this method. Note that as URLs are
+typically quite long, the URL is passed in the body of the POST.
+
+If the image already has a file, it will be overwritten. A file can only
+be added to an image that has not yet been activated. The typical process
+is to call this after [CreateImage](#CreateImage), and then subsequently
+call [ActivateImage](#ActivateImage) to make the image available
+for provisioning, `state == "active"`.
+
+### Inputs
+
+| Field                          | Type       | Required? | Notes                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------ | ---------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| account (query param)          | UUID       | No        | The account UUID on behalf of whom this request is being made. If given and if relevant, authorization will be done for this account. It is expected that all calls originating from a user (e.g. from cloudapi) will provide this parameter.                                                                                                      |
+| channel (query param)          | String     | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                                                                                                 |
+| storage                        | String     | No        | The type of storage preferred for this image file. Storage can only be specified if the request is being made by an operator. The only two possible values for storage are **local** and **manta**. When the request is made on behalf of a customer then IMGAPI will try to use manta as the storage backend, otherwise default to local storage. |
+| [compression](#manifest-files) | UUID       | Yes       | The type of compression used for the file content. One of 'none', 'gzip' or 'bzip2'.                                                                                                                                                                                                                                                               |
+| [sha1](#manifest-files)        | SHA-1 Hash | No        | SHA-1 of the uploaded file to allow the server to check for data corruption.                                                                                                                                                                                                                                                                       |
+| dataset_guid                   | GUID       | No        | The ZFS internal unique identifier for this dataset's snapshot (available via `zfs get guid SNAPSHOT`, e.g. `zfs get guid zones/f669428c-a939-11e2-a485-b790efc0f0c1@final`). If available, this is used to ensure a common base snapshot for incremental images (via `imgadm create -i`) and VM migrations (via `vmadm send/receive`).            |
+| file_url (body)                | String     | Yes       | A URL to the image file. HTTPS is the only supported URL scheme, and the HTTPS server must not use self-signed certificates.                                                                                                                                                                                                                       |
+
+### Returns
+
+The updated image object.
+
+### Errors
+
+See [Errors](#errors) section above.
+
+### Example
+
+Raw API tool (against an SDC's IMGAPI).
+
+    $ sdc-imgapi '/images/2d74d0fb-8402-4e10-a145-86864b14bca7/file/from-url?compression=gzip&sha1=e6a828afa242ecad289f3114e6e2856ef2404a48' -X POST \
+    -d '{"file_url": "https://us-east.manta.joyent.com/timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz"}'
+    HTTP/1.1 200 OK
+    Etag: 824d644a739bb659b86c24316864d7f56438d696
+    Content-Type: application/json
+    Content-Length: 646
+    Date: Mon, 01 Oct 2018 11:09:47 GMT
+    Server: imgapi/4.6.0
+    x-request-id: 4fc4c29f-b568-408e-8019-54f0393b9025
+    x-response-time: 162167
+    x-server-name: 9b76732a-a75b-4ca5-b1a5-732974733639
+    Connection: keep-alive
+
+    {
+      "v": 2,
+      "uuid": "2d74d0fb-8402-4e10-a145-86864b14bca7",
+      "owner": "930896af-bf8c-48d4-885c-6573a94b1853",
+      "name": "assets",
+      "version": "master-20180925T100358Z-g3f3d1b8",
+      "state": "unactivated",
+      "disabled": false,
+      "public": false,
+      "type": "zone-dataset",
+      "os": "smartos",
+      "files": [
+        {
+          "sha1": "e6a828afa242ecad289f3114e6e2856ef2404a48",
+          "size": 69223039,
+          "compression": "gzip"
+        }
+      ],
+      "description": "SDC Assets",
+      "requirements": {
+        "min_platform": {
+          "7.0": "20180830T001556Z"
+        }
+      },
+      "origin": "04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f",
+      "tags": {
+        "smartdc_service": true
+      }
+    }
+
+CLI tool:
+
+    $ sdc-imgadm add-file -s e6a828afa242ecad289f3114e6e2856ef2404a48 --url \
+        -f https://us-east.manta.joyent.com//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz \
+        2d74d0fb-8402-4e10-a145-86864b14bca7
+    Added file from url "https://us-east.manta.joyent.com//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz" (compression "auto detected") to image 2d74d0fb-8402-4e10-a145-86864b14bca7
+
+
 ## AddImageIcon (PUT /images/:uuid/icon)
 
 Add the image icon. If the image already has an icon file, it will be overwritten.
@@ -2145,7 +2235,6 @@ CLI tool:
 
     $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -S https://images.joyent.com
     Imported image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 (base, 1.8.4, state=active)
-
 
 
 ## AdminImportDockerImage (POST /images?action=import-docker-image)
