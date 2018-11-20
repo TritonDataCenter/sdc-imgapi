@@ -1530,7 +1530,7 @@ Raw API tool (against an SDC's IMGAPI).
 
 CLI tool:
 
-    $ sdc-imgadm add-file -s e6a828afa242ecad289f3114e6e2856ef2404a48 --url \
+    $ sdc-imgadm add-file -s e6a828afa242ecad289f3114e6e2856ef2404a48 \
         -f https://us-east.manta.joyent.com//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz \
         2d74d0fb-8402-4e10-a145-86864b14bca7
     Added file from url "https://us-east.manta.joyent.com//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz" (compression "auto detected") to image 2d74d0fb-8402-4e10-a145-86864b14bca7
