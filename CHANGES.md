@@ -1,5 +1,10 @@
 # IMGAPI changelog
 
+## 4.6.1
+
+- TRITON-760 Fix imgapi-manta-setup (again, missed some cases) tooling
+  broken in v4.4.0 by TRITON-53.
+
 ## 4.6.0
 
 - TRITON-774 imgapi should allow admin-only file-add from URLs, adds a new

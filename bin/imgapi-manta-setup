@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2018, Joyent, Inc.
+ * Copyright (c) 2019, Joyent, Inc.
  */
 
 /*
@@ -311,6 +311,7 @@ function generateKey(keyName, callback) {
 function getSdcApp(config, callback) {
     var sapi = new sdcClients.SAPI({
         url: 'http://' + config.sapi_service,
+        version: '~2',
         log: log,
         agent: false
     });
@@ -345,6 +346,7 @@ function ensureImgapiSapiServiceSetup(args, callback) {
         args.sdcApp.metadata.datacenter_name);
     var sapi = new sdcClients.SAPI({
         url: 'http://' + args.config.sapi_service,
+        version: '~2',
         log: log,
         agent: false
     });
