@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -40,20 +40,43 @@ ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_IMAGE=18b094b0-eb01-11e5-80c1-175dac7ddf02
 endif
 
+#
+# Stuff used for buildimage
+#
+# our base image is triton-origin-multiarch-15.4.1
+BASE_IMAGE_UUID		= 04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f
+BUILDIMAGE_NAME		= imgapi
+BUILDIMAGE_DESC		= SDC IMGAPI
+BUILDIMAGE_PKGSRC	= \
+	dateutils-0.3.1nb1 \
+	haproxy-1.6.2 \
+	openssl-1.0.2o \
+	smtools-20160926 \
+	stud-0.3p53nb5 \
+	the_silver_searcher-0.31.0 \
+	xz-5.2.2 \
 
-include ./tools/mk/Makefile.defs
+AGENTS = amon config registrar
+
+ENGBLD_USE_BUILDIMAGE	= true
+ENGBLD_REQUIRE		:= $(shell git submodule update --init deps/eng)
+include ./deps/eng/tools/mk/Makefile.defs
+TOP ?= $(error Unable to access eng.git submodule Makefiles.)
+
+include ./deps/eng/tools/mk/Makefile.defs
 ifeq ($(shell uname -s),SunOS)
-	include ./tools/mk/Makefile.node_prebuilt.defs
+	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
+	include ./deps/eng/tools/mk/Makefile.agent_prebuilt.defs
 else
 	NPM=npm
 	NODE=node
 	NPM_EXEC=$(shell which npm)
 	NODE_EXEC=$(shell which node)
 endif
-include ./tools/mk/Makefile.smf.defs
+include ./deps/eng/tools/mk/Makefile.smf.defs
 
-RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.bz2
-RELSTAGEDIR       := /tmp/$(STAMP)
+RELEASE_TARBALL	:= $(NAME)-pkg-$(STAMP).tar.gz
+RELSTAGEDIR       := /tmp/$(NAME)-$(STAMP)
 
 
 
@@ -61,7 +84,7 @@ RELSTAGEDIR       := /tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) docs | $(NPM_EXEC) $(REPO_DEPS) sdc-scripts
+all: $(SMF_MANIFESTS) docs | $(NPM_EXEC) sdc-scripts
 	$(NPM) install
 
 $(NODEUNIT) node_modules/restify: | $(NPM_EXEC)
@@ -104,6 +127,7 @@ doc-update-error-table: lib/errors.js | node_modules/restify $(NODE_EXEC)
 DOC_CLEAN_FILES = docs/{index,operator-guide}.{html,json} \
 	build/errors.md \
 	build/docs
+
 .PHONY: clean-docs
 clean-docs:
 	-$(RMTREE) $(DOC_CLEAN_FILES)
@@ -166,17 +190,17 @@ release: all
 	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name obj.target | xargs -n1 rm -rf  # dtrace-provider
 	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name deps | grep 'extsprintf/deps$$' | xargs -n1 rm -rf  # old extsprintf shipped dev bits
 	# Tar
-	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root site)
+	(cd $(RELSTAGEDIR) && $(TAR) -I pigz -cf $(TOP)/$(RELEASE_TARBALL) root site)
 	@rm -rf $(RELSTAGEDIR)
 
 .PHONY: publish
 publish: release
-	@if [[ -z "$(BITS_DIR)" ]]; then \
-		@echo "error: 'BITS_DIR' must be set for 'publish' target"; \
+	@if [[ -z "$(ENGBLD_BITS_DIR)" ]]; then \
+		@echo "error: 'ENGBLD_BITS_DIR' must be set for 'publish' target"; \
 		exit 1; \
 	fi
-	mkdir -p $(BITS_DIR)/$(NAME)
-	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
+	mkdir -p $(ENGBLD_BITS_DIR)/$(NAME)
+	cp $(TOP)/$(RELEASE_TARBALL) $(ENGBLD_BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
 
 .PHONY: devrun
 devrun:
@@ -190,11 +214,12 @@ dumpvar:
 	fi
 	@echo "$(VAR) is '$($(VAR))'"
 
-include ./tools/mk/Makefile.deps
+include ./deps/eng/tools/mk/Makefile.deps
 ifeq ($(shell uname -s),SunOS)
-	include ./tools/mk/Makefile.node_prebuilt.targ
+	include ./deps/eng/tools/mk/Makefile.node_prebuilt.targ
+	include ./deps/eng/tools/mk/Makefile.agent_prebuilt.targ
 endif
-include ./tools/mk/Makefile.smf.targ
-include ./tools/mk/Makefile.targ
+include ./deps/eng/tools/mk/Makefile.smf.targ
+include ./deps/eng/tools/mk/Makefile.targ
 
 sdc-scripts: deps/sdc-scripts/.git

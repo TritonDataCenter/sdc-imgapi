@@ -1,5 +1,7 @@
+/make_stamps
 /node_modules
 /tmp
+/bits
 /build
 /docs/*.json
 /docs/*.html
@@ -7,3 +9,4 @@
 /docs/public.restdown
 /smf/manifests/imgapi.xml
 /etc/imgapi.config.json
+/imgapi-pkg-*.tar.gz
