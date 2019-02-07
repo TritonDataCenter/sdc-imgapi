@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-# Copyright 2017 Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -161,19 +161,6 @@ else
     echo "Owner ($ownerUuid) is already on the image ACL"
 fi
 
-# Network
-echo "Find a suitable external network"
-networkPoolJson=$(sdc-napi /network_pools?provisionable_by=$ownerUuid | json -Hc 'this.nic_tag==="external"' 0)
-if [[ -z "$networkPoolJson" ]]; then
-    networkJson=$(sdc-napi /networks?provisionable_by=$ownerUuid\&fabric=false | json -Hc 'this.nic_tag==="external"' 0)
-    [[ -n "$networkJson" ]] || fatal "could not find a suitable network"
-    netJson="$networkJson"
-else
-    netJson="$networkPoolJson"
-fi
-netUuid=$(echo "$netJson" | json uuid)
-netName=$(echo "$netJson" | json name)
-
 # Create the VM
 vmUuid=$(uuid)
 optMetadata=$(echo "$optMetadata" \
@@ -185,7 +172,7 @@ echo "      alias: $ALIAS"
 echo "      owner: $ownerUuid ($ownerLogin)"
 echo "      image: $imageUuid ($imageName@$imageVersion)"
 echo "    package: $packageUuid ($packageName)"
-echo "    network: $netUuid ($netName)"
+echo "    network: external"
 echo "       tags: $(echo "$optTags" | json -o json-0)"
 echo "   metadata:"
 echo "$optMetadata" | sed  's/^/        /'
@@ -196,7 +183,7 @@ sdc-vmapi /vms -X POST -d@- <<EOP | json -H | sdc-waitforjob
     "alias": "$ALIAS",
     "owner_uuid": "$ownerUuid",
     "billing_id": "$packageUuid",
-    "networks": [{"uuid": "$netUuid"}],
+    "networks": [{"name": "external"}],
     "brand": "joyent",
     "image_uuid": "$imageUuid",
     "delegate_dataset": true,
