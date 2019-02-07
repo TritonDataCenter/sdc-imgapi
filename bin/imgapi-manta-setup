@@ -55,6 +55,7 @@ var async = require('async');
 var sdcClients = require('sdc-clients');
 var UFDS = require('ufds');
 var bunyan = require('bunyan');
+var netconfig = require('triton-netconfig');
 
 
 //---- globals
@@ -163,24 +164,21 @@ function getMantaUrl(mantaUrl, sdcApp, callback) {
             state: 'running'
         };
         vmapi.listVms(search, function (vErr, vms) {
-            if (vErr)
-                return callback(vErr);
+            if (vErr) {
+                callback(vErr);
+                return;
+            }
             if (vms.length === 0) {
-                return callback(new Error(
-                    'no manta "loadbalancer" VMs were found'));
+                callback(new Error('no manta "loadbalancer" VMs were found'));
+                return;
             }
-            var nics = vms[0].nics;
-            var ip;
-            for (var i = 0; i < nics.length; i++) {
-                if (nics[i].nic_tag === 'external') {
-                    ip = nics[i].ip;
-                    break;
-                }
-            }
+
+            var ip = netconfig.externalIpFromVmMetadata(vms[0]);
             if (!ip) {
-                return callback(new Error(
-                    'no external IP on the first Manta LB'));
+                callback(new Error('no external IP on the first Manta LB'));
+                return;
             }
+
             mantaUrl = 'https://' + ip;
             callback(null, mantaUrl);
         });
