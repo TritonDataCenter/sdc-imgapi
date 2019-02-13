@@ -97,6 +97,14 @@ test: | $(NODEUNIT)
 	#./test/runtests -lp  # test local 'public' mode
 	#./test/runtests -l   # test local 'dc' mode
 
+.PHONY:
+check-windows-prepare-image:
+	BYTES=$$(wc -c $(TOP)/tools/prepare-image/windows-prepare-image | awk '/\d+/{ print $$1}' ) ;\
+	if [[ $$BYTES -gt 3000 ]]; then \
+		echo "error: 'windows-prepare-image' is more than 3000 bytes"; \
+		exit 1; \
+	fi
+
 # We get the IMGAPI errors table from "lib/errors.js". This should be re-run
 # for "lib/errors.js" changes!
 .PHONY: doc-update-error-table

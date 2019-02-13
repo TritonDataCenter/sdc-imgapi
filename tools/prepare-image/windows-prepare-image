@@ -3,34 +3,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # Copyright (c) 2018, Joyent, Inc.
-#
-# Set Window's cleanmgr to (nearly) max, and run it. This cleans up most
-# temporary (files, cache) and unneeded data (outdated installation data).
-#
-# In order for this script to work, a Windows image needs to have mdata-get.exe,
-# mdata-put.exe and prepare_image_runner.ps1 installed in C:\smartdc\bin, and
-# prepare_image_runner.ps1 should be run by Windows on every boot. Upon boot,
-# prepare_image_runner.ps1 will then check if "sdc:operator-script" metadata
-# (seen as internal_metadata."operator-script" in "vmadm get" output) is present
-# over COM2, and run it. If it's not present, booting continues as normal.
-#
-# Apparently, the only way to get cleanmgr to run without displaying a final
-# information dialog -- thus hanging image creation -- is through the /autoclean
-# flag. We abuse this by setting all available cleanup options in the registry
-# to be run by autoclean. Since the VM will be rolled back after image creation,
-# this change is not a problem.
-#
-# There are also a couple very expensive cleanmgr checks that increase
-# cleanmgr's run time up to 5x, which we cannot afford with the 5m time limit
-# imposed on image creation between prepare-script 'running' and
-# final 'error'/'success' calls. The only way to disable these checks outright
-# is to temporarily move their registry keys, which we do as well.
-#
-# After that, cleanmgr is run, then moving the expensive registry keys back.
-#
-# Unfortunately, cleanmgr /autoclean appears to contain its own logic about when
-# it will clean up something. As a result, we also empty recycle bins and clear
-# most temp and log directories manually.
 
 $parent_path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
 $tmp_parent_path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer'
@@ -61,10 +33,8 @@ function error($msg) {
 }
 
 
-echo 'Starting run...'
 mput 'state' 'running'
 
-echo "Disabling particularly expensive cleanmgr operations"
 foreach ($cleanup in $expensive_cleanups) {
     try {
         Move-Item -LiteralPath (setting_path $cleanup) `
@@ -72,7 +42,6 @@ foreach ($cleanup in $expensive_cleanups) {
     } catch [System.Management.Automation.PSInvalidOperationException] {}
 }
 
-echo 'Marking all other checks for /autoclean'
 try {
     $cleanups = (Get-Item -LiteralPath $parent_path).GetSubKeyNames()
 } catch {
@@ -101,18 +70,13 @@ try {
     error 'Bad Set-Item'
 }
 
-echo 'Running cleanmgr...'
 try {
-    # Out-Null needed to block script until cleanmgr completes
     c:\windows\system32\cleanmgr.exe /autoclean | Out-Null
 } catch [System.Management.Automation.CommandNotFoundException] {
-    # Ignore, in case we are dealing with a 2012r2 instance without
-    # Desktop Experience installed
 } catch {
     error 'Bad cleanmgr'
 }
 
-echo 'Unmarking other checks /autoclean'
 try {
     foreach ($path in $add_auto_paths) {
         Set-ItemProperty -LiteralPath $path -Name 'Autorun' `
@@ -122,7 +86,6 @@ try {
     error 'Bad auto undo'
 }
 
-echo 'Reenabling expensive cleanmgr operations'
 foreach ($cleanup in $expensive_cleanups) {
     try {
         Move-Item -LiteralPath (tmp_path $cleanup) `
@@ -130,18 +93,14 @@ foreach ($cleanup in $expensive_cleanups) {
     } catch [System.Management.Automation.PSInvalidOperationException] {}
 }
 
-echo 'Empty Recycle Bins'
 try {
      Clear-RecycleBin -Confirm:$false -ErrorAction Stop
 } catch [System.ComponentModel.Win32Exception],
         [System.Management.Automation.CommandNotFoundException] {
-    # Ignore, in case we are dealing with a Powershell older than 5.1 on 2012r2.
-    # By default, 2012r2 has Powershell 4.0, but updates can increase it to 5.1
 } catch {
     error 'Bad empty recycle'
 }
 
-echo 'Clear out temp and log directories'
 foreach ($path in $clean_dirs) {
     try {
         Remove-Item -Path $path -Recurse -Force -ErrorAction Stop
@@ -150,4 +109,3 @@ foreach ($path in $clean_dirs) {
 
 
 mput 'state' 'success'
-echo 'Done!'
