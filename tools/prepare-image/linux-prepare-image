@@ -103,8 +103,9 @@ function cleanup_ssh() {
 }
 
 function cleanup_disks() {
-    echo "removing /dev/vdb entries from fstab"
-    sed -i '/^\/dev\/vdb/d' /etc/fstab
+    echo "removing /dev/vdb and cloud-init entries from fstab"
+    sed -i -e '/^\/dev\/vdb/d' -e '/[\t|,]comment=cloudconfig[,|\t]/d' \
+        /etc/fstab
 }
 
 function cleanup_metadata() {
