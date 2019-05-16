@@ -68,27 +68,38 @@ function cleanup_logs() {
     find /var/log -type f -exec sh -c '>{}' \;
 }
 
+function cleanup_homedir() {
+    local dir=$1
+
+    if [[ ! -d $dir ]]; then
+        return
+    fi
+
+    (cd "$dir" && rm -f \
+        .bash_history \
+        .lesshst \
+        .viminfo \
+        .ssh/authorized_keys \
+        .ssh/known_hosts \
+        .ssh/id_* \
+        .ssh/ssh_config
+    )
+}
 
 function cleanup_root() {
     # Cleaning up root account
     history -c
     history -w || true
-    rm -f /root/.bash_history
-    rm -f /root/.lesshst
-    rm -f /root/.viminfo
 
     # Removing password for root
     passwd -d root
+
+    # Clean up history, ssh keys, etc.
+    cleanup_homedir /root
 }
 
 function cleanup_ssh() {
     find /etc/ssh -type f -name "ssh_host_*" | xargs rm -f
-    FILELIST='authorized_keys known_hosts id_dsa id_dsa.pub id_rsa id_rsa.pub ssh_config'
-    for FILE in $FILELIST; do
-        if [ -f "/root/.ssh/$FILE" ]; then
-            rm -r /root/.ssh/$FILE
-        fi
-    done
 }
 
 function cleanup_disks() {
@@ -187,6 +198,9 @@ EOF
 
         update-grub2
     fi
+
+    # Clean up history, ssh keys, etc.
+    cleanup_homedir /home/ubuntu
 }
 
 # Makes sure that /lib/smartdc et al are sane.
