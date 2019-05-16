@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2018, Joyent, Inc.
+# Copyright 2019 Joyent, Inc.
 #
 
 #
@@ -175,6 +175,18 @@ function prepare_fedora() {
 function prepare_ubuntu() {
     # Clean up package cache
     apt-get -y clean
+
+    local fixconsole=$(mdata-get prepare-image:fix-ubuntu-console 2>/dev/null)
+
+    if [[ $fixconsole == true ]]; then
+        cat >/etc/default/grub.d/51-smartos-serial-console.cfg <<EOF
+GRUB_TERMINAL="serial console"
+GRUB_CMDLINE_LINUX="console=ttyS0,115200n8 console=tty0"
+GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"
+EOF
+
+        update-grub2
+    fi
 }
 
 # Makes sure that /lib/smartdc et al are sane.
