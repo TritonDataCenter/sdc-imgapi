@@ -1,0 +1,61 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.3
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:hoek:20180212':
+    - manta-sync > latest > npm > request > hawk > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > request > hawk > sntp > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > node-gyp > request > hawk > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > request > hawk > cryptiles > boom > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > node-gyp > request > hawk > boom > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > node-gyp > request > hawk > sntp > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > node-gyp > request > hawk > cryptiles > boom > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > request > hawk > boom > hoek:
+        patched: '2019-05-17T07:51:52.557Z'
+  'npm:lodash:20180130':
+    - docker-registry-client > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - ufds > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - docker-registry-client > restify-clients > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - sdc-clients > restify-clients > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - wf-client > restify-clients > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta > restify-clients > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > restify-clients > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-dir-watcher > manta > restify-clients > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > manta > restify-clients > restify-errors > lodash:
+        patched: '2019-05-17T07:51:52.557Z'
+  'npm:mime:20170907':
+    - manta > mime:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-dir-watcher > manta > mime:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > manta > mime:
+        patched: '2019-05-17T07:51:52.557Z'
+  'npm:moment:20161019':
+    - manta-dir-watcher > manta > moment:
+        patched: '2019-05-17T07:51:52.557Z'
+  'npm:tough-cookie:20160722':
+    - docker-registry-client > tough-cookie:
+        patched: '2019-05-17T07:51:52.557Z'
+  'npm:tunnel-agent:20170305':
+    - manta-sync > restify-clients > tunnel-agent:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-dir-watcher > manta > restify-clients > tunnel-agent:
+        patched: '2019-05-17T07:51:52.557Z'
+    - manta-sync > latest > npm > request > tunnel-agent:
+        patched: '2019-05-17T07:51:52.557Z'
