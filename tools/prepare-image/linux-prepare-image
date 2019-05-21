@@ -129,6 +129,12 @@ function cleanup_hostname() {
     touch /etc/hostname
 }
 
+function cleanup_machineid() {
+    if [[ -f /etc/machine-id ]]; then
+        cp /dev/null /etc/machine-id
+    fi
+}
+
 function cleanup_network_devices() {
     if [[ -f /etc/udev/rules.d/70-persistent-net.rules ]] ; then
         rm -f /etc/udev/rules.d/70-persistent-net.rules
@@ -258,6 +264,7 @@ cleanup_ssh
 cleanup_root
 cleanup_metadata
 cleanup_hostname
+cleanup_machineid
 cleanup_network_devices
 cleanup_cloud_init
 
