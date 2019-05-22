@@ -61,6 +61,13 @@ function errexit
 
 #---- support routines
 
+# A wrapper around mdata-get to get values from the prepare-image namespace.
+function mdata_get_pi() {
+	typeset key=$1
+
+	mdata-get "prepare-image:$key" 2>/dev/null || true
+}
+
 function cleanup_logs() {
     # This ensures we don't delete the following
     # /var/log/wtmp - syslog won't start if this is missin
@@ -91,8 +98,9 @@ function cleanup_root() {
     history -c
     history -w || true
 
-    # Removing password for root
-    passwd -d root
+    # Remove or set password for root.  If root-password-hash is not set, this
+    # is equivalent to "passwd -d root".
+    usermod -p "$(mdata_get_pi root-password-hash)" root
 
     # Clean up history, ssh keys, etc.
     cleanup_homedir /root
@@ -194,7 +202,7 @@ function prepare_ubuntu() {
     # Clean up package cache
     apt-get -y clean
 
-    local fixconsole=$(mdata-get prepare-image:fix-ubuntu-console 2>/dev/null)
+    local fixconsole=$(mdata_get_pi fix-ubuntu-console)
 
     if [[ $fixconsole == true ]]; then
         cat >/etc/default/grub.d/51-smartos-serial-console.cfg <<EOF
