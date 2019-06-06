@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright 2017 Joyent, Inc.
+ * Copyright 2019 Joyent, Inc.
  */
 
 /*
@@ -22,7 +22,6 @@ var async = require('async');
 var restify = require('restify');
 //var IMGAPI = require('sdc-clients').IMGAPI;   // temp broken by TOOLS-211
 var IMGAPI = require('sdc-clients/lib/imgapi');
-var DSAPI = require('sdc-clients/lib/dsapi');
 
 
 // node-tap API
@@ -683,158 +682,6 @@ test('AdminImportImage from images.joyent.com', function (t) {
         [
             getManifestFromImagesJo,
             getFileFromImagesJo,
-            create,
-            addFile,
-            activate,
-            getImage,
-            getFile,
-            deleteImage
-        ],
-        function (err) {
-            t.end();
-        }
-    );
-});
-
-
-/**
- * AdminImportImage scenario from datasets.joyent.com:
- * - get manifest from datasets.joyent.com/datasets/:uuid
- * - AdminImportImage with that manifest
- * - AddImageFile *stream* from file URL from the dsmanifest
- * - ActivateImage
- * - GetImage, GetImageFile checks
- * - clean up: delete it
- */
-if (!process.env.IMGAPI_TEST_OFFLINE)
-test('AdminImportImage from datasets.joyent.com', function (t) {
-    var self = this;
-    // Pick a small one: minimal-32@15.2.0
-    var uuid = '0764d78e-3472-11e5-8949-4f31abea4e05';
-    var manifest;
-    var filePath = format('/var/tmp/dataset-test-file-%s.zfs.bz2', process.pid);
-    var fileCompression = 'bzip2';
-    var size;
-    var sha1;
-    var md5;
-    var aImage;
-
-    var datasetsClient = new DSAPI({
-        url: 'https://datasets.joyent.com',
-        agent: false
-    });
-
-    function getManifestFromDatasetsJo(next) {
-        datasetsClient.getImage(uuid, function (err, dataset) {
-            t.ifError(err, err);
-            t.ok(dataset);
-            manifest = dataset;
-            next();
-        });
-    }
-    function getFileFromDatasetsJo(next) {
-        var url = manifest.files[0].url;
-        var stream = fs.createWriteStream(filePath);
-        https.get(url, function (res) {
-            var sha1hash = crypto.createHash('sha1');
-            var md5hash = crypto.createHash('md5');
-            size = 0;
-            res.pipe(stream);
-            res.on('data', function (d) {
-                sha1hash.update(d);
-                md5hash.update(d);
-                size += d.length;
-            });
-            res.on('end', function () {
-                sha1 = sha1hash.digest('hex');
-                md5 = md5hash.digest('base64');
-                // No 'Content-MD5' header check because datasets.joyent.com
-                // doesn't set that header.
-                t.equal(sha1, manifest.files[0].sha1,
-                    'sha1 matches manifest data');
-                t.equal(size, manifest.files[0].size,
-                    'size matches manifest data');
-                next();
-            });
-        });
-    }
-    function create(next) {
-        var iOpts = {skipOwnerCheck: true};
-        self.client.adminImportImage(manifest, iOpts,
-                                     function (err, image, res) {
-            t.ifError(err, err);
-            t.ok(image);
-            if (image) {
-                t.equal(image.uuid, manifest.uuid);
-                t.equal(image.published_at, manifest.published_at);
-                t.equal(image.state, 'unactivated');
-            }
-            next(err);
-        });
-    }
-    function addFile(next) {
-        var fopts = {uuid: uuid, file: filePath, compression: fileCompression};
-        self.client.addImageFile(fopts, function (err, image, res) {
-            t.ifError(err, err);
-            t.ok(image);
-            t.equal(image.files.length, 1, 'image.files');
-            t.equal(image.files[0].sha1, sha1, 'image.files.0.sha1');
-            t.equal(image.files[0].size, size, 'image.files.0.size');
-            next(err);
-        });
-    }
-    function activate(next) {
-        self.client.activateImage(uuid, function (err, image, res) {
-            t.ifError(err, err);
-            t.ok(image);
-            t.equal(image.state, 'active');
-            aImage = image;
-            next();
-        });
-    }
-    function getImage(next) {
-        self.client.getImage(uuid, vader, function (err, image, res) {
-            t.ifError(err, err);
-            t.equal(JSON.stringify(aImage), JSON.stringify(image), 'matches');
-            next();
-        });
-    }
-    function getFile(next) {
-        var tmpFilePath = format('/var/tmp/imgapi-test-file-%s.zfs.bz2',
-            process.pid);
-        self.client.getImageFile(uuid, tmpFilePath, vader, function (err, res) {
-            t.ifError(err, err);
-            if (err) {
-                return next(err);
-            }
-            t.equal(md5, res.headers['content-md5'], 'md5');
-            var hash = crypto.createHash('sha1');
-            var s = fs.createReadStream(tmpFilePath);
-            s.on('data', function (d) { hash.update(d); });
-            s.on('end', function () {
-                var actual_sha1 = hash.digest('hex');
-                t.equal(sha1, actual_sha1, 'sha1 matches upload');
-                t.equal(aImage.files[0].sha1, actual_sha1,
-                    'sha1 matches image data');
-                next();
-            });
-        });
-    }
-    function deleteImage(next) {
-        self.client.deleteImage(uuid, function (err, res) {
-            t.ifError(err, err);
-            if (err) {
-                return next(err);
-            }
-            t.equal(res.statusCode, 204, 'res.statusCode 204');
-            next();
-        });
-    }
-
-    async.series(
-        [
-            getManifestFromDatasetsJo,
-            getFileFromDatasetsJo,
             create,
             addFile,
             activate,

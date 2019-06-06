@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright 2016 Joyent, Inc.
+ * Copyright 2019 Joyent, Inc.
  */
 
 /*
@@ -24,7 +24,6 @@ var restify = require('restify');
 var lib_uuid = require('uuid');
 
 var IMGAPI = require('sdc-clients').IMGAPI;
-var DSAPI = require('sdc-clients/lib/dsapi');
 
 // Needed for provisioning
 var VMAPI = require('sdc-clients').VMAPI;
