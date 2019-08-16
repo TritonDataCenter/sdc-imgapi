@@ -98,9 +98,14 @@ function cleanup_root() {
     history -c
     history -w || true
 
-    # Remove or set password for root.  If root-password-hash is not set, this
-    # is equivalent to "passwd -d root".
-    usermod -p "$(mdata_get_pi root-password-hash)" root
+    # Set or remove the root password. prepare-image:root-password-hash is only
+    # supported on those distros that support "usermod -p <hash> <user>".
+    local pw="$(mdata_get_pi root-password-hash)"
+    if [[ -n "$pw" ]]; then
+        usermod -p "$pw" root
+    else
+        passwd -d root
+    fi
 
     # Clean up history, ssh keys, etc.
     cleanup_homedir /root
