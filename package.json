@@ -37,7 +37,7 @@
     "rimraf": "2.2.6",
     "sdc-clients": "11.3.0",
     "semver": "5.4.1",
-    "sshpk": "1.13.0",
+    "sshpk": "1.16.1",
     "through2": "2.0.3",
     "trace-event": "1.2.0",
     "triton-metrics": "0.1.1",
