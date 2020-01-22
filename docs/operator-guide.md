@@ -28,9 +28,8 @@ There are two main types of IMGAPI:
 
 # Image
 
-Both types of IMGAPI instances use "imgapi" images built from sdc-imgapi.git and
-mountain-gorilla.git on Joyent's internal CI build system and released to
-[Joyent's Updates Image repository](https://updates.joyent.com).
+Both types of IMGAPI instances use "imgapi" images built from sdc-imgapi.git,
+released to [Joyent's Updates Image repository](https://updates.joyent.com).
 
 
 # DC-Mode Setup
@@ -243,7 +242,7 @@ This isn't the only place that authkeys can be added. See the
 [Authentication](#authentication) section below for full details.
 
 
-## Standalone Setup Step 6: set CNS service tag
+## Standalone Setup Step 7: set CNS service tag
 
 This step is optional.
 
@@ -271,6 +270,15 @@ Then, even if your instance is recycled and replaced, DNS will still work.
 And when imgapi supports multiple instances (for HA), DNS will map to all your
 instances using the "myimages" cns tag.
 
+## Standalone Setup Step 8: configure downstream imgapi
+
+If you have not completed step 5, the instance will be using a self-signed
+certificate. In this case, for testing purposes you may wish to configure
+another imgapi instance such that it will allow importing from the standalone,
+for example:
+
+    $ service=$(sdc-sapi /services?name=imgapi | json -H 0.uuid)
+    $ sapiadm update $service metadata.IMGAPI_ALLOW_INSECURE=true
 
 # Update
 
@@ -452,6 +460,7 @@ For example: if providing `manta`, one must provide the whole `manta` object.
 | channels                     | Array         | -                 | Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. |
 | placeholderImageLifespanDays | Number        | 7                 | The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database. |
 | allowLocalCreateImageFromVm  | Boolean       | false             | Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
+| allowInsecure                | Boolean       | false             | Whether to allow insecure connection to another IMGAPI instance when importing from it.  This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_INSECURE": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
 | minImageCreationPlatform     | Array         | see defaults.json | The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm). |
 | authType                     | String        | signature         | One of 'none' or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
 | authKeys                     | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.authType === "signature"`). |
@@ -521,14 +530,15 @@ number of keys can be provided on instance metadata for this initial rendering.
 These are called "setup config vars". At time of writing they are (see
 `setupConfigVars` in imgapi-standalone-gen-setup-config):
 
-| Key          | Corresponds to this key from the "Configuration" table |
-| ------------ | ------------------------------------------------------ |
-| mode         | mode |
-| serverName   | serverName |
-| mantaUrl     | manta.url |
-| mantaUser    | manta.user |
-| mantaBaseDir | manta.baseDir |
-| channels     | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
+| Key           | Corresponds to this key from the "Configuration" table |
+| ------------- | ------------------------------------------------------ |
+| mode          | mode |
+| serverName    | serverName |
+| mantaUrl      | manta.url |
+| mantaUser     | manta.user |
+| mantaBaseDir  | manta.baseDir |
+| mantaInsecure | manta.insecure |
+| channels      | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
 
 ## x-DC Image Copying
 

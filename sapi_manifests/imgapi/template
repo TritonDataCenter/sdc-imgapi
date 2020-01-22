@@ -12,6 +12,9 @@
     {{#IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}
     "allowLocalCreateImageFromVm": {{{IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}},
     {{/IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM}}
+    {{#IMGAPI_ALLOW_INSECURE}}
+    "allowInsecure": {{{IMGAPI_ALLOW_INSECURE}}},
+    {{/IMGAPI_ALLOW_INSECURE}}
 {{#experimental_fluentd_host}}
     "fluentd_host": "{{{experimental_fluentd_host}}}",
 {{/experimental_fluentd_host}}
