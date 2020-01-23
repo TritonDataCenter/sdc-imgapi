@@ -521,14 +521,15 @@ number of keys can be provided on instance metadata for this initial rendering.
 These are called "setup config vars". At time of writing they are (see
 `setupConfigVars` in imgapi-standalone-gen-setup-config):
 
-| Key          | Corresponds to this key from the "Configuration" table |
-| ------------ | ------------------------------------------------------ |
-| mode         | mode |
-| serverName   | serverName |
-| mantaUrl     | manta.url |
-| mantaUser    | manta.user |
-| mantaBaseDir | manta.baseDir |
-| channels     | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
+| Key           | Corresponds to this key from the "Configuration" table |
+| ------------- | ------------------------------------------------------ |
+| mode          | mode |
+| serverName    | serverName |
+| mantaUrl      | manta.url |
+| mantaUser     | manta.user |
+| mantaBaseDir  | manta.baseDir |
+| mantaInsecure | manta.insecure |
+| channels      | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
 
 ## x-DC Image Copying
 
