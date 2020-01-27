@@ -28,9 +28,8 @@ There are two main types of IMGAPI:
 
 # Image
 
-Both types of IMGAPI instances use "imgapi" images built from sdc-imgapi.git and
-mountain-gorilla.git on Joyent's internal CI build system and released to
-[Joyent's Updates Image repository](https://updates.joyent.com).
+Both types of IMGAPI instances use "imgapi" images built from sdc-imgapi.git,
+released to [Joyent's Updates Image repository](https://updates.joyent.com).
 
 
 # DC-Mode Setup
@@ -243,7 +242,7 @@ This isn't the only place that authkeys can be added. See the
 [Authentication](#authentication) section below for full details.
 
 
-## Standalone Setup Step 6: set CNS service tag
+## Standalone Setup Step 7: set CNS service tag
 
 This step is optional.
 
@@ -271,6 +270,15 @@ Then, even if your instance is recycled and replaced, DNS will still work.
 And when imgapi supports multiple instances (for HA), DNS will map to all your
 instances using the "myimages" cns tag.
 
+## Standalone Setup Step 8: configure downstream imgapi
+
+If you have not completed step 5, the instance will be using a self-signed
+certificate. In this case, for testing purposes you may wish to configure
+another imgapi instance such that it will allow importing from the standalone,
+for example:
+
+    $ service=$(sdc-sapi /services?name=imgapi | json -H 0.uuid)
+    $ sapiadm update $service metadata.IMGAPI_ALLOW_INSECURE=true
 
 # Update
 
@@ -531,13 +539,6 @@ These are called "setup config vars". At time of writing they are (see
 | mantaBaseDir  | manta.baseDir |
 | mantaInsecure | manta.insecure |
 | channels      | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
-
-### Standalone testing
-
-For testing purposes, you may want to disable signature authentication as
-described below. In addition, to allow imports from the standalone instance, as
-it by default has only a self-signed certification, you might want to set the
-`IMGAPI_ALLOW_INSECURE` SAPI setting on the importing `imgapi` instance.
 
 ## x-DC Image Copying
 
