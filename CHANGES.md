@@ -1,5 +1,22 @@
 # IMGAPI changelog
 
+## 4.9.0
+
+ - TRITON-2053 standalone imgapi could be easier to test with
+
+## 4.8.0
+
+ - TRITON-2052 sdc-imgadm import should import from any channel by default
+
+## 4.7.0
+
+ - TRITON-1738 update imgapi base image to triton-origin-x86_64-18.4.0
+ - TRITON-1737 imgapi should use node v6
+
+## 4.6.2
+
+- TRITON-1227 Windows snapshot script needs to be under 3000 bytes long
+
 ## 4.6.1
 
 - TRITON-760 Fix imgapi-manta-setup (again, missed some cases) tooling
