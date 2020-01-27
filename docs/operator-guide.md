@@ -452,6 +452,7 @@ For example: if providing `manta`, one must provide the whole `manta` object.
 | channels                     | Array         | -                 | Set this make this IMGAPI server support [channels](#channels). It must be an array of channel definition objects of the form `{"name": "<name>", "description": "<desc>"[, "default": true]}`. |
 | placeholderImageLifespanDays | Number        | 7                 | The number of days after which a "placeholder" image (one with state 'failed' or 'creating') is purged from the database. |
 | allowLocalCreateImageFromVm  | Boolean       | false             | Whether to allow CreateImageFromVm using local storage (i.e. if no manta storage is configured). This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_LOCAL_CREATE_IMAGE_FROM_VM": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
+| allowInsecure                | Boolean       | false             | Whether to allow insecure connection to another IMGAPI instance when importing from it.  This should only be enabled for testing. For SDC installations of IMGAPI `"IMGAPI_ALLOW_INSECURE": true` can be set on the metadata for the 'imgapi' SAPI service to enable this. |
 | minImageCreationPlatform     | Array         | see defaults.json | The minimum platform version, `["<sdc version>", "<platform build timestamp>"]`, on which the proto VM for image creation must reside. This is about the minimum platform with sufficient `imgadm` tooling. This is used as an early failure guard for [CreateImageFromVm](#CreateImageFromVm). |
 | authType                     | String        | signature         | One of 'none' or 'signature' ([HTTP Signature auth](https://github.com/joyent/node-http-signature)). |
 | authKeys                     | Object        | -                 | Optional. A mapping of username to an array of ssh public keys. Only used for HTTP signature auth (`config.authType === "signature"`). |
@@ -530,6 +531,13 @@ These are called "setup config vars". At time of writing they are (see
 | mantaBaseDir  | manta.baseDir |
 | mantaInsecure | manta.insecure |
 | channels      | channels; This may also by the special value `standard`, which will be substituted by the "standard" channels (a set of channels used by updates.joyent.com). |
+
+### Standalone testing
+
+For testing purposes, you may want to disable signature authentication as
+described below. In addition, to allow imports from the standalone instance, as
+it by default has only a self-signed certification, you might want to set the
+`IMGAPI_ALLOW_INSECURE` SAPI setting on the importing `imgapi` instance.
 
 ## x-DC Image Copying
 
