@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.9.0
+
+ - TRITON-2053 standalone imgapi could be easier to test with
+
 ## 4.8.0
 
  - TRITON-2052 sdc-imgadm import should import from any channel by default

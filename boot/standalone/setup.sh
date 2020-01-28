@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright 2017 Joyent, Inc.
+# Copyright 2020 Joyent, Inc.
 #
 
 #
@@ -145,9 +145,7 @@ EMOTD
 
 # SMF services
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/imgapi.xml
-/usr/sbin/svccfg delete pkgsrc/haproxy  # avoid 'haproxy' FMRI collison
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/haproxy-standalone.xml
-/usr/sbin/svccfg delete pkgsrc/stud  # avoid 'stud' FMRI collison
 /usr/sbin/svccfg import /opt/smartdc/imgapi/smf/manifests/stud-standalone.xml
 
 # Note completion
