@@ -384,7 +384,7 @@ function ensureImgapiSapiServiceSetup(args, callback) {
                     if (!Object.prototype.hasOwnProperty.call(
                         svc.metadata, field))
                     {
-                        missingFields.append(field);
+                        missingFields.push(field);
                     }
                 });
                 if (missingFields.length > 0) {
