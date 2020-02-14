@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright (c) 2019, Joyent, Inc.
+ * Copyright 2020 Joyent, Inc.
  */
 
 /*
@@ -384,7 +384,7 @@ function ensureImgapiSapiServiceSetup(args, callback) {
                     if (!Object.prototype.hasOwnProperty.call(
                         svc.metadata, field))
                     {
-                        missingFields.append(field);
+                        missingFields.push(field);
                     }
                 });
                 if (missingFields.length > 0) {
