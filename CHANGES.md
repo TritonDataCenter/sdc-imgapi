@@ -1,5 +1,34 @@
 # IMGAPI changelog
 
+## 4.10.0
+
+- TRITON-2005 imgapi needs to stop using snaplinks
+
+  There should be no external functional change to IMGAPI due to this change,
+  other than CloneImage and ExportImage taking slightly longer.
+
+  There were a number of IMGAPI endpoints that would use snaplinks for moving
+  image files around for those that were stored in Manta (non-admin-owned images
+  in an IMGAPI configured to use a Manta). These have been changed to instead
+  stream the file out and stream the file back into Manta at the wanted path.
+
+  The one exception to that change is ImportImage: This *used* to write a
+  temporary object path (`.../$uuid/file0.$req_id`) and then get linked to its
+  final location (`.../$uuid/file0`). Now, for MantaStorage, it just writes
+  directly to the final location. Manta semantics are such that a failed partial
+  write does *not* blow away an existing object alread at that location, which
+  was the original reason for that temporary path write.
+
+  Endpoints affected by this change:
+  - AddImageFile (used by typical 'sdc-imgadm import ...' commands)
+  - AddImageFileFromUrl
+  - UpdateImage (when changing the UUID, as used only by 'docker build')
+  - CloneImage ('triton image clone ...')
+  - ImportFromDatacenter ('triton image copy ...')
+  - AdminChangeImageStor ('sdc-imgadm change-stor ...')
+  - ExportImage ('triton image export ...')
+  - AddImageIcon
+
 ## 4.9.0
 
  - TRITON-2053 standalone imgapi could be easier to test with
