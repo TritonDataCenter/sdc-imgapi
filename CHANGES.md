@@ -16,7 +16,7 @@
   temporary object path (`.../$uuid/file0.$req_id`) and then get linked to its
   final location (`.../$uuid/file0`). Now, for MantaStorage, it just writes
   directly to the final location. Manta semantics are such that a failed partial
-  write does *not* blow away an existing object alread at that location, which
+  write does *not* blow away an existing object already at that location, which
   was the original reason for that temporary path write.
 
   Endpoints affected by this change:
