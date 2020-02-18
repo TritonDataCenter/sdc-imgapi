@@ -10,3 +10,4 @@
 /smf/manifests/imgapi.xml
 /etc/imgapi.config.json
 /imgapi-pkg-*.tar.gz
+.DS_Store
