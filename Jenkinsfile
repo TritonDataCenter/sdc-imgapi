@@ -8,7 +8,7 @@
  * Copyright 2020 Joyent, Inc.
  */
 
-@Library('jenkins-joylib@v1.0.4') _
+@Library('jenkins-joylib@v1.0.5') _
 
 pipeline {
 
@@ -47,14 +47,14 @@ pipeline {
         }
         stage('build image and upload') {
             steps {
-                joyBuildImageAndUpload()
+                sh('echo la la la')
             }
         }
     }
 
     post {
         always {
-            joyMattermostNotification(channel: 'jenkins')
+            joyMattermostNotification(channel: 'timf-mm-test')
         }
     }
 
