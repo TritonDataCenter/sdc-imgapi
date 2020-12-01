@@ -962,7 +962,7 @@ CLI tool (from an SDC's IMGAPI):
 
 
 
-## GetImageFile (GET /images/:uuid/file)
+## GetImageFile (GET /images/:uuid/file?filepos=0)
 
 Get the image file.
 
@@ -972,6 +972,7 @@ Get the image file.
 | --------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | account (query param) | UUID   | No        | Only allow access to an image visible to this account. A user can only see: (a) active public images, (b) active private images for which they are on the ACL, and (c) their own images. This field is only relevant for ['mode=dc'](./operator-guide.md#configuration) IMGAPI servers. |
 | channel (query param) | String | No        | The image channel to use. (Only relevant for servers using [channels](#channels).)                                                                                                                                                                                   |
+| index (query param)   | Integer | No | The files array index to use. Defaults to index 0. |
 
 ### Returns
 
