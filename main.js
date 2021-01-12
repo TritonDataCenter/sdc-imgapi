@@ -6,7 +6,7 @@
  */
 
 /*
- * Copyright 2016 Joyent, Inc.
+ * Copyright 2021 Joyent, Inc.
  */
 
 /*
@@ -86,7 +86,7 @@ function handleArgv() {
         process.exit(0);
     }
     var logSrc = false,
-        logLevel = 'info';
+        logLevel = 'debug';
     if (opts.debug) {
         logLevel = (opts.debug.length > 1 ? 'trace' : 'debug');
         if (opts.debug.length > 2)
@@ -151,7 +151,7 @@ function main() {
 
         function setupWithConfig(_, next) {
             if (!opts.debug && config.logLevel) {
-                log.level(config.logLevel);
+                // log.level(config.logLevel);
                 if (log.level() <= bunyan.TRACE) {
                     log.src = true;
                 }

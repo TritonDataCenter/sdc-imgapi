@@ -37,7 +37,7 @@
     "restify-clients": "^1.4.0",
     "restify-errors": "^4.0.0",
     "rimraf": "2.2.6",
-    "sdc-clients": "11.3.0",
+    "sdc-clients": "git+https://github.com/joyent/node-sdc-clients.git#linuxcn",
     "semver": "5.4.1",
     "sshpk": "1.13.0",
     "through2": "2.0.3",

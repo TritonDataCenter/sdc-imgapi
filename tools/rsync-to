@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2014, Joyent, Inc.
+# Copyright 2021 Joyent, Inc.
 #
 
 #
@@ -40,6 +40,7 @@ rsync -av ${TOP}/ \
     --exclude .git/ \
     --exclude /etc/imgapi.config.json \
     --exclude /deps/ \
+    --exclude /node_modules/ \
     --exclude /tools/ \
     --exclude /tmp/
 rsync -av ${TOP}/tools/seed-packages/ \
