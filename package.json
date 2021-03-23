@@ -17,14 +17,14 @@
     "extsprintf": "1.2.0",
     "forkexec": "1.1.0",
     "glob": "7.0.5",
-    "handlebars": "4.0.5",
+    "handlebars": "4.0.14",
     "imgmanifest": "3.1.0",
     "json": "9.0.4",
     "jsprim": "^1.4.0",
     "ldap-filter": "0.3.1",
-    "manta": "3.1.2",
+    "manta": "5.2.1",
     "manta-dir-watcher": "1.1.0",
-    "manta-sync": "0.4.2",
+    "manta-sync": "0.5.0",
     "memorystream": "0.2.0",
     "mkdirp": "0.3.5",
     "moray": "git+https://github.com/joyent/node-moray.git#fd5781bc25a9bfe2ba82167664639753fb9f0ca5",
@@ -33,11 +33,11 @@
     "passwd": "0.0.11",
     "posix-getopt": "1.0.0",
     "progbar": "git+https://github.com/trentm/node-progbar.git#a4c56e6",
-    "restify": "4.3.1",
+    "restify": "5.0.1",
     "rimraf": "2.2.6",
-    "sdc-clients": "11.3.0",
+    "sdc-clients": "13.0.0",
     "semver": "5.4.1",
-    "sshpk": "1.13.0",
+    "sshpk": "1.14.1",
     "through2": "2.0.3",
     "trace-event": "1.2.0",
     "triton-metrics": "1.0.3",
@@ -45,7 +45,8 @@
     "uuid": "2.0.2",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "0.2.1"
+    "wf-client": "0.2.1",
+    "snyk": "^1.165.0"
   },
   "optionalDependencies": {
     "http-signature": "0.10.0"
@@ -55,10 +56,13 @@
     "nodeunit": "0.10.2"
   },
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "engines": {
     "node": ">=0.10"
   },
-  "license": "MPL-2.0"
+  "license": "MPL-2.0",
+  "snyk": true
 }
