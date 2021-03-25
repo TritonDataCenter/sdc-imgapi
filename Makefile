@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2019 Joyent, Inc.
+# Copyright 2021 Joyent, Inc.
 #
 
 #
@@ -49,7 +49,7 @@ BUILDIMAGE_DESC		= SDC IMGAPI
 BUILDIMAGE_PKGSRC	= \
 	dateutils-0.4.3nb1 \
 	haproxy-1.8.14 \
-	smtools-20200715  \
+	smtools-20200715 \
 	stud-0.3p53nb7 \
 	the_silver_searcher-2.2.0 \
 	xz-5.2.4 \
