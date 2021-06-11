@@ -964,7 +964,7 @@ CLI tool (from an SDC's IMGAPI):
 
 
 
-## GetImageFile (GET /images/:uuid/file?filepos=0)
+## GetImageFile (GET /images/:uuid/file)
 
 Get the image file.
 
