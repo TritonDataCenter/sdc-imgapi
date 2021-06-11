@@ -86,7 +86,7 @@ function handleArgv() {
         process.exit(0);
     }
     var logSrc = false,
-        logLevel = 'debug';
+        logLevel = 'info';
     if (opts.debug) {
         logLevel = (opts.debug.length > 1 ? 'trace' : 'debug');
         if (opts.debug.length > 2)
