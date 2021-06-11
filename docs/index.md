@@ -5,6 +5,9 @@ markdown2linkpatternsfile: link-patterns.txt
 apisections: Images, Channels, Miscellaneous API
 ---
 
+<!-- markdownlint-disable single-h1 no-multiple-blanks no-duplicate-header -->
+<!-- markdownlint-disable commands-show-output -->
+
 # Image API (IMGAPI)
 
 The Image API (IMGAPI) is the SmartDataCenter (SDC) service that manages
@@ -19,7 +22,7 @@ SmartOS zone or a KVM machine image) plus [the metadata for the image (called
 the "manifest")](#image-manifests). The following API instances and tools
 are relevant for managing images in and for SmartOS and SDC.
 
-The Joyent IMGAPI (https://images.joyent.com) is the central repository
+The Joyent IMGAPI (<https://images.joyent.com>) is the central repository
 of Joyent-vetted base images for usage in SmartOS. (Images from software
 vendors may exist here, but are still vetted by Joyent.) All images here are
 public -- no read auth, no private images. SmartOS' `imgadm` version 2
@@ -27,7 +30,7 @@ is configured to use this image repository by default. SDC's operator portal
 (a.k.a. adminui) is configured by default to use this repository from which
 to import images.
 
-Administration of https://images.joyent.com is via the `joyent-imgadm`
+Administration of <https://images.joyent.com> is via the `joyent-imgadm`
 tool (currently available in `git@github.com:joyent/sdc-imgapi-cli.git`).
 
 There is an IMGAPI in each SDC datacenter that manages images available in
@@ -76,7 +79,6 @@ Generally this is represented as a JSON object. For example:
       }
     }
 
-
 A summary of fields (details are provided below):
 
 | Field                                                           | Type    | Always Present?               | Mutable? | Notes                                                                                                                                                                                           |
@@ -98,7 +100,7 @@ A summary of fields (details are provided below):
 | [type](#manifest-type)                                          | String  | Yes                           | Yes      | The image type. One of "zone-dataset" for a ZFS dataset used to create a new SmartOS zone, "lx-dataset" for a Lx-brand image, "lxd" for a LXD image, "zvol" for a virtual machine image or "other" for image types that serve any other specific purpose. |
 | [os](#manifest-os)                                              | String  | Yes                           | Yes      | The OS family this image provides. One of "smartos", "windows", "linux", "bsd", "illumos" or "other".                                                                                           |
 | [origin](#manifest-origin)                                      | UUID    | No                            | No       | The origin image UUID if this is an incremental image.                                                                                                                                          |
-| [files](#manifest-files)                                        | Array   | Yes (if activated)            | No       | An array with a single object describing the image file.                                                                                                                                        |
+| [files](#manifest-files)                                        | Array   | Yes (if activated)            | No       | An array with of object describing the image files.                                                                                                                                             |
 | [acl](#manifest-acl)                                            | Array   | No                            | Yes      | Access Control List. An array of account UUIDs given access to a private image. The field is only relevant to private images.                                                                   |
 | [requirements](#manifest-requirements)                          | Object  | No                            | Yes      | A set of named requirements for provisioning a VM with this image                                                                                                                               |
 | [requirements.networks](#manifest-requirementsnetworks)         | Array   | No                            | Yes      | Defines the minimum number of network interfaces required by this image.                                                                                                                        |
@@ -108,7 +110,7 @@ A summary of fields (details are provided below):
 | [requirements.max_ram](#manifest-requirementsmax_ram)           | Integer | No                            | Yes      | Maximum RAM (in MiB) this image may be provisioned with.                                                                                                                                        |
 | [requirements.min_platform](#manifest-requirementsmin_platform) | Object  | No                            | Yes      | Minimum platform requirement for provisioning with this image.                                                                                                                                  |
 | [requirements.max_platform](#manifest-requirementsmax_platform) | Object  | No                            | Yes      | Maximum platform requirement for provisioning with this image.                                                                                                                                  |
-| [requirements.bootrom](#manifest-requirementsbootrom)           | String  | No                            | Yes      | Bootrom image to use with this image.                                                                                                                                  |
+| [requirements.bootrom](#manifest-requirementsbootrom)           | String  | No                            | Yes      | Bootrom image to use with this image.                                                                                                                                                           |
 | [users](#manifest-users)                                        | Array   | No                            | Yes      | A list of users for which passwords should be generated for provisioning. This may only make sense for some images. Example: `[{"name": "root"}, {"name": "admin"}]`                            |
 | [billing_tags](#manifest-billing_tags)                          | Array   | No                            | Yes      | A list of tags that can be used by operators for additional billing processing.                                                                                                                 |
 | [traits](#manifest-traits)                                      | Object  | No                            | Yes      | An object that defines a collection of properties that is used by other APIs to evaluate where should customer VMs be placed.                                                                   |
@@ -379,10 +381,10 @@ Example:
 **Backward compatibility notes:** In the DSAPI (Dataset API) from SDC 6.5
 that preceded this there were two more fields:
 
-- `files.*.path`: **Obsolete.** This field is no longer provided. It served
+* `files.*.path`: **Obsolete.** This field is no longer provided. It served
   no safe purpose. There was no guarantee that that "path" value was unique
   across images, hence it should not be used client-side.
-- `files.*.url`: **Obsolete.** This field is no longer provided. The download
+* `files.*.url`: **Obsolete.** This field is no longer provided. The download
   URL for the image file is
   [`GET /images/:uuid/file` GetImageFile](#GetImageFile).
 
@@ -2467,7 +2469,7 @@ existing image is added to additional channels via
 repository until it is removed from its last channel.
 
 The current canonical example of an IMGAPI server using channels is the
-SmartDataCenter updates server (https://updates.joyent.com). The
+SmartDataCenter updates server (<https://updates.joyent.com>). The
 [`updates-imgadm`](https://mo.joyent.com/imgapi-cli/blob/channels/bin/updates-imgadm)
 CLI takes a `-C <channel>` option or `UPDATES_IMGADM_CHANNEL=<channel>`
 environment variable to specify the channel. Additionally on a SmartDataCenter
