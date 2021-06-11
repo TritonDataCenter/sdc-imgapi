@@ -151,7 +151,7 @@ function main() {
 
         function setupWithConfig(_, next) {
             if (!opts.debug && config.logLevel) {
-                // log.level(config.logLevel);
+                log.level(config.logLevel);
                 if (log.level() <= bunyan.TRACE) {
                     log.src = true;
                 }
