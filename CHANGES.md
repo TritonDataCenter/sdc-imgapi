@@ -1,5 +1,22 @@
 # IMGAPI changelog
 
+## 4.11.2
+
+- TRITON-2287 update sdc-imgapi base image to `triton-origin-x86_64-21.4.0`
+
+  This release also removes stud and uses haproxy directly for TLS termination.
+  No API changes.
+
+## 4.11.1
+
+- TRITON-2271 lxc "images:" repo changed the URL
+
+## 4.11.0
+
+- TRITON-2228: Linux CN minimum viable product
+  
+  Imgapi now supports importing LXC images for Linux compute nodes.
+
 ## 4.10.0
 
 - TRITON-2005 imgapi needs to stop using snaplinks
