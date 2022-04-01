@@ -21,10 +21,10 @@ There are two main types of IMGAPI:
    DataCenter. These are configured with `mode === "public"` (for public images,
    example "images.joyent.com") or `mode === "private"` (for repos with private
    images, example "updates.joyent.com"). These serve HTTPS over a public
-   network (via stud for SSL termination, to HAproxy for possible load
-   balancing, to one or more node.js IMGAPI processes). They are typically
-   configured to use HTTP Signature auth (like Triton's CloudAPI and Manta's web
-   API) for any write endpoints.
+   network (via haproxy for SSL termination and possible load balancing, to one
+   or more node.js IMGAPI processes). They are typically configured to use HTTP
+   Signature auth (like Triton's CloudAPI and Manta's web API) for any write
+   endpoints.
 
 # Image
 
@@ -204,7 +204,7 @@ Initial setup will create a self-signed TLS certificate. If you have a signed
 certificate you'd like to use, it can be installed as follows:
 
     cp /var/tmp/your-cert.pem /data/imgapi/etc/cert.pem
-    svcadm restart stud   # restart stud, the TLS terminator
+    svcadm restart haproxy   # restart haproxy, the TLS terminator
 
 Dev note: Eventually we hope to support Let's Encrypt.
 
@@ -401,8 +401,8 @@ DC-mode IMGAPI has the following background processes:
 
 * * *
 
-Along with the usual 'imgapi' service, HAproxy, and stud; a standalone IMGAPI
-has the following background processes:
+Along with the usual 'imgapi' service and haproxy; a standalone IMGAPI has the
+following background processes:
 
 1. An hourly cronjob runs "logadm" to handle log rotation.
 2. An hourly cronjob runs

@@ -50,7 +50,6 @@ BUILDIMAGE_PKGSRC	= \
 	dateutils-0.4.3nb1 \
 	haproxy-2.5.0 \
 	smtools-20200715 \
-	stud-0.3p53nb7 \
 	the_silver_searcher-2.2.0 \
 	xz-5.2.5 \
 
