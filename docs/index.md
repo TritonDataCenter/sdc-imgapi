@@ -22,7 +22,7 @@ SmartOS zone or a KVM machine image) plus [the metadata for the image (called
 the "manifest")](#image-manifests). The following API instances and tools
 are relevant for managing images in and for SmartOS and SDC.
 
-The SmartoS IMGAPI (<https://images.smartos.org>) is the central repository
+The SmartOS IMGAPI (<https://images.smartos.org>) is the central repository
 of vetted base images for usage in SmartOS. (Images from software
 vendors may exist here, but are still vetted.) All images here are
 public -- no read auth, no private images. SmartOS' `imgadm` version 2
