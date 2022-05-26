@@ -7,6 +7,7 @@
 
 #
 # Copyright 2016 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -235,8 +236,8 @@ fi
 echo "# IMGAPI_URL is $IMGAPI_URL"
 
 
-# Guard against running 'public' tests against production images.joyent.com.
-if [[ "$IMGAPI_URL" == "https://images.joyent.com" ]]; then
+# Guard against running 'public' tests against production images.smartos.org.
+if [[ "$IMGAPI_URL" == "https://images.smartos.org" ]]; then
     echo "runtests: error: don't run the test suite against images.jo"
     exit 1
 fi
@@ -291,7 +292,7 @@ if [[ "$opt_mode" == "dc" ]]; then
 else
     # Public mode tests are a separate set because:
     # - we aren't currently loading test data
-    # - we must be non-destructive for images.joyent.com tests
+    # - we must be non-destructive for images.smartos.org tests
     test_files=$(ls -1 test/*.test.js test/*.public-test.js || true)
 fi
 if [[ -n "$opt_test_pattern" ]]; then

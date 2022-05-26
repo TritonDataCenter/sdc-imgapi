@@ -6,6 +6,7 @@
 
 /*
  * Copyright 2019 Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
@@ -546,16 +547,16 @@ test('AdminImportImage zvol from local .dsmanifest', function (t) {
 
 
 /**
- * AdminImportImage scenario from images.joyent.com:
- * - get manifest from images.joyent.com/images/:uuid
+ * AdminImportImage scenario from images.smartos.org:
+ * - get manifest from images.smartos.org/images/:uuid
  * - AdminImportImage with that manifest
- * - AddImageFile *stream* from images.joyent.com/images/:uuid/file
+ * - AddImageFile *stream* from images.smartos.org/images/:uuid/file
  * - ActivateImage
  * - GetImage, GetImageFile checks
  * - clean up: delete it
  */
 if (!process.env.IMGAPI_TEST_OFFLINE)
-test('AdminImportImage from images.joyent.com', function (t) {
+test('AdminImportImage from images.smartos.org', function (t) {
     var self = this;
     // Pick a small one: minimal-32@15.2.0
     var uuid = '0764d78e-3472-11e5-8949-4f31abea4e05';
@@ -568,7 +569,7 @@ test('AdminImportImage from images.joyent.com', function (t) {
     var aImage;
 
     var imagesClient = new IMGAPI({
-        url: 'https://images.joyent.com',
+        url: 'https://images.smartos.org',
         agent: false
     });
 
@@ -697,20 +698,20 @@ test('AdminImportImage from images.joyent.com', function (t) {
 
 
 /**
- * AdminImportRemoteImage scenario from images.joyent.com. These steps happen
+ * AdminImportRemoteImage scenario from images.smartos.org. These steps happen
  * inside IMGAPI:
- * - get manifest from images.joyent.com/images/:uuid
+ * - get manifest from images.smartos.org/images/:uuid
  * - CreateImage with downloaded manifest
- * - AddImageFile *stream* from images.joyent.com/images/:uuid/file
+ * - AddImageFile *stream* from images.smartos.org/images/:uuid/file
  * - ActivateImage
  */
 if (!process.env.IMGAPI_TEST_OFFLINE)
-test('AdminImportRemoteImage from images.joyent.com', function (t) {
+test('AdminImportRemoteImage from images.smartos.org', function (t) {
     var self = this;
     // Pick a small one: minimal-32@15.2.0
     var uuid = '0764d78e-3472-11e5-8949-4f31abea4e05';
     var aImage;
-    var imagesUrl = 'https://images.joyent.com';
+    var imagesUrl = 'https://images.smartos.org';
 
     function importRemote(next) {
         self.client.adminImportRemoteImageAndWait(uuid, imagesUrl, {},
@@ -770,16 +771,17 @@ test('AdminImportRemoteImage from images.joyent.com', function (t) {
 
 
 /**
- * AdminImportRemoteImage from updates.joyent.com.
+ * AdminImportRemoteImage from updates.tritondatacenter.com.
  */
 if (!process.env.IMGAPI_TEST_OFFLINE)
-test('AdminImportRemoteImage from updates.joyent.com (dev chan)', function (t) {
+test('AdminImportRemoteImage from updates.tritondatacenter.com (dev chan)',
+    function (t) {
     var self = this;
     var name = 'assets';  // The 'assets' images are typically small.
     var sourceImage;
     var uuid;
     var aImage;
-    var source = 'https://updates.joyent.com';
+    var source = 'https://updates.tritondatacenter.com';
 
     function pickUuid(next) {
         var updates = new IMGAPI({url: source, agent: false, channel: 'dev'});

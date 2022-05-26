@@ -7,6 +7,7 @@
 
 #
 # Copyright 2017 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -22,7 +23,7 @@
 # Currently this is hardcoded for standalone IMGAPI usage, getting
 # manta config info from $CONFIG. TODO: generalize this.
 #
-# Based on https://github.com/joyent/manta-scripts/blob/master/backup.sh
+# Based on https://github.com/TritonDataCenter/manta-scripts/blob/master/backup.sh
 #
 
 if [[ -n "$TRACE" ]]; then

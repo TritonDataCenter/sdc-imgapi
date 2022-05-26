@@ -1,8 +1,8 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for Triton Data Center",
-  "version": "4.11.2",
-  "author": "Joyent (joyent.com)",
+  "version": "4.12.0",
+  "author": "MNX Cloud (mnxsolutions.com)",
   "private": true,
   "dependencies": {
     "assert-plus": "^1.0.0",
@@ -12,7 +12,7 @@
     "cmdln": "^3.2.1",
     "dashdash": "^1.10.0",
     "docker-registry-client": "^3.3.0",
-    "effluent-logger": "git+https://github.com/joyent/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
+    "effluent-logger": "git+https://github.com/TritonDataCenter/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "expiring-lru-cache": "^2.1.0",
     "extsprintf": "^1.2.0",
     "forkexec": "^1.1.0",
@@ -27,7 +27,7 @@
     "manta-sync": "^0.4.2",
     "memorystream": "^0.2.0",
     "mkdirp": "^0.3.5",
-    "moray": "git+https://github.com/joyent/node-moray.git#770efe6",
+    "moray": "git+https://github.com/TritonDataCenter/node-moray.git#770efe6",
     "nopt": "2.2.0",
     "once": "1.3.0",
     "passwd": "0.0.11",

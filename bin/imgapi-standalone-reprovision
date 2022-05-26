@@ -5,6 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 # Copyright 2017 Joyent, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -38,11 +39,11 @@ function usage () {
     echo ""
     echo "Where INSTANCE is an existing standalone IMGAPI instance UUID,"
     echo "and IMAGE is an 'imgapi' image UUID or 'latest' to get the latest"
-    echo "from the current (or given) channel of updates.joyent.com."
+    echo "from the current (or given) channel of updates.tritondatacenter.com."
     echo ""
     echo "Examples:"
     echo ""
-    echo "- Reprovision an images.joyent.com inst with the latest experimental"
+    echo "- Reprovision an images.smartos.org inst with the latest experimental"
     echo "  'imgapi' image:"
     echo "      ./imgapi-standalone-reprovision -C experimental \\"
     echo "          205c49c8-715e-11e6-9134-239a750f414c latest"
@@ -142,7 +143,7 @@ fi
 imageJson=$(sdc-imgadm get $imageUuid 2>/dev/null || true)
 if [[ -z "$imageJson" ]]; then
     echo "Importing image $imageUuid from updates.jo"
-    sdc-imgadm import $imageUuid -S https://updates.joyent.com?channel=$channel
+    sdc-imgadm import $imageUuid -S https://updates.tritondatacenter.com?channel=$channel
     imageJson=$(sdc-imgadm get $imageUuid)
 else
     echo "Already have image $imageUuid in local IMGAPI"

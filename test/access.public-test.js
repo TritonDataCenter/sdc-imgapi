@@ -6,11 +6,12 @@
 
 /*
  * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
  * Test public vs. auth'd access to a 'public' mode IMGAPI (e.g.
- * https://images.joyent.com).
+ * https://images.smartos.org).
  */
 
 var format = require('util').format;
@@ -37,15 +38,15 @@ before(function (next) {
         url: process.env.IMGAPI_URL,
         agent: false
     };
-    if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
-        assert.ok(process.env.JOYENT_IMGADM_USER,
-            'JOYENT_IMGADM_USER envvar is not set');
-        assert.ok(process.env.JOYENT_IMGADM_IDENTITY,
-            'JOYENT_IMGADM_IDENTITY envvar is not set');
-        options.user = process.env.JOYENT_IMGADM_USER;
+    if (process.env.IMGAPI_URL === 'https://images.smartos.org') {
+        assert.ok(process.env.IMAGES_IMGADM_USER,
+            'IMAGES_IMGADM_USER envvar is not set');
+        assert.ok(process.env.IMAGES_IMGADM_IDENTITY,
+            'IMAGES_IMGADM_IDENTITY envvar is not set');
+        options.user = process.env.IMAGES_IMGADM_USER;
         options.sign = imgapi.cliSigner({
-            keyId: process.env.JOYENT_IMGADM_IDENTITY,
-            user: process.env.JOYENT_IMGADM_USER
+            keyId: process.env.IMAGES_IMGADM_IDENTITY,
+            user: process.env.IMAGES_IMGADM_USER
         });
     } else {
         assert.fail('What no auth info!?');

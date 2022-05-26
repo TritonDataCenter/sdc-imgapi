@@ -22,16 +22,16 @@ SmartOS zone or a KVM machine image) plus [the metadata for the image (called
 the "manifest")](#image-manifests). The following API instances and tools
 are relevant for managing images in and for SmartOS and SDC.
 
-The Joyent IMGAPI (<https://images.joyent.com>) is the central repository
-of Joyent-vetted base images for usage in SmartOS. (Images from software
-vendors may exist here, but are still vetted by Joyent.) All images here are
+The SmartoS IMGAPI (<https://images.smartos.org>) is the central repository
+of vetted base images for usage in SmartOS. (Images from software
+vendors may exist here, but are still vetted.) All images here are
 public -- no read auth, no private images. SmartOS' `imgadm` version 2
 is configured to use this image repository by default. SDC's operator portal
 (a.k.a. adminui) is configured by default to use this repository from which
 to import images.
 
-Administration of <https://images.joyent.com> is via the `joyent-imgadm`
-tool (currently available in `git@github.com:joyent/sdc-imgapi-cli.git`).
+Administration of <https://images.smartos.org> is via the `images-imgadm`
+tool (currently available in `git@github.com:TritonDataCenter/sdc-imgapi-cli.git`).
 
 There is an IMGAPI in each SDC datacenter that manages images available in
 that datacenter. "IMGAPI" without scoping typically refers to this IMGAPI
@@ -40,8 +40,8 @@ for provisioning in that DC. The provisioning process will lazily
 `zfs receive` images on CNs as necessary -- streaming from the IMGAPI
 (`imgadm` on that machine handles that). IMGAPI supports private images,
 customer-owned images, etc. Cloud API speaks to IMGAPI for its
-['/images'](https://mo.joyent.com/docs/cloudapi/master/#images) and legacy
-['/datasets'](https://mo.joyent.com/docs/cloudapi/master/#datasets)
+['/images'](https://engdoc.tritondatacenter.com/docs/cloudapi/master/#images) and legacy
+['/datasets'](https://engdoc.tritondatacenter.com/docs/cloudapi/master/#datasets)
 endpoints.
 
 
@@ -128,7 +128,7 @@ A summary of fields (details are provided below):
 the [AddImageIcon](#AddImageIcon) and [DeleteImageIcon](#DeleteImageIcon)
 endpoints. `disabled` can be modified via the [DisableImage](#DisableImage)
 and [EnableImage](#EnableImage) endpoints. `public` cannot be set false for
-an image on the "public mode" IMGAPI, e.g. <https://images.joyent.com>.
+an image on the "public mode" IMGAPI, e.g. <https://images.smartos.org>.
 
 
 ## Manifest: v
@@ -156,8 +156,7 @@ UUID. (2) SDC operators can use the [AdminImportImage](#AdminImportImage)
 to add an image with a specified UUID. In the latter case it is the
 responsibility of the operator to ensure a given UUID is not duplicated,
 or refers to different image data between separate clouds. A common case
-for the latter is importing "core" Joyent-provided images from
-<https://images.joyent.com>.
+for the latter is importing "core" images from <https://images.smartos.org>.
 
 
 ## Manifest: urn
@@ -209,7 +208,7 @@ semver](http://semver.org/#spec-item-10). However, it wasn't until OS-5798 that
 Therefore a **warning**: do not use '+' in an image version until you know that
 the minimum platform version for any server in your target DC(s) is greater than
 or equal to 20161118T231131Z (when OS-5798 was
-[integrated](https://github.com/joyent/smartos-live/commit/fc5816a)).
+[integrated](https://github.com/TritonDataCenter/smartos-live/commit/fc5816a)).
 
 
 ## Manifest: description
@@ -272,7 +271,7 @@ Possible `error.code` values from current SmartDataCenter and SmartOS:
 
 | error.code            | Details                                                                                                                                                                                                                                                                                                                                         |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PrepareImageDidNotRun | This typically means that the target KVM VM (e.g. Linux) has old guest tools that pre-date the image creation feature. Guest tools can be upgraded with installers at <https://download.joyent.com/pub/guest-tools/>. Other possibilities are: a boot time greater than the 5 minute timeout or a bug or crash in the image preparation script. |
+| PrepareImageDidNotRun | This typically means that the target KVM VM (e.g. Linux) has old guest tools that pre-date the image creation feature. Guest tools can be upgraded with installers at <https://download.tritondatacenter.com/pub/guest-tools/>. Other possibilities are: a boot time greater than the 5 minute timeout or a bug or crash in the image preparation script. |
 | VmHasNoOrigin         | Origin image data could not be found for the VM. Either the link to the image from which the VM was created has been broken (e.g. via 'zfs promote' or migration, see SYSOPS-6491) or there is some problem in either the 'image_uuid' value from `vmadm get` or in imgadm's DB of manifest info for that image.                                |
 | NotSupported          | Indicates an error due to functionality that isn't currently supported. One example is that custom image creation of a VM based on a custom image isn't currently supported.                                                                                                                                                                    |
 
@@ -312,7 +311,7 @@ copy an image between two datacenters in the same cloud and persist the
 `published_at`. (2) SDC operators can use the
 [AdminImportImage](#AdminImportImage) to add an image with a specified uuid
 and `published_at`. A common case for the latter is importing "core"
-Joyent-provided images from <https://images.joyent.com>.
+images from <https://images.smartos.org>.
 
 
 ## Manifest: type
@@ -793,9 +792,9 @@ See [Errors](#errors) section above.
 
 ### Example
 
-Raw curl (from images.joyent.com):
+Raw curl (from images.smartos.org):
 
-    $ curl -kisS https://images.joyent.com/images | json
+    $ curl -kisS https://images.smartos.org/images | json
     HTTP/1.1 200 OK
     Date: Tue, 08 Jan 2013 01:07:25 GMT
     Content-Type: application/json
@@ -828,15 +827,15 @@ Raw curl (from images.joyent.com):
         "description": "Base template to build other templates on",
     ...
 
-CLI tool (from images.joyent.com):
+CLI tool (from images.smartos.org):
 
-    $ joyent-imgadm list
+    $ images-imgadm list
     UUID                                  NAME           VERSION  OS       STATE   PUBLISHED
     febaa412-6417-11e0-bc56-535d219f2590  smartos        1.3.12   smartos  active  2011-04-11
     7456f2b0-67ac-11e0-b5ec-832e6cf079d5  nodejs         1.1.3    smartos  active  2011-04-15
     ...
 
-    $ joyent-imgadm list name=~base   # filter on substring in name
+    $ images-imgadm list name=~base   # filter on substring in name
     UUID                                  NAME    VERSION  OS       STATE   PUBLISHED
     8418dccc-c9c6-11e1-91f4-5fb387d839c5  base    1.7.0    smartos  active  2012-07-09
     d0eebb8e-c9cb-11e1-8762-2f01c4acd80d  base64  1.7.0    smartos  active  2012-07-10
@@ -898,16 +897,16 @@ See [Errors](#errors) section above.
 
 ### Example
 
-Raw curl (from images.joyent.com):
+Raw curl (from images.smartos.org):
 
-    $ curl -sS https://images.joyent.com/images/01b2c898-945f-11e1-a523-af1afbe22822
+    $ curl -sS https://images.smartos.org/images/01b2c898-945f-11e1-a523-af1afbe22822
     {
       "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
     ...
 
-CLI tool (from images.joyent.com):
+CLI tool (from images.smartos.org):
 
-    $ joyent-imgadm get 01b2c898-945f-11e1-a523-af1afbe22822
+    $ images-imgadm get 01b2c898-945f-11e1-a523-af1afbe22822
     {
       "uuid": "01b2c898-945f-11e1-a523-af1afbe22822",
     ...
@@ -990,13 +989,13 @@ For request validation errors, see [Errors](#errors) section above.
 
 ### Example
 
-Raw curl (from images.joyent.com):
+Raw curl (from images.smartos.org):
 
-    $ curl -kfsS https://images.joyent.com/images/01b2c898-945f-11e1-a523-af1afbe22822/file -o file.bz2
+    $ curl -kfsS https://images.smartos.org/images/01b2c898-945f-11e1-a523-af1afbe22822/file -o file.bz2
 
-CLI tool (from images.joyent.com):
+CLI tool (from images.smartos.org):
 
-    $ joyent-imgadm get-file 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    $ images-imgadm get-file 01b2c898-945f-11e1-a523-af1afbe22822 -O
     100% [=============================]  time 43.4s  eta 0.0s
     Saved "01b2c898-945f-11e1-a523-af1afbe22822.bz2".
 
@@ -1043,7 +1042,7 @@ Raw curl:
 
 CLI tool:
 
-    $ joyent-imgadm get-icon 01b2c898-945f-11e1-a523-af1afbe22822 -O
+    $ images-imgadm get-icon 01b2c898-945f-11e1-a523-af1afbe22822 -O
     100% [=============================]  time 0.4s  eta 0.0s
     Saved "01b2c898-945f-11e1-a523-af1afbe22822.png".
 
@@ -1079,7 +1078,7 @@ See [Errors](#errors) section above.
 
 CLI tool:
 
-    $ joyent-imgadm delete-icon 01b2c898-945f-11e1-a523-af1afbe22822
+    $ images-imgadm delete-icon 01b2c898-945f-11e1-a523-af1afbe22822
     Deleted icon from image 01b2c898-945f-11e1-a523-af1afbe22822
 
 Raw API tool:
@@ -1096,7 +1095,7 @@ with 'account=$UUID' and without. The former is what cloudapi uses to ask on
 behalf of a particular authenticated account. The latter is for operator-only
 querying.
 
-For IMGAPI servers that support image channels (e.g. updates.joyent.com)
+For IMGAPI servers that support image channels (e.g. updates.tritondatacenter.com)
 
 ### Inputs
 
@@ -1116,9 +1115,9 @@ See [Errors](#errors) section above.
 
 ### Example
 
-CLI tool (from images.joyent.com):
+CLI tool (from images.smartos.org):
 
-    $ joyent-imgadm delete 69d8bd69-db68-a54c-bec5-8c934822cfa9
+    $ images-imgadm delete 69d8bd69-db68-a54c-bec5-8c934822cfa9
     Deleted image 69d8bd69-db68-a54c-bec5-8c934822cfa9
 
 Raw API tool (from an SDC's IMGAPI):
@@ -2181,7 +2180,7 @@ AddImageFile and ActivateImage calls after the AdminImportImage.
 ## AdminImportRemoteImage (POST /images/:uuid?action=import-remote)
 
 Import an image from another IMGAPI repository. This is typically used for
-importing an image from <https://images.joyent.com>, but can be used for any
+importing an image from <https://images.smartos.org>, but can be used for any
 other valid Image repository. It is mainly a convenience method to allow IMGAPI
 to execute the five import steps (get manifest, get file, import manifest,
 add file, activate image) on the user's behalf.
@@ -2219,7 +2218,7 @@ See [Errors](#errors) section above.
 
 Raw API tool:
 
-    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import-remote&source=https://images.joyent.com -X POST
+    $ sdc-imgapi /images/01b2c898-945f-11e1-a523-af1afbe22822?action=import-remote&source=https://images.smartos.org -X POST
     HTTP/1.1 200 OK
     workflow-api: http://workflow.coal.joyent.us
     content-type: application/json
@@ -2237,7 +2236,7 @@ Raw API tool:
 
 CLI tool:
 
-    $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -S https://images.joyent.com
+    $ sdc-imgadm import 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 -S https://images.smartos.org
     Imported image 84cb7edc-3f22-11e2-8a2a-3f2a7b148699 (base, 1.8.4, state=active)
 
 
@@ -2252,7 +2251,7 @@ data.
 
 This endpoint is intended to only be called by operators. Typically it is
 called by the 'pull-image' workflow defined in
-[sdc-docker](https://github.com/joyent/sdc-docker).
+[sdc-docker](https://github.com/TritonDataCenter/sdc-docker).
 
 ### Inputs
 
@@ -2366,7 +2365,7 @@ See [Errors](#errors) section above.
 
 ### Example
 
-With [imgapi-cli tools](https://github.com/joyent/imgapi-cli):
+With [imgapi-cli tools](https://github.com/TritonDataCenter/imgapi-cli):
 
     $ updates-imgadm change-stor manta f342dcdc-e179-11e5-98a0-0f71c4796729
     Changed image f342dcdc-e179-11e5-98a0-0f71c4796729 (sapi@master-20160303T195116Z-g7fbf8d7) stor to "manta"
@@ -2458,7 +2457,7 @@ channels.
 Each relevant IMGAPI endpoint has a `?channel=<channel>` query param to work
 with images in that channel. Without it the server's configured default channel
 is implied. The [IMGAPI
-client](https://mo.joyent.com/node-sdc-clients/blob/master/lib/imgapi.js) takes
+client](https://engdoc.tritondatacenter.com/node-sdc-clients/blob/master/lib/imgapi.js) takes
 a new `channel` constructor option. Image manifests have a new "channels"
 field that is an array of the channel names to which the image belongs.
 
@@ -2469,8 +2468,8 @@ existing image is added to additional channels via
 repository until it is removed from its last channel.
 
 The current canonical example of an IMGAPI server using channels is the
-SmartDataCenter updates server (<https://updates.joyent.com>). The
-[`updates-imgadm`](https://mo.joyent.com/imgapi-cli/blob/channels/bin/updates-imgadm)
+SmartDataCenter updates server (<https://updates.tritondatacenter.com>). The
+[`updates-imgadm`](https://engdoc.tritondatacenter.com/imgapi-cli/blob/channels/bin/updates-imgadm)
 CLI takes a `-C <channel>` option or `UPDATES_IMGADM_CHANNEL=<channel>`
 environment variable to specify the channel. Additionally on a SmartDataCenter
 headnode the `updates-imgadm` will default to the DC's configured update
@@ -2512,9 +2511,9 @@ CLI tool:
     staging  -        builds for testing in staging in prep for production release
     release  -        release gold bits
 
-Raw curl (from updates.joyent.com):
+Raw curl (from updates.tritondatacenter.com):
 
-    $ curl -kisS https://updates.joyent.com/channels
+    $ curl -kisS https://updates.tritondatacenter.com/channels
     HTTP/1.1 200 OK
     Content-Type: application/json
     Content-Length: 280
