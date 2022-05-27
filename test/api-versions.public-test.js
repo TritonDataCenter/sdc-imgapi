@@ -6,6 +6,7 @@
 
 /*
  * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
@@ -64,7 +65,7 @@ before(function (next) {
         url: process.env.IMGAPI_URL,
         agent: false
     };
-    if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
+    if (process.env.IMGAPI_URL === 'https://images.smartos.org') {
         assert.fail('Do not run the channels tests against images.jo.');
     }
     this.clients = {

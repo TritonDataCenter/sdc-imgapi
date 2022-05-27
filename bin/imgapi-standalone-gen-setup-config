@@ -8,6 +8,7 @@
 
 /*
  * Copyright 2020 Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
@@ -23,7 +24,7 @@
  * config vars are given as arguments to `imgapi-standalone-create`, e.g.
  *
  *      /opt/smartdc/imgapi/bin/imgapi-standalone-create \
- *          -m mode=public -m serverName="Joyent Public Images Repo" \
+ *          -m mode=public -m serverName="SmartOS Public Images Repo" \
  *          ...
  */
 
@@ -185,7 +186,7 @@ function main() {
         /*
          * "channels" may be the special value "standard", which is
          * transformed to .../etc/standalone/standard-channels.json. These are
-         * the channels used by updates.joyent.com.
+         * the channels used by updates.tritondatacenter.com.
          */
         function handleChannelsStandard(arg, next) {
             if (!arg.setupConfig.channels

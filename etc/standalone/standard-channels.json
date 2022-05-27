@@ -3,5 +3,5 @@
     {"name": "dev", "description": "main development branch builds", "default": true},
     {"name": "staging", "description": "staging for release branch builds before a full release"},
     {"name": "release", "description": "release bits"},
-    {"name": "support", "description": "Joyent-supported release bits"}
+    {"name": "support", "description": "MNX-supported release bits"}
 ]

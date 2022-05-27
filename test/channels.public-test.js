@@ -6,15 +6,16 @@
 
 /*
  * Copyright (c) 2014, Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
  * Test channels handling.
  *
  * We do this as a "public-test" rather than a "dc-test"
- * because practically speaking it is updates.joyent.com (a mode=private,
- * functionally equiv to mode=public) that has channels support and never the
- * mode=dc IMGAPI in SDC installations.
+ * because practically speaking it is updates.tritondatacenter.com (a
+ * mode=private, functionally equiv to mode=public) that has channels support
+ * and never the mode=dc IMGAPI in SDC installations.
  */
 
 var p = console.log;
@@ -68,7 +69,7 @@ before(function (next) {
         url: process.env.IMGAPI_URL,
         agent: false
     };
-    if (process.env.IMGAPI_URL === 'https://images.joyent.com') {
+    if (process.env.IMGAPI_URL === 'https://images.smartos.org') {
         assert.fail('Do not run the channels tests against images.jo.');
     } else {
         assert.fail('What no auth info!?');

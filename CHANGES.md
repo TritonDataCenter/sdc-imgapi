@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.12.0
+
+- TRITON-2304 New image server names
+
 ## 4.11.2
 
 - TRITON-2287 update sdc-imgapi base image to `triton-origin-x86_64-21.4.0`
@@ -14,7 +18,7 @@
 ## 4.11.0
 
 - TRITON-2228: Linux CN minimum viable product
-  
+
   Imgapi now supports importing LXC images for Linux compute nodes.
 
 ## 4.10.0
@@ -48,16 +52,16 @@
 
 ## 4.9.0
 
- - TRITON-2053 standalone imgapi could be easier to test with
+- TRITON-2053 standalone imgapi could be easier to test with
 
 ## 4.8.0
 
- - TRITON-2052 sdc-imgadm import should import from any channel by default
+- TRITON-2052 sdc-imgadm import should import from any channel by default
 
 ## 4.7.0
 
- - TRITON-1738 update imgapi base image to triton-origin-x86_64-18.4.0
- - TRITON-1737 imgapi should use node v6
+- TRITON-1738 update imgapi base image to triton-origin-x86_64-18.4.0
+- TRITON-1737 imgapi should use node v6
 
 ## 4.6.2
 
@@ -254,30 +258,30 @@ The REST API has *not* changed incompatibly.
   both DC-mode (i.e. a core instance in a Triton DC) and standalone
   IMGAPI deployments. Some of these affect DC-mode IMGAPI instances as
   well. Highlights:
-    - The origin image is changing from the venerable sdc-smartos@1.6.3
-      (fd2cc906-8938-11e3-beab-4359c665ac99) to the modern
-      sdc-minimal-multiarch-lts@15.4.1 (18b094b0-eb01-11e5-80c1-175dac7ddf02).
-      This follows plans from RFD 46 to move to origin images based on
-      this. When "triton-origin" images are produced, it is the intent
-      to switch imgapi to use those.
-    - The node version has moved from node 0.10 to 0.12.
-    - "bin/imgapi-standalone-*" scripts are provided for sane deployment,
-      and an Operator Guide was written.
-    - A standalone IMGAPI uses "boot/standalone/*" for booting,
-      "etc/standalone/*" for config, "smf/manifests/*-standalone.xml" for extra
-      services, and "tools/standalone" for extra scripts.
-    - The config file is now always at "/data/imgapi/etc/imgapi.config.json".
-      This is differs from most core Triton instances that render their
-      config file to somewhere under "/opt/smartdc/$name/...". Having
-      it under "/data/imgapi" means it is on the delegate dataset
-      for the instance, which is necessary for standalone deployments.
-      It doesn't hurt DC-mode deployments to have it there.
-    - Some config file changes: "manta" object at the top level (Manta
-      usage by IMGAPI isn't just about image storage), "databaseType"
-      instead of "database.type", "authType" instead of "auth.type",
-      etc. Generally, absolute paths have been removed from the *config*
-      and added to a "lib/constants.js" to simplify code and remove
-      clutter/featuritis from the config.
+  - The origin image is changing from the venerable sdc-smartos@1.6.3
+    (fd2cc906-8938-11e3-beab-4359c665ac99) to the modern
+    sdc-minimal-multiarch-lts@15.4.1 (18b094b0-eb01-11e5-80c1-175dac7ddf02).
+    This follows plans from RFD 46 to move to origin images based on
+    this. When "triton-origin" images are produced, it is the intent
+    to switch imgapi to use those.
+  - The node version has moved from node 0.10 to 0.12.
+  - "bin/imgapi-standalone-*" scripts are provided for sane deployment,
+    and an Operator Guide was written.
+  - A standalone IMGAPI uses "boot/standalone/*" for booting,
+    "etc/standalone/*" for config, "smf/manifests/*-standalone.xml" for extra
+    services, and "tools/standalone" for extra scripts.
+  - The config file is now always at "/data/imgapi/etc/imgapi.config.json".
+    This is differs from most core Triton instances that render their
+    config file to somewhere under "/opt/smartdc/$name/...". Having
+    it under "/data/imgapi" means it is on the delegate dataset
+    for the instance, which is necessary for standalone deployments.
+    It doesn't hurt DC-mode deployments to have it there.
+  - Some config file changes: "manta" object at the top level (Manta
+    usage by IMGAPI isn't just about image storage), "databaseType"
+    instead of "database.type", "authType" instead of "auth.type",
+    etc. Generally, absolute paths have been removed from the *config*
+    and added to a "lib/constants.js" to simplify code and remove
+    clutter/featuritis from the config.
 - "basic" auth support has been dropped. It hasn't been used for years
   and need not be supported.
 - Update stud dependency for OpenSSL update (IMGAPI-567). This was mainly
@@ -286,7 +290,6 @@ The REST API has *not* changed incompatibly.
   endpoint (IMGAPI-586). Initial client support for this endpoint was added
   in IMGAPI-579: `imgapi-cli reload-auth-keys`.
 - Dropped long obsolete, non-working, old migration scripts.
-
 
 ## 2.2.0
 

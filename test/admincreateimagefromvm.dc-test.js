@@ -6,6 +6,7 @@
 
 /*
  * Copyright 2019 Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
@@ -129,7 +130,7 @@ before(function (next) {
             self.client.getImage(TEST_IMAGE_UUID, function (err, img) {
                 if (err) {
                     console.error('error: the test image %s is not ' +
-                        'imported from images.joyent.com', TEST_IMAGE_UUID);
+                        'imported from images.smartos.org', TEST_IMAGE_UUID);
                 }
                 cb(err);
             });
