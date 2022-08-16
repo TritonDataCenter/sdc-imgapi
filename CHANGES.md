@@ -1,5 +1,11 @@
 # IMGAPI changelog
 
+## 4.12.1
+
+- Made Alpine/3.16 the default for lxdclient
+- Updated json module to v10.0.0
+- Updated sshpk module to v1.13.2
+
 ## 4.12.0
 
 - TRITON-2304 New image server names

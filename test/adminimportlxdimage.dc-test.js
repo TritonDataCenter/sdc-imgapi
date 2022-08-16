@@ -6,6 +6,7 @@
 
 /*
  * Copyright 2021 Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
@@ -36,7 +37,7 @@ function skiptest() {} // quick hack to comment out a test
 
 var actionParam = 'action=import-lxd-image';
 var LXD_FTYPE_COMBINED_IMAGE = 'lxd_combined.tar.gz';
-var LXD_IMAGE_ALIAS = 'alpine/3.12';
+var LXD_IMAGE_ALIAS = 'alpine/3.16';
 var LXD_IMAGE_REF = 'images:' + LXD_IMAGE_ALIAS;
 var vader = '86055c40-2547-11e2-8a6b-4bb37edc84ba';
 
