@@ -2,9 +2,9 @@
 
 ## 4.12.1
 
-- Made Alpine/3.16 the default for lxdclient
-- Updated json module to v10.0.0
-- Updated sshpk module to v1.13.2
+- TRITON-2326 CVE-2020-7712 Command injection in json
+- TRITON-2327 CVE-2018-3737 Regular Expression Denial of Service in sshpk
+- TRITON-2332 imgapi tests broken due to outdated alpine image
 
 ## 4.12.0
 
