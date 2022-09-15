@@ -48,7 +48,7 @@ BUILDIMAGE_DESC		= SDC IMGAPI
 BUILDIMAGE_DO_PKGSRC_UPGRADE = true
 BUILDIMAGE_PKGSRC	= \
 	dateutils-0.4.3nb1 \
-	haproxy-2.5.0 \
+	haproxy-2.6.1 \
 	smtools-20200715 \
 	the_silver_searcher-2.2.0 \
 	xz-5.2.5 \
