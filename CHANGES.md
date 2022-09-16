@@ -1,5 +1,11 @@
 # IMGAPI changelog
 
+## 4.12.1
+
+- TRITON-2326 CVE-2020-7712 Command injection in json
+- TRITON-2327 CVE-2018-3737 Regular Expression Denial of Service in sshpk
+- TRITON-2332 imgapi tests broken due to outdated alpine image
+
 ## 4.12.0
 
 - TRITON-2304 New image server names
