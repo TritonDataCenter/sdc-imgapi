@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.12.2
+
+- TRITON-2345 Return accurate error when attempting to import an invalid img alias
+
 ## 4.12.1
 
 - TRITON-2326 CVE-2020-7712 Command injection in json
