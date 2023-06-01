@@ -1,8 +1,8 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for Triton Data Center",
-  "version": "4.12.2",
-  "author": "MNX Cloud (mnxsolutions.com)",
+  "version": "4.12.3",
+  "author": "MNX Cloud (mnx.io)",
   "private": true,
   "dependencies": {
     "assert-plus": "^1.0.0",
