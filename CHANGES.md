@@ -1,5 +1,9 @@
 # IMGAPI changelog
 
+## 4.13.0
+
+- TRITON-2403 Add support for docker OCI manifest format
+
 ## 4.12.2
 
 - TRITON-2345 Return accurate error when attempting to import an invalid img alias
