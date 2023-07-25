@@ -1,7 +1,7 @@
 {
   "name": "imgapi",
   "description": "Image API to manage images for Triton Data Center",
-  "version": "4.12.3",
+  "version": "4.13.0",
   "author": "MNX Cloud (mnx.io)",
   "private": true,
   "dependencies": {
@@ -11,7 +11,7 @@
     "bunyan": "^1.8.8",
     "cmdln": "^3.2.1",
     "dashdash": "^1.10.0",
-    "docker-registry-client": "^3.3.0",
+    "docker-registry-client": "^3.4.0",
     "effluent-logger": "git+https://github.com/TritonDataCenter/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "expiring-lru-cache": "^2.1.0",
     "extsprintf": "^1.2.0",
@@ -38,7 +38,7 @@
     "restify-errors": "^4.0.0",
     "rimraf": "2.2.6",
     "sdc-clients": "13.0.4",
-    "semver": "5.4.1",
+    "semver": "5.7.2",
     "sshpk": "^1.13.2",
     "through2": "2.0.3",
     "trace-event": "1.2.0",
