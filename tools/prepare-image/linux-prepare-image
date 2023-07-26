@@ -187,12 +187,20 @@ function cleanup_cloud_init {
 }
 
 function prepare_centos() {
-    # Cleaning up package cache.
-    yum clean all 2>&1 >/dev/null
+    case "$VERSION_ID" in
+        8)
+            # Cleaning up package cache.
+            dnf clean all 2>&1 >/dev/null
+        ;;
+        7)
+            # Cleaning up package cache.
+            yum clean all 2>&1 >/dev/null
 
-    # TODO: Remove this? Doesn't seem necessary
-    # Make sure locale is set to prevent error when system is SSH'ed into.
-    localedef --no-archive -i en_US -f UTF-8 en_US.UTF-8
+            # TODO: Remove this? Doesn't seem necessary
+            # Make sure locale is set to prevent error when system is SSH'ed into.
+            localedef --no-archive -i en_US -f UTF-8 en_US.UTF-8
+        ;;
+    esac
 
     # Remove hostname from /etc/sysconfig/network
     sed -i '/^HOSTNAME=/d' /etc/sysconfig/network
