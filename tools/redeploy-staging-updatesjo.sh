@@ -7,6 +7,7 @@
 
 #
 # Copyright (c) 2017, Joyent, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 #
@@ -122,7 +123,7 @@ isHeadnode=$(ssh $SSH_OPTIONS $HEADNODE pfexec sysinfo | json "Boot Parameters.h
 if [[ "${profileUrl: -18}" == ".staging.joyent.us" ]]; then
     mantaUrl=https://manta.staging.joyent.us
 elif [[ "${profileUrl: -15}" == ".api.joyent.com" ]]; then
-    mantaUrl=https://us-east.manta.joyent.com
+    mantaUrl=https://us-central.manta.mnx.io
 else
     fatal "cannot determine Manta URL associated with CloudAPI $profileUrl"
 fi

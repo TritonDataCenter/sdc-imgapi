@@ -1364,7 +1364,7 @@ Raw API tool:
     Connection: keep-alive
 
     {
-      "manta_url": "https://us-east.manta.joyent.com",
+      "manta_url": "https://us-central.manta.mnx.io",
       "image_path": "/user/stor/imgapi/smartos-1.6.2.zfs.bz2",
       "manifest_path": "/user/stor/imgapi/smartos-1.6.2.imgmanifest"
     }
@@ -1489,7 +1489,7 @@ See [Errors](#errors) section above.
 Raw API tool (against an SDC's IMGAPI).
 
     $ sdc-imgapi '/images/2d74d0fb-8402-4e10-a145-86864b14bca7/file/from-url?compression=gzip&sha1=e6a828afa242ecad289f3114e6e2856ef2404a48' -X POST \
-    -d '{"file_url": "https://us-east.manta.joyent.com/timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz"}'
+    -d '{"file_url": "https://us-central.manta.mnx.io/timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz"}'
     HTTP/1.1 200 OK
     Etag: 824d644a739bb659b86c24316864d7f56438d696
     Content-Type: application/json
@@ -1534,9 +1534,9 @@ Raw API tool (against an SDC's IMGAPI).
 CLI tool:
 
     $ sdc-imgadm add-file -s e6a828afa242ecad289f3114e6e2856ef2404a48 \
-        -f https://us-east.manta.joyent.com//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz \
+        -f https://us-central.manta.mnx.io//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz \
         2d74d0fb-8402-4e10-a145-86864b14bca7
-    Added file from url "https://us-east.manta.joyent.com//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz" (compression "auto detected") to image 2d74d0fb-8402-4e10-a145-86864b14bca7
+    Added file from url "https://us-central.manta.mnx.io//timf/public/builds/assets/master-20180925T100358Z-g3f3d1b8/assets/assets-zfs-master-20180925T100358Z-g3f3d1b8.zfs.gz" (compression "auto detected") to image 2d74d0fb-8402-4e10-a145-86864b14bca7
 
 
 ## AddImageIcon (PUT /images/:uuid/icon)
