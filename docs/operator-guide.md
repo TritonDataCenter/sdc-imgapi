@@ -130,14 +130,14 @@ For example:
     # A play IMGAPI in COAL using a local 'trentm' COAL account and
     # /trent.mick/stor/tmp/images in Manta:
     ./imgapi-standalone-create \
-        -m mantaUrl=https://us-east.manta.joyent.com \
+        -m mantaUrl=https://us-central.manta.mnx.io \
         -m mantaUser=trent.mick \
         -m mantaBaseDir=tmp/images \
         trentm latest sample-2G myimages0
 
     # An deployment of images.smartos.org might look like this:
     ./imgapi-standalone-create \
-        -m mantaUrl=https://us-east.manta.joyent.com \
+        -m mantaUrl=https://us-central.manta.mnx.io \
         -m mantaUser=joyops \
         -m mantaBaseDir=images.smartos.org \
         -t triton.cns.services=imagesjo \
@@ -575,7 +575,7 @@ the `storageTypes` config var. For example:
     "mode": "dc",
     "datacenterName": "us-test-1",
     "manta": {
-        "url": "https://us-east.manta.joyent.com",
+        "url": "https://us-central.manta.mnx.io",
         "user": "alice",
         "key": "/data/imgapi/etc/imgapi-img7-37591570-20160831.id_ecdsa",
         "keyId": "SHA256:UlGQ8CXT0BIvJXq2IoPllUHUOTJUCwNLhsKMzdc8/30",
