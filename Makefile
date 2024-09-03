@@ -6,7 +6,7 @@
 
 #
 # Copyright 2022 Joyent, Inc.
-# Copyright 2024 MNX Cloud, Inc.
+# Copyright 2022 MNX Cloud, Inc.
 #
 
 #
@@ -33,7 +33,7 @@ SMF_MANIFESTS = $(shell ls smf/manifests/*.xml)
 NODEUNIT	:= ./node_modules/.bin/nodeunit
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v8.17.0
+NODE_PREBUILT_VERSION=v6.17.1
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone64
 	NODE_PREBUILT_IMAGE=a7199134-7e94-11ec-be67-db6f482136c2
