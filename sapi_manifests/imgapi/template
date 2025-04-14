@@ -70,6 +70,7 @@
     },
 
     "httpProxy": "{{{http_proxy}}}",
+    "noProxy": "{{{no_proxy}}}",
     "dockerRegistryInsecure": {{^docker_registry_insecure}}false{{/docker_registry_insecure}}{{#docker_registry_insecure}}{{{docker_registry_insecure}}}{{/docker_registry_insecure}},
 
     "// imgapi-manta-setup": "The following vars used by 'imgapi-*-manta-setup'.",
