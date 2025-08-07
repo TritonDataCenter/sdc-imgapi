@@ -55,7 +55,7 @@
   "devDependencies": {
     "jshint": "^2.13.6",
     "nodeunit": "0.10.2",
-    "tmp": "0.1.0"
+    "tmp": "0.2.4"
   },
   "scripts": {
     "test": "make test"
