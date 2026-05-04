@@ -44,7 +44,7 @@
     "trace-event": "1.2.0",
     "triton-metrics": "1.0.3",
     "ufds": "1.2.0",
-    "uuid": "2.0.2",
+    "uuid": "14.0.0",
     "vasync": "1.6.3",
     "verror": "1.6.0",
     "wf-client": "0.2.1"
